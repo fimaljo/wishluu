@@ -9,9 +9,9 @@ export default function TemplateBuilderPage() {
   const templateId = params.template as string;
 
   return (
-    <CustomWishBuilder 
-      onBack={() => window.location.href = '/'} 
+    <CustomWishBuilder
+      onBack={() => (window.location.href = '/')}
       templateId={templateId}
     />
   );
-} 
+}

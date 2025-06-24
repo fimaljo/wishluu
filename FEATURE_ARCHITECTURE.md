@@ -35,13 +35,13 @@ src/
 
 ## 🔄 **Angular vs Next.js Comparison**
 
-| Angular Concept | Next.js Equivalent | Purpose |
-|----------------|-------------------|---------|
-| `Feature Module` | `src/features/feature/` | Organize related functionality |
-| `Component` | `src/features/feature/components/` | UI components |
-| `Service` | `src/features/feature/hooks/` | Business logic & API calls |
-| `Module` | `src/features/feature/index.ts` | Export feature components |
-| `Injectable` | `useContext()` + Custom Hooks | Dependency injection |
+| Angular Concept  | Next.js Equivalent                 | Purpose                        |
+| ---------------- | ---------------------------------- | ------------------------------ |
+| `Feature Module` | `src/features/feature/`            | Organize related functionality |
+| `Component`      | `src/features/feature/components/` | UI components                  |
+| `Service`        | `src/features/feature/hooks/`      | Business logic & API calls     |
+| `Module`         | `src/features/feature/index.ts`    | Export feature components      |
+| `Injectable`     | `useContext()` + Custom Hooks      | Dependency injection           |
 
 ## 🚀 **How to Build New Features**
 
@@ -67,12 +67,8 @@ interface YourComponentProps {
 
 export function YourComponent({ ...props }: YourComponentProps) {
   const { data, actions } = useYourFeatureHook();
-  
-  return (
-    <div>
-      {/* Your component JSX */}
-    </div>
-  );
+
+  return <div>{/* Your component JSX */}</div>;
 }
 ```
 
@@ -116,7 +112,7 @@ export function YourFeaturePage() {
   const { data, actions } = useYourFeatureHook();
 
   return (
-    <div className="min-h-screen">
+    <div className='min-h-screen'>
       <YourComponent />
       {/* More components */}
     </div>
@@ -147,30 +143,33 @@ export default function Page() {
 ## 🎯 **Best Practices**
 
 ### **1. Feature Isolation**
+
 - Keep feature-specific code within the feature folder
 - Use shared components only when necessary
 - Each feature should be self-contained
 
 ### **2. Hook-Based Services**
+
 ```tsx
 // Instead of Angular services, use custom hooks
 export function useWishService() {
   const { state, dispatch } = useWishContext();
-  
-  const createWish = useCallback(async (data) => {
+
+  const createWish = useCallback(async data => {
     // API call logic
   }, []);
-  
+
   return { createWish, wishes: state.wishes };
 }
 ```
 
 ### **3. Context for Global State**
+
 ```tsx
 // src/contexts/YourContext.tsx
 export function YourProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  
+
   return (
     <YourContext.Provider value={{ state, dispatch }}>
       {children}
@@ -180,6 +179,7 @@ export function YourProvider({ children }) {
 ```
 
 ### **4. Type Safety**
+
 ```tsx
 // src/features/your-feature/types.ts
 export interface YourFeatureData {
@@ -200,44 +200,44 @@ export interface YourFeatureState {
 Let's say you want to add a **User Profile** feature:
 
 ### **1. Create Structure**
+
 ```bash
 mkdir -p src/features/profile/{components,hooks,pages}
 ```
 
 ### **2. Create Profile Hook**
+
 ```tsx
 // src/features/profile/hooks/useProfile.ts
 export function useProfile() {
   const [profile, setProfile] = useState(null);
-  
-  const updateProfile = useCallback(async (data) => {
+
+  const updateProfile = useCallback(async data => {
     // API call to update profile
   }, []);
-  
+
   return { profile, updateProfile };
 }
 ```
 
 ### **3. Create Profile Component**
+
 ```tsx
 // src/features/profile/components/ProfileCard.tsx
 export function ProfileCard() {
   const { profile, updateProfile } = useProfile();
-  
-  return (
-    <div className="profile-card">
-      {/* Profile UI */}
-    </div>
-  );
+
+  return <div className='profile-card'>{/* Profile UI */}</div>;
 }
 ```
 
 ### **4. Create Profile Page**
+
 ```tsx
 // src/features/profile/pages/ProfilePage.tsx
 export function ProfilePage() {
   return (
-    <div className="profile-page">
+    <div className='profile-page'>
       <ProfileCard />
       <ProfileSettings />
     </div>
@@ -246,6 +246,7 @@ export function ProfilePage() {
 ```
 
 ### **5. Export Feature**
+
 ```tsx
 // src/features/profile/index.ts
 export { ProfileCard } from './components/ProfileCard';
@@ -254,6 +255,7 @@ export { useProfile } from './hooks/useProfile';
 ```
 
 ### **6. Use in App Router**
+
 ```tsx
 // src/app/profile/page.tsx
 import { ProfilePage } from '@/features/profile';
@@ -266,6 +268,7 @@ export default function Page() {
 ## 🎨 **Styling Approach**
 
 ### **Global Styles**
+
 ```css
 /* src/app/globals.css */
 @tailwind base;
@@ -281,14 +284,16 @@ export default function Page() {
 ```
 
 ### **Component Styles**
+
 ```tsx
 // Use Tailwind classes directly in components
-<div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-lg">
+<div className='bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-lg'>
   {/* Content */}
 </div>
 ```
 
 ### **Custom CSS Classes**
+
 ```css
 /* src/app/globals.css */
 @layer components {
@@ -301,16 +306,19 @@ export default function Page() {
 ## 🔄 **State Management**
 
 ### **Local State (useState)**
+
 ```tsx
 const [localData, setLocalData] = useState();
 ```
 
 ### **Feature State (useReducer)**
+
 ```tsx
 const [state, dispatch] = useReducer(featureReducer, initialState);
 ```
 
 ### **Global State (Context)**
+
 ```tsx
 const { state, actions } = useGlobalContext();
 ```
@@ -319,7 +327,7 @@ const { state, actions } = useGlobalContext();
 
 ```tsx
 // Use Tailwind responsive classes
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
   {/* Responsive grid */}
 </div>
 ```
@@ -346,4 +354,4 @@ describe('YourComponent', () => {
 });
 ```
 
-This architecture provides a clean, scalable, and maintainable way to build features in Next.js, similar to Angular's feature modules! 
+This architecture provides a clean, scalable, and maintainable way to build features in Next.js, similar to Angular's feature modules!

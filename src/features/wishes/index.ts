@@ -12,4 +12,4 @@ export { WishListPage } from './pages/WishListPage';
 export { useWishManagement } from './hooks/useWishManagement';
 
 // Types (if any feature-specific types)
-// export type { WishFeatureType } from './types'; 
+// export type { WishFeatureType } from './types';

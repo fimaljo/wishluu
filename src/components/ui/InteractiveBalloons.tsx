@@ -37,10 +37,12 @@ export function InteractiveBalloons({
   resetAnimation = false,
   onBalloonPop,
   onAllBalloonsPopped,
-  className = ''
+  className = '',
 }: InteractiveBalloonsProps) {
   const [balloons, setBalloons] = useState<Balloon[]>([]);
-  const [poppedImages, setPoppedImages] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [poppedImages, setPoppedImages] = useState<
+    { id: number; x: number; y: number }[]
+  >([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -52,11 +54,19 @@ export function InteractiveBalloons({
     const num = parseInt(color.replace('#', ''), 16);
     const amt = Math.round(2.55 * percent);
     const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    const G = ((num >> 8) & 0x00ff) + amt;
+    const B = (num & 0x0000ff) + amt;
+    return (
+      '#' +
+      (
+        0x1000000 +
+        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+        (B < 255 ? (B < 1 ? 0 : B) : 255)
+      )
+        .toString(16)
+        .slice(1)
+    );
   };
 
   // Initialize balloons
@@ -69,29 +79,32 @@ export function InteractiveBalloons({
       const cellWidth = 80 / gridCols; // 80% of canvas width divided by columns
       const cellHeight = 60 / gridRows; // 60% of canvas height divided by rows
 
-      const newBalloons: Balloon[] = Array.from({ length: validNumberOfBalloons }, (_, index) => {
-        const row = Math.floor(index / gridCols);
-        const col = index % gridCols;
-        
-        // Add some randomness within each grid cell to avoid perfect grid alignment
-        const randomX = (Math.random() - 0.5) * (cellWidth * 0.6); // 60% of cell width for randomness
-        const randomY = (Math.random() - 0.5) * (cellHeight * 0.6); // 60% of cell height for randomness
-        
-        const x = 10 + (col * cellWidth) + (cellWidth / 2) + randomX; // Start at 10%, center in cell, add randomness
-        const targetY = 10 + (row * cellHeight) + (cellHeight / 2) + randomY; // Start at 10%, center in cell, add randomness
-        
-        return {
-          id: index,
-          color: balloonColors[index % balloonColors.length] || '#FF6B9D',
-          x: Math.max(5, Math.min(95, x)), // Keep within 5% to 95% bounds
-          y: 100, // Always start from bottom
-          targetY: Math.max(10, Math.min(70, targetY)), // Keep within 10% to 70% bounds
-          isPopped: false,
-          isAnimating: false,
-          delay: index * 300, // Stagger animation with longer delay
-          imageUrl: balloonImages[index] || null // Only use individual balloon image
-        };
-      });
+      const newBalloons: Balloon[] = Array.from(
+        { length: validNumberOfBalloons },
+        (_, index) => {
+          const row = Math.floor(index / gridCols);
+          const col = index % gridCols;
+
+          // Add some randomness within each grid cell to avoid perfect grid alignment
+          const randomX = (Math.random() - 0.5) * (cellWidth * 0.6); // 60% of cell width for randomness
+          const randomY = (Math.random() - 0.5) * (cellHeight * 0.6); // 60% of cell height for randomness
+
+          const x = 10 + col * cellWidth + cellWidth / 2 + randomX; // Start at 10%, center in cell, add randomness
+          const targetY = 10 + row * cellHeight + cellHeight / 2 + randomY; // Start at 10%, center in cell, add randomness
+
+          return {
+            id: index,
+            color: balloonColors[index % balloonColors.length] || '#FF6B9D',
+            x: Math.max(5, Math.min(95, x)), // Keep within 5% to 95% bounds
+            y: 100, // Always start from bottom
+            targetY: Math.max(10, Math.min(70, targetY)), // Keep within 10% to 70% bounds
+            isPopped: false,
+            isAnimating: false,
+            delay: index * 300, // Stagger animation with longer delay
+            imageUrl: balloonImages[index] || null, // Only use individual balloon image
+          };
+        }
+      );
       setBalloons(newBalloons);
     }
   }, [validNumberOfBalloons, balloonColors, balloonImages]);
@@ -99,10 +112,12 @@ export function InteractiveBalloons({
   // Update balloon images when balloonImages prop changes (without resetting positions)
   useEffect(() => {
     if (balloons.length > 0 && balloonImages.length > 0) {
-      setBalloons(prev => prev.map((balloon, index) => ({
-        ...balloon,
-        imageUrl: balloonImages[index] || null
-      })));
+      setBalloons(prev =>
+        prev.map((balloon, index) => ({
+          ...balloon,
+          imageUrl: balloonImages[index] || null,
+        }))
+      );
     }
   }, [balloonImages]);
 
@@ -110,18 +125,20 @@ export function InteractiveBalloons({
   useEffect(() => {
     if (startAnimation && balloons.length > 0) {
       // Reset all balloons to bottom and start animation
-      setBalloons(prev => prev.map(b => ({
-        ...b,
-        y: 100, // Reset to bottom
-        isPopped: false,
-        isAnimating: false
-      })));
-      
+      setBalloons(prev =>
+        prev.map(b => ({
+          ...b,
+          y: 100, // Reset to bottom
+          isPopped: false,
+          isAnimating: false,
+        }))
+      );
+
       // Start animation after a short delay to ensure balloons are positioned
       const timer = setTimeout(() => {
         setIsAnimating(true);
       }, 100);
-      
+
       return () => clearTimeout(timer);
     }
   }, [startAnimation, balloons.length]);
@@ -129,26 +146,28 @@ export function InteractiveBalloons({
   // Handle reset animation
   useEffect(() => {
     if (resetAnimation) {
-      setBalloons(prev => prev.map(b => ({
-        ...b,
-        y: 100, // Reset to bottom
-        isPopped: false,
-        isAnimating: false
-      })));
+      setBalloons(prev =>
+        prev.map(b => ({
+          ...b,
+          y: 100, // Reset to bottom
+          isPopped: false,
+          isAnimating: false,
+        }))
+      );
       setIsAnimating(false);
     }
   }, [resetAnimation]);
 
   const handleBalloonClick = (balloonId: number) => {
-    setBalloons(prev => prev.map(b => 
-      b.id === balloonId ? { ...b, isPopped: true } : b
-    ));
-    
+    setBalloons(prev =>
+      prev.map(b => (b.id === balloonId ? { ...b, isPopped: true } : b))
+    );
+
     // Check if all balloons are popped
-    const updatedBalloons = balloons.map(b => 
+    const updatedBalloons = balloons.map(b =>
       b.id === balloonId ? { ...b, isPopped: true } : b
     );
-    
+
     const allPopped = updatedBalloons.every(b => b.isPopped);
     if (allPopped && onAllBalloonsPopped) {
       // Add a small delay before triggering next step
@@ -165,18 +184,18 @@ export function InteractiveBalloons({
         return (
           <div
             key={balloon.id}
-            className="absolute"
+            className='absolute'
             style={{
               left: `${balloon.x}%`,
               top: `${balloon.targetY}%`, // Use target position where balloon was floating
               transform: 'translate(-50%, -50%)',
-              zIndex: 10
+              zIndex: 10,
             }}
           >
             <img
               src={balloon.imageUrl}
-              alt="Popped balloon surprise"
-              className="w-24 h-24 object-cover rounded-lg shadow-lg border-2 border-white"
+              alt='Popped balloon surprise'
+              className='w-24 h-24 object-cover rounded-lg shadow-lg border-2 border-white'
             />
           </div>
         );
@@ -185,18 +204,18 @@ export function InteractiveBalloons({
         return (
           <div
             key={balloon.id}
-            className="absolute"
+            className='absolute'
             style={{
               left: `${balloon.x}%`,
               top: `${balloon.targetY}%`, // Use target position where balloon was floating
               transform: 'translate(-50%, -50%)',
-              zIndex: 10
+              zIndex: 10,
             }}
           >
             <div
-              className="w-8 h-8 rounded-full opacity-50"
+              className='w-8 h-8 rounded-full opacity-50'
               style={{
-                background: `radial-gradient(circle, ${balloon.color}40 0%, transparent 70%)`
+                background: `radial-gradient(circle, ${balloon.color}40 0%, transparent 70%)`,
               }}
             />
           </div>
@@ -207,54 +226,55 @@ export function InteractiveBalloons({
     return (
       <div
         key={balloon.id}
-        className="absolute cursor-pointer transition-all duration-300 hover:scale-110"
+        className='absolute cursor-pointer transition-all duration-300 hover:scale-110'
         style={{
           left: `${balloon.x}%`,
           top: isAnimating ? `${balloon.targetY}%` : `${balloon.y}%`,
           transform: 'translate(-50%, -50%)',
           zIndex: 5,
-          transition: isAnimating && !balloon.isPopped
-            ? `top 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${balloon.delay}ms` 
-            : 'none',
-          pointerEvents: balloon.isPopped ? 'none' : 'auto' // Disable clicks when popped
+          transition:
+            isAnimating && !balloon.isPopped
+              ? `top 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${balloon.delay}ms`
+              : 'none',
+          pointerEvents: balloon.isPopped ? 'none' : 'auto', // Disable clicks when popped
         }}
         onClick={() => handleBalloonClick(balloon.id)}
       >
         {/* Balloon */}
         <div
-          className="relative"
+          className='relative'
           style={{
             width: `${balloonSize}px`,
-            height: `${balloonSize * 1.3}px`
+            height: `${balloonSize * 1.3}px`,
           }}
         >
           {/* Balloon body */}
           <div
-            className="rounded-full shadow-lg border-2 border-white/20"
+            className='rounded-full shadow-lg border-2 border-white/20'
             style={{
               width: `${balloonSize}px`,
               height: `${balloonSize}px`,
               backgroundColor: balloon.color,
-              backgroundImage: `radial-gradient(circle at 30% 30%, ${balloon.color}dd, ${balloon.color})`
+              backgroundImage: `radial-gradient(circle at 30% 30%, ${balloon.color}dd, ${balloon.color})`,
             }}
           />
-          
+
           {/* Balloon string */}
           <div
-            className="absolute bottom-0 left-1/2 transform -translate-x-1/2"
+            className='absolute bottom-0 left-1/2 transform -translate-x-1/2'
             style={{
               width: 2,
               height: balloonSize * 0.3,
               backgroundColor: '#666',
-              borderRadius: '1px'
+              borderRadius: '1px',
             }}
           />
-          
+
           {/* Balloon highlight */}
           <div
-            className="absolute top-2 left-2 w-3 h-3 rounded-full opacity-60"
+            className='absolute top-2 left-2 w-3 h-3 rounded-full opacity-60'
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.8)'
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
             }}
           />
         </div>
@@ -269,28 +289,28 @@ export function InteractiveBalloons({
     >
       {/* Render balloons */}
       {balloons.map(renderBalloon)}
-      
+
       {/* Render popped images */}
-      {poppedImages.map((poppedImage) => (
+      {poppedImages.map(poppedImage => (
         <div
           key={`popped-${poppedImage.id}`}
-          className="absolute animate-bounce"
+          className='absolute animate-bounce'
           style={{
             left: `${poppedImage.x}%`,
             top: `${poppedImage.y}%`,
             transform: 'translate(-50%, -50%)',
-            zIndex: 15
+            zIndex: 15,
           }}
         >
           {imageUrl && (
             <img
               src={imageUrl}
-              alt="Popped balloon surprise"
-              className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-full shadow-lg"
+              alt='Popped balloon surprise'
+              className='w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-full shadow-lg'
             />
           )}
         </div>
       ))}
     </div>
   );
-} 
+}

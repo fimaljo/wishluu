@@ -35,20 +35,23 @@ export function useWishForm(initialData?: Partial<WishFormData>) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Update form field
-  const updateField = useCallback((name: keyof WishFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
+  const updateField = useCallback(
+    (name: keyof WishFormData, value: string) => {
+      setFormData(prev => ({
         ...prev,
-        [name]: '',
+        [name]: value,
       }));
-    }
-  }, [errors]);
+
+      // Clear error for this field when user starts typing
+      if (errors[name]) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: '',
+        }));
+      }
+    },
+    [errors]
+  );
 
   // Validate form data
   const validateForm = useCallback((): boolean => {
@@ -76,26 +79,29 @@ export function useWishForm(initialData?: Partial<WishFormData>) {
   }, [formData]);
 
   // Handle form submission
-  const handleSubmit = useCallback(async (onSubmit: (data: WishFormData) => Promise<void>) => {
-    if (!validateForm()) {
-      return false;
-    }
+  const handleSubmit = useCallback(
+    async (onSubmit: (data: WishFormData) => Promise<void>) => {
+      if (!validateForm()) {
+        return false;
+      }
 
-    setIsSubmitting(true);
-    try {
-      await onSubmit(formData);
-      return true;
-    } catch (error) {
-      console.error('Form submission error:', error);
-      setErrors(prev => ({
-        ...prev,
-        submit: 'Failed to submit form. Please try again.',
-      }));
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [formData, validateForm]);
+      setIsSubmitting(true);
+      try {
+        await onSubmit(formData);
+        return true;
+      } catch (error) {
+        console.error('Form submission error:', error);
+        setErrors(prev => ({
+          ...prev,
+          submit: 'Failed to submit form. Please try again.',
+        }));
+        return false;
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [formData, validateForm]
+  );
 
   // Reset form
   const resetForm = useCallback(() => {
@@ -113,8 +119,9 @@ export function useWishForm(initialData?: Partial<WishFormData>) {
   }, []);
 
   // Check if form is valid
-  const isValid = Object.keys(errors).length === 0 && 
-    formData.recipientName.trim() !== '' && 
+  const isValid =
+    Object.keys(errors).length === 0 &&
+    formData.recipientName.trim() !== '' &&
     formData.message.trim() !== '';
 
   return {
@@ -133,4 +140,4 @@ export function useWishForm(initialData?: Partial<WishFormData>) {
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
-} 
+}

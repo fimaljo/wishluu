@@ -19,15 +19,16 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       imageUrl: null,
       balloonSize: 60,
       floatSpeed: 2,
-      interactive: true
-    }
+      interactive: true,
+    },
   },
   // Beautiful Text Element
   {
     id: 'beautiful-text',
     type: 'text',
     name: 'Beautiful Text',
-    description: 'Add beautiful titles and messages with custom fonts and colors',
+    description:
+      'Add beautiful titles and messages with custom fonts and colors',
     icon: '✨',
     category: 'basic',
     isPremium: true,
@@ -44,7 +45,7 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       animation: 'fade-in',
       shadow: true,
       gradient: false,
-      padding: 20
+      padding: 20,
     },
     propertyDefinitions: [
       {
@@ -52,14 +53,15 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         type: 'text',
         label: 'Title',
         defaultValue: 'Happy Birthday!',
-        isPremium: false
+        isPremium: false,
       },
       {
         name: 'message',
         type: 'text',
         label: 'Message',
-        defaultValue: 'Wishing you a wonderful day filled with joy and laughter!',
-        isPremium: false
+        defaultValue:
+          'Wishing you a wonderful day filled with joy and laughter!',
+        isPremium: false,
       },
       {
         name: 'titleFont',
@@ -81,8 +83,8 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
           { value: 'great-vibes', label: 'Great Vibes', isPremium: true },
           { value: 'satisfy', label: 'Satisfy', isPremium: true },
           { value: 'kaushan', label: 'Kaushan Script', isPremium: true },
-          { value: 'allura', label: 'Allura', isPremium: true }
-        ]
+          { value: 'allura', label: 'Allura', isPremium: true },
+        ],
       },
       {
         name: 'messageFont',
@@ -100,22 +102,22 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
           { value: 'raleway', label: 'Raleway' },
           { value: 'playfair', label: 'Playfair Display' },
           { value: 'dancing', label: 'Dancing Script', isPremium: true },
-          { value: 'pacifico', label: 'Pacifico', isPremium: true }
-        ]
+          { value: 'pacifico', label: 'Pacifico', isPremium: true },
+        ],
       },
       {
         name: 'titleColor',
         type: 'color',
         label: 'Title Color',
         defaultValue: '#FF6B9D',
-        isPremium: false
+        isPremium: false,
       },
       {
         name: 'messageColor',
         type: 'color',
         label: 'Message Color',
         defaultValue: '#4A5568',
-        isPremium: false
+        isPremium: false,
       },
       {
         name: 'titleSize',
@@ -125,7 +127,7 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         min: 24,
         max: 96,
         step: 1,
-        isPremium: false
+        isPremium: false,
       },
       {
         name: 'messageSize',
@@ -135,7 +137,7 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         min: 12,
         max: 32,
         step: 1,
-        isPremium: false
+        isPremium: false,
       },
       {
         name: 'alignment',
@@ -146,8 +148,8 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         options: [
           { value: 'left', label: 'Left' },
           { value: 'center', label: 'Center' },
-          { value: 'right', label: 'Right' }
-        ]
+          { value: 'right', label: 'Right' },
+        ],
       },
       {
         name: 'animation',
@@ -165,15 +167,15 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
           { value: 'pulse', label: 'Pulse' },
           { value: 'flip', label: '3D Flip', isPremium: true },
           { value: 'rotate', label: 'Rotate', isPremium: true },
-          { value: 'typewriter', label: 'Typewriter', isPremium: true }
-        ]
+          { value: 'typewriter', label: 'Typewriter', isPremium: true },
+        ],
       },
       {
         name: 'shadow',
         type: 'checkbox',
         label: 'Enable Shadow',
         defaultValue: true,
-        isPremium: false
+        isPremium: false,
       },
       {
         name: 'gradient',
@@ -182,7 +184,7 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         defaultValue: false,
         isPremium: false,
         premiumLabel: 'Premium',
-        upgradeMessage: 'Unlock gradient text effects'
+        upgradeMessage: 'Unlock gradient text effects',
       },
       {
         name: 'padding',
@@ -192,10 +194,10 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         min: 0,
         max: 60,
         step: 1,
-        isPremium: false
-      }
-    ]
-  }
+        isPremium: false,
+      },
+    ],
+  },
 ];
 
 // Helper function to get element by ID
@@ -209,6 +211,8 @@ export const getAllElements = (): InteractiveElement[] => {
 };
 
 // Helper function to get elements by category
-export const getElementsByCategory = (category: string): InteractiveElement[] => {
+export const getElementsByCategory = (
+  category: string
+): InteractiveElement[] => {
   return ELEMENT_DEFINITIONS.filter(element => element.category === category);
-}; 
+};

@@ -18,12 +18,12 @@ export async function GET() {
         isPublic: true,
         views: 10,
         likes: 5,
-      }
+      },
     ];
 
-    return NextResponse.json({ 
-      success: true, 
-      data: wishes 
+    return NextResponse.json({
+      success: true,
+      data: wishes,
     });
   } catch (error) {
     return NextResponse.json(
@@ -37,7 +37,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.recipientName || !body.message) {
       return NextResponse.json(
@@ -61,20 +61,25 @@ export async function POST(request: NextRequest) {
       ...(body.senderName && { senderName: body.senderName }),
       ...(body.senderEmail && { senderEmail: body.senderEmail }),
       ...(body.elements && { elements: body.elements }),
-      ...(body.customBackgroundColor && { customBackgroundColor: body.customBackgroundColor }),
+      ...(body.customBackgroundColor && {
+        customBackgroundColor: body.customBackgroundColor,
+      }),
     };
 
     // Add to storage so it can be retrieved later
     addWishToStorage(newWish);
 
-    return NextResponse.json({ 
-      success: true, 
-      data: newWish 
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        data: newWish,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
       { success: false, error: 'Failed to create wish' },
       { status: 500 }
     );
   }
-} 
+}

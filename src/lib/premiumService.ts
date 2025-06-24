@@ -32,7 +32,9 @@ class PremiumService {
   /**
    * Get user's premium status (currently local, will be Firebase later)
    */
-  async getUserPremiumStatus(userId: string): Promise<UserPremiumStatus | null> {
+  async getUserPremiumStatus(
+    userId: string
+  ): Promise<UserPremiumStatus | null> {
     try {
       // Check cache first
       if (this.userStatusCache.has(userId)) {
@@ -41,12 +43,14 @@ class PremiumService {
 
       // For now, check localStorage (will be replaced with Firebase)
       const storedStatus = localStorage.getItem(`premium_${userId}`);
-      
+
       if (storedStatus) {
         const parsedStatus = JSON.parse(storedStatus);
         const premiumStatus: UserPremiumStatus = {
           ...parsedStatus,
-          expiresAt: parsedStatus.expiresAt ? new Date(parsedStatus.expiresAt) : undefined,
+          expiresAt: parsedStatus.expiresAt
+            ? new Date(parsedStatus.expiresAt)
+            : undefined,
           createdAt: new Date(parsedStatus.createdAt),
           updatedAt: new Date(parsedStatus.updatedAt),
         };
@@ -76,7 +80,9 @@ class PremiumService {
   /**
    * Create or update user premium status
    */
-  async createUserPremiumStatus(premiumStatus: UserPremiumStatus): Promise<void> {
+  async createUserPremiumStatus(
+    premiumStatus: UserPremiumStatus
+  ): Promise<void> {
     try {
       // For now, store in localStorage (will be replaced with Firebase)
       const statusToStore = {
@@ -86,7 +92,10 @@ class PremiumService {
         updatedAt: premiumStatus.updatedAt.toISOString(),
       };
 
-      localStorage.setItem(`premium_${premiumStatus.userId}`, JSON.stringify(statusToStore));
+      localStorage.setItem(
+        `premium_${premiumStatus.userId}`,
+        JSON.stringify(statusToStore)
+      );
 
       // Update cache
       this.userStatusCache.set(premiumStatus.userId, premiumStatus);
@@ -100,7 +109,7 @@ class PremiumService {
    * Update user's premium status
    */
   async updateUserPremiumStatus(
-    userId: string, 
+    userId: string,
     updates: Partial<UserPremiumStatus>
   ): Promise<void> {
     try {
@@ -109,10 +118,10 @@ class PremiumService {
         throw new Error('User status not found');
       }
 
-      const updatedStatus = { 
-        ...currentStatus, 
-        ...updates, 
-        updatedAt: new Date() 
+      const updatedStatus = {
+        ...currentStatus,
+        ...updates,
+        updatedAt: new Date(),
       };
 
       await this.createUserPremiumStatus(updatedStatus);
@@ -126,8 +135,8 @@ class PremiumService {
    * Check if user has access to a specific feature
    */
   async hasFeatureAccess(
-    userId: string, 
-    featureId: string, 
+    userId: string,
+    featureId: string,
     requiredPlan: 'free' | 'pro' | 'premium' = 'free'
   ): Promise<boolean> {
     try {
@@ -149,8 +158,8 @@ class PremiumService {
    * Upgrade user to premium plan
    */
   async upgradeUser(
-    userId: string, 
-    planType: 'pro' | 'premium', 
+    userId: string,
+    planType: 'pro' | 'premium',
     subscriptionId?: string
   ): Promise<void> {
     try {
@@ -207,11 +216,11 @@ class PremiumService {
    * TODO: Firebase Integration Methods
    * These methods will be implemented when Firebase is properly configured
    */
-  
+
   // subscribeToPremiumStatus(userId: string, callback: (status: UserPremiumStatus | null) => void): () => void {
   //   // TODO: Implement Firebase real-time subscription
   //   return () => {};
   // }
 }
 
-export const premiumService = PremiumService.getInstance(); 
+export const premiumService = PremiumService.getInstance();

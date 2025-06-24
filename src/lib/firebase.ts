@@ -41,7 +41,9 @@ export interface Wish {
   isPublic: boolean;
 }
 
-export const createWish = async (wishData: Omit<Wish, 'id' | 'createdAt'>): Promise<string> => {
+export const createWish = async (
+  wishData: Omit<Wish, 'id' | 'createdAt'>
+): Promise<string> => {
   // TODO: Implement Firebase Firestore integration
   // console.log('Creating wish:', wishData);
   return 'wish_' + Date.now();
@@ -53,7 +55,10 @@ export const getWish = async (id: string): Promise<Wish | null> => {
   return null;
 };
 
-export const updateWish = async (id: string, updates: Partial<Wish>): Promise<void> => {
+export const updateWish = async (
+  id: string,
+  updates: Partial<Wish>
+): Promise<void> => {
   // TODO: Implement Firebase Firestore integration
   // console.log('Updating wish:', id, updates);
 };
@@ -62,4 +67,3 @@ export const deleteWish = async (id: string): Promise<void> => {
   // TODO: Implement Firebase Firestore integration
   // console.log('Deleting wish:', id);
 };
-

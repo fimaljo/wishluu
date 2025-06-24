@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+# Simple commit message validation
+# This can be enhanced with commitlint later if needed
+commit_msg=$(cat "$1")
+
+# Check if commit message follows conventional format
+if ! echo "$commit_msg" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|ci|build|perf)(\(.+\))?: .+"; then
+  echo "❌ Commit message must follow conventional format:"
+  echo "   <type>(<scope>): <description>"
+  echo "   Examples:"
+  echo "   - feat: add new feature"
+  echo "   - fix: resolve bug"
+  echo "   - docs: update documentation"
+  echo "   - style: format code"
+  echo "   - refactor: refactor code"
+  echo "   - test: add tests"
+  echo "   - chore: maintenance tasks"
+  echo "   - ci: CI/CD changes"
+  echo "   - build: build system changes"
+  echo "   - perf: performance improvements"
+  exit 1
+fi
+
+echo "✅ Commit message format is valid" 
