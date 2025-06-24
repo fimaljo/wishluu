@@ -124,8 +124,8 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Choose Your Template
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Select a beautiful template or create your own custom wish from scratch
+          <p className="text-gray-600 mb-6">
+            Create a beautiful, personalized wish that&apos;ll make someone&apos;s day special
           </p>
         </div>
 

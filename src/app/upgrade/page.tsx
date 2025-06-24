@@ -267,6 +267,15 @@ export default function UpgradePage() {
             </div>
           </div>
         </div>
+
+        <div className="text-center mt-16">
+          <p className="text-gray-600 mb-6">
+            Unlock unlimited wishes, premium templates, and advanced customization options. Make every celebration extraordinary!
+          </p>
+          <p className="text-gray-600 mb-8">
+            Upgrade now and start creating wishes that&apos;ll be remembered forever. Your loved ones deserve the best!
+          </p>
+        </div>
       </div>
     </div>
   );

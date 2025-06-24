@@ -51,7 +51,7 @@ export function WishListPage() {
 
   const handleWishCreated = (wish: any) => {
     // TODO: Add the new wish to the list
-    console.log('New wish created:', wish);
+    // console.log('New wish created:', wish);
     setShowCreator(false);
   };
 

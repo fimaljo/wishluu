@@ -87,13 +87,6 @@ export function ElementPropertiesPanel({
     { value: 'aurora', name: 'Aurora', gradient: 'from-teal-400 to-blue-500', preview: 'bg-gradient-to-br from-teal-400 to-blue-500' }
   ];
 
-  // Debug: Log available themes
-  console.log('ElementPropertiesPanel - Available themes:', themes.map(t => t.value));
-  console.log('ElementPropertiesPanel - Current theme prop:', theme);
-  console.log('ElementPropertiesPanel - Element prop:', element);
-  console.log('ElementPropertiesPanel - Element type:', element?.elementType);
-  console.log('ElementPropertiesPanel - Element properties:', element?.properties);
-
   const musicLibrary = [
     { id: 'birthday-song', name: 'Happy Birthday', url: '/audio/birthday-song.mp3', duration: '2:30', category: 'birthday' },
     { id: 'romantic-piano', name: 'Romantic Piano', url: '/audio/romantic-piano.mp3', duration: '3:15', category: 'romantic' },
@@ -187,10 +180,7 @@ export function ElementPropertiesPanel({
                     <button
                       key={themeOption.value}
                       onClick={() => {
-                        console.log('Theme button clicked:', themeOption.value);
-                        console.log('Current theme before update:', theme);
                         onUpdateTheme(themeOption.value);
-                        console.log('onUpdateTheme called with:', themeOption.value);
                       }}
                       className={`p-3 rounded-lg border-2 transition-all text-left ${
                         theme === themeOption.value
