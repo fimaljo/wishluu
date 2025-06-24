@@ -460,9 +460,26 @@ export function CustomWishBuilder({ onBack, templateId, isUserPremium: propIsUse
   };
 
   const handleOpenPresentationMode = () => {
-    if (currentWish) {
-      setShowPresentationMode(true);
+    if (!currentWish) {
+      // If no wish is saved yet, create a temporary wish for presentation
+      const tempWish = {
+        id: `temp_${Date.now()}`,
+        recipientName: recipientName.trim() || 'Your Loved One',
+        message: message.trim() || 'A special wish for you!',
+        theme,
+        animation: 'fade',
+        occasion: templateId || 'custom',
+        isPublic: true,
+        elements: elements,
+        customBackgroundColor,
+        createdAt: new Date().toISOString(),
+        views: 0,
+        likes: 0
+      } as Wish;
+      
+      setCurrentWish(tempWish);
     }
+    setShowPresentationMode(true);
   };
 
   const handleUpgradeClick = async () => {
@@ -515,7 +532,7 @@ export function CustomWishBuilder({ onBack, templateId, isUserPremium: propIsUse
               >
                 {isPreviewMode ? 'Exit Preview' : 'Preview'}
               </Button>
-              {currentWish && (
+              {elements.length > 0 && (
                 <Button 
                   variant="outline"
                   onClick={handleOpenPresentationMode}

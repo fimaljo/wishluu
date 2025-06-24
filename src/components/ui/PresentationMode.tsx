@@ -20,15 +20,17 @@ export function PresentationMode({ wish, onClose, isOpen }: PresentationModeProp
 
   // Parse step sequence from wish elements
   useEffect(() => {
-    if (wish.elements && wish.elements.length > 0) {
+    if (wish && wish.elements && wish.elements.length > 0) {
       // Group elements by step if step sequence exists
       // For now, we'll show all elements in a single presentation
       setStepElements(wish.elements);
+    } else {
+      setStepElements([]);
     }
   }, [wish]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && wish) {
       // Start auto-play after 2 seconds
       const timer = setTimeout(() => {
         if (autoPlay) {
@@ -38,7 +40,7 @@ export function PresentationMode({ wish, onClose, isOpen }: PresentationModeProp
 
       return () => clearTimeout(timer);
     }
-  }, [isOpen, autoPlay]);
+  }, [isOpen, autoPlay, wish]);
 
   useEffect(() => {
     if (isPlaying && stepElements.length > 1) {
@@ -105,7 +107,7 @@ export function PresentationMode({ wish, onClose, isOpen }: PresentationModeProp
     setShowControls(true);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !wish) return null;
 
   const themes = {
     purple: 'from-purple-400 to-pink-400',
