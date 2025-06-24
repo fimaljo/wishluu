@@ -25,7 +25,13 @@
         "zIndex": 10,
         "scale": 1,
         "numberOfBalloons": 5,
-        "balloonColors": ["#FF6B9D", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"],
+        "balloonColors": [
+          "#FF6B9D",
+          "#4ECDC4",
+          "#45B7D1",
+          "#96CEB4",
+          "#FFEAA7"
+        ],
         "animationDuration": 3000,
         "popOnClick": true,
         "showImageOnPop": true,
@@ -41,4 +47,4 @@
     }
   ],
   "templates": []
-} 
+}

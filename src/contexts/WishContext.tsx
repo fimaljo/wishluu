@@ -4,7 +4,7 @@ import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { Wish } from '@/lib/firebase';
 
 // Define action types for type safety
-type WishAction = 
+type WishAction =
   | { type: 'SET_WISHES'; payload: Wish[] }
   | { type: 'ADD_WISH'; payload: Wish }
   | { type: 'UPDATE_WISH'; payload: { id: string; updates: Partial<Wish> } }
@@ -36,14 +36,14 @@ function wishReducer(state: WishState, action: WishAction): WishState {
         loading: false,
         error: null,
       };
-    
+
     case 'ADD_WISH':
       return {
         ...state,
         wishes: [action.payload, ...state.wishes],
         error: null,
       };
-    
+
     case 'UPDATE_WISH':
       return {
         ...state,
@@ -54,27 +54,27 @@ function wishReducer(state: WishState, action: WishAction): WishState {
         ),
         error: null,
       };
-    
+
     case 'DELETE_WISH':
       return {
         ...state,
         wishes: state.wishes.filter(wish => wish.id !== action.payload),
         error: null,
       };
-    
+
     case 'SET_LOADING':
       return {
         ...state,
         loading: action.payload,
       };
-    
+
     case 'SET_ERROR':
       return {
         ...state,
         error: action.payload,
         loading: false,
       };
-    
+
     default:
       return state;
   }
@@ -133,11 +133,7 @@ export function WishProvider({ children }: WishProviderProps) {
     setError,
   };
 
-  return (
-    <WishContext.Provider value={value}>
-      {children}
-    </WishContext.Provider>
-  );
+  return <WishContext.Provider value={value}>{children}</WishContext.Provider>;
 }
 
 // Custom hook to use the wish context
@@ -151,7 +147,8 @@ export function useWishContext() {
 
 // Custom hook for wish operations
 export function useWishes() {
-  const { state, addWish, updateWish, deleteWish, setLoading, setError } = useWishContext();
+  const { state, addWish, updateWish, deleteWish, setLoading, setError } =
+    useWishContext();
 
   const fetchWishes = async () => {
     setLoading(true);
@@ -160,7 +157,9 @@ export function useWishes() {
       // const wishes = await getWishes();
       // dispatch({ type: 'SET_WISHES', payload: wishes });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to fetch wishes');
+      setError(
+        error instanceof Error ? error.message : 'Failed to fetch wishes'
+      );
     }
   };
 
@@ -171,7 +170,9 @@ export function useWishes() {
       // const newWish = await createWish(wishData);
       // addWish(newWish);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create wish');
+      setError(
+        error instanceof Error ? error.message : 'Failed to create wish'
+      );
     }
   };
 
@@ -184,4 +185,4 @@ export function useWishes() {
     updateWish,
     deleteWish,
   };
-} 
+}

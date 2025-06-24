@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Initial WishLuu application setup
 - Next.js 14 with App Router
 - TypeScript configuration
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-01-XX
 
 ### Added
+
 - Initial release of WishLuu
 - Core wish list functionality
 - User interface components
@@ -51,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### For each release:
 
 1. **Create a release branch** from `develop`:
+
    ```bash
    git checkout develop
    git pull origin develop
@@ -62,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 3. **Update CHANGELOG.md** with new version section
 
 4. **Commit changes**:
+
    ```bash
    git add .
    git commit -m "chore: prepare release vX.Y.Z"
@@ -74,16 +78,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Version Format
 
 - **Major** (X.0.0): Breaking changes
-- **Minor** (0.X.0): New features, backward compatible  
+- **Minor** (0.X.0): New features, backward compatible
 - **Patch** (0.0.X): Bug fixes, backward compatible
 
 ### Commit Message Format
 
 Use conventional commit format:
+
 - `feat:` for new features
 - `fix:` for bug fixes
 - `docs:` for documentation changes
 - `style:` for formatting changes
 - `refactor:` for code refactoring
 - `test:` for adding tests
-- `chore:` for maintenance tasks 
+- `chore:` for maintenance tasks

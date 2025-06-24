@@ -183,22 +183,74 @@ export interface WishEvent {
 
 // Constants
 export const OCCASIONS: Occasion[] = [
-  { value: 'birthday', label: 'Birthday', emoji: '🎂', color: 'from-pink-400 to-rose-500' },
-  { value: 'valentine', label: "Valentine's Day", emoji: '��', color: 'from-red-400 to-pink-500' },
-  { value: 'mothers-day', label: "Mother's Day", emoji: '🌷', color: 'from-purple-400 to-pink-500' },
-  { value: 'proposal', label: 'Proposal', emoji: '💍', color: 'from-blue-400 to-purple-500' },
-  { value: 'anniversary', label: 'Anniversary', emoji: '💑', color: 'from-green-400 to-blue-500' },
-  { value: 'graduation', label: 'Graduation', emoji: '🎓', color: 'from-yellow-400 to-orange-500' },
-  { value: 'thank-you', label: 'Thank You', emoji: '🙏', color: 'from-indigo-400 to-purple-500' },
-  { value: 'congratulations', label: 'Congratulations', emoji: '🎉', color: 'from-cyan-400 to-blue-500' },
+  {
+    value: 'birthday',
+    label: 'Birthday',
+    emoji: '🎂',
+    color: 'from-pink-400 to-rose-500',
+  },
+  {
+    value: 'valentine',
+    label: "Valentine's Day",
+    emoji: '��',
+    color: 'from-red-400 to-pink-500',
+  },
+  {
+    value: 'mothers-day',
+    label: "Mother's Day",
+    emoji: '🌷',
+    color: 'from-purple-400 to-pink-500',
+  },
+  {
+    value: 'proposal',
+    label: 'Proposal',
+    emoji: '💍',
+    color: 'from-blue-400 to-purple-500',
+  },
+  {
+    value: 'anniversary',
+    label: 'Anniversary',
+    emoji: '💑',
+    color: 'from-green-400 to-blue-500',
+  },
+  {
+    value: 'graduation',
+    label: 'Graduation',
+    emoji: '🎓',
+    color: 'from-yellow-400 to-orange-500',
+  },
+  {
+    value: 'thank-you',
+    label: 'Thank You',
+    emoji: '🙏',
+    color: 'from-indigo-400 to-purple-500',
+  },
+  {
+    value: 'congratulations',
+    label: 'Congratulations',
+    emoji: '🎉',
+    color: 'from-cyan-400 to-blue-500',
+  },
 ];
 
 export const THEMES: Theme[] = [
-  { value: 'purple', name: 'Purple Dream', gradient: 'from-purple-400 to-pink-400' },
+  {
+    value: 'purple',
+    name: 'Purple Dream',
+    gradient: 'from-purple-400 to-pink-400',
+  },
   { value: 'ocean', name: 'Ocean Blue', gradient: 'from-blue-400 to-cyan-400' },
   { value: 'sunset', name: 'Sunset', gradient: 'from-orange-400 to-pink-400' },
-  { value: 'forest', name: 'Forest Green', gradient: 'from-green-400 to-emerald-400' },
-  { value: 'royal', name: 'Royal Gold', gradient: 'from-yellow-400 to-orange-400' },
+  {
+    value: 'forest',
+    name: 'Forest Green',
+    gradient: 'from-green-400 to-emerald-400',
+  },
+  {
+    value: 'royal',
+    name: 'Royal Gold',
+    gradient: 'from-yellow-400 to-orange-400',
+  },
 ];
 
 export const ANIMATIONS: Animation[] = [
@@ -206,4 +258,4 @@ export const ANIMATIONS: Animation[] = [
   { value: 'slide', name: 'Slide Up' },
   { value: 'bounce', name: 'Bounce' },
   { value: 'zoom', name: 'Zoom In' },
-]; 
+];

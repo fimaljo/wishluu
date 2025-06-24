@@ -27,7 +27,7 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
       thumbnail: '🎂',
       color: 'from-pink-400 to-rose-500',
       elements: ['cake', 'candles', 'balloons', 'music'],
-      difficulty: 'easy'
+      difficulty: 'easy',
     },
     {
       id: 'memory-board',
@@ -37,7 +37,7 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
       thumbnail: '📸',
       color: 'from-blue-400 to-purple-500',
       elements: ['photos', 'text', 'frames', 'stickers'],
-      difficulty: 'medium'
+      difficulty: 'medium',
     },
     {
       id: 'valentine-heart',
@@ -47,7 +47,7 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
       thumbnail: '💕',
       color: 'from-red-400 to-pink-500',
       elements: ['heart', 'sparkles', 'love-messages', 'animations'],
-      difficulty: 'easy'
+      difficulty: 'easy',
     },
     {
       id: 'proposal-ring',
@@ -57,7 +57,7 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
       thumbnail: '💍',
       color: 'from-purple-400 to-pink-500',
       elements: ['ring', 'rose-petals', 'romantic-text', 'music'],
-      difficulty: 'hard'
+      difficulty: 'hard',
     },
     {
       id: 'graduation-cap',
@@ -67,7 +67,7 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
       thumbnail: '🎓',
       color: 'from-yellow-400 to-orange-500',
       elements: ['cap', 'confetti', 'diploma', 'celebration'],
-      difficulty: 'medium'
+      difficulty: 'medium',
     },
     {
       id: 'custom-blank',
@@ -77,8 +77,8 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
       thumbnail: '✨',
       color: 'from-indigo-400 to-purple-500',
       elements: ['all-elements'],
-      difficulty: 'expert'
-    }
+      difficulty: 'expert',
+    },
   ];
 
   const handleTemplateSelect = (templateId: string) => {
@@ -106,32 +106,33 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50'>
       {/* Navigation */}
-      <nav className="flex items-center justify-between p-6 max-w-7xl mx-auto">
-        <Button variant="outline" onClick={onBack}>
+      <nav className='flex items-center justify-between p-6 max-w-7xl mx-auto'>
+        <Button variant='outline' onClick={onBack}>
           ← Back to Wishes
         </Button>
-        <div className="flex items-center space-x-4">
-          <span className="text-gray-600">Create New Wish</span>
+        <div className='flex items-center space-x-4'>
+          <span className='text-gray-600'>Create New Wish</span>
         </div>
       </nav>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className='max-w-7xl mx-auto px-6 py-12'>
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className='text-center mb-12'>
+          <h1 className='text-4xl font-bold text-gray-900 mb-4'>
             Choose Your Template
           </h1>
-          <p className="text-gray-600 mb-6">
-            Create a beautiful, personalized wish that&apos;ll make someone&apos;s day special
+          <p className='text-gray-600 mb-6'>
+            Create a beautiful, personalized wish that&apos;ll make
+            someone&apos;s day special
           </p>
         </div>
 
         {/* Template Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {templates.map((template) => (
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12'>
+          {templates.map(template => (
             <TemplateCard
               key={template.id}
               template={template}
@@ -142,28 +143,28 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="text-center space-y-4">
+        <div className='text-center space-y-4'>
           {selectedTemplate && selectedTemplate !== 'custom-blank' && (
             <Button
-              variant="primary"
+              variant='primary'
               onClick={handleStartCreating}
               disabled={isLoading}
-              className="px-8 py-4 text-lg"
+              className='px-8 py-4 text-lg'
             >
               {isLoading ? (
-                <Loading variant="spinner" size="sm" />
+                <Loading variant='spinner' size='sm' />
               ) : (
                 'Start Creating with Template'
               )}
             </Button>
           )}
-          
-          <div className="text-gray-500">
+
+          <div className='text-gray-500'>
             <p>Can't find what you're looking for?</p>
             <Button
-              variant="outline"
+              variant='outline'
               onClick={() => setShowCustomBuilder(true)}
-              className="mt-2"
+              className='mt-2'
             >
               Create Custom Wish from Scratch
             </Button>
@@ -171,19 +172,26 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
         </div>
 
         {/* Template Categories */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-center mb-8">Browse by Category</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className='mt-16'>
+          <h2 className='text-2xl font-bold text-center mb-8'>
+            Browse by Category
+          </h2>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
             {[
               { name: 'Birthday', emoji: '🎂', count: 3 },
               { name: 'Valentine', emoji: '💕', count: 2 },
               { name: 'Graduation', emoji: '🎓', count: 2 },
-              { name: 'Custom', emoji: '✨', count: 1 }
-            ].map((category) => (
-              <div key={category.name} className="bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-3xl mb-2">{category.emoji}</div>
-                <h3 className="font-semibold text-gray-800">{category.name}</h3>
-                <p className="text-sm text-gray-500">{category.count} templates</p>
+              { name: 'Custom', emoji: '✨', count: 1 },
+            ].map(category => (
+              <div
+                key={category.name}
+                className='bg-white rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-shadow'
+              >
+                <div className='text-3xl mb-2'>{category.emoji}</div>
+                <h3 className='font-semibold text-gray-800'>{category.name}</h3>
+                <p className='text-sm text-gray-500'>
+                  {category.count} templates
+                </p>
               </div>
             ))}
           </div>
@@ -191,4 +199,4 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
       </div>
     </div>
   );
-} 
+}

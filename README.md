@@ -65,6 +65,7 @@ wishluu/
 ## 🎯 Learning Objectives
 
 ### 1. **Next.js 15 & App Router**
+
 - Understanding the new App Router architecture
 - Server and Client Components
 - Dynamic routes and layouts
@@ -72,6 +73,7 @@ wishluu/
 - Built-in optimizations
 
 ### 2. **TypeScript Best Practices**
+
 - Strict type checking
 - Interface and type definitions
 - Generic types and utility types
@@ -79,6 +81,7 @@ wishluu/
 - Path mapping and module resolution
 
 ### 3. **React Patterns & Hooks**
+
 - Custom hooks for reusable logic
 - Context API for state management
 - useReducer for complex state
@@ -86,6 +89,7 @@ wishluu/
 - Component composition patterns
 
 ### 4. **State Management**
+
 - React Context with useReducer
 - Local vs global state
 - State normalization
@@ -93,6 +97,7 @@ wishluu/
 - Error state handling
 
 ### 5. **Form Handling**
+
 - Controlled components
 - Form validation
 - Error handling
@@ -100,6 +105,7 @@ wishluu/
 - Real-time validation
 
 ### 6. **Styling & Design Systems**
+
 - Tailwind CSS utility-first approach
 - Component-based design system
 - Responsive design principles
@@ -107,6 +113,7 @@ wishluu/
 - Animation and transitions
 
 ### 7. **Code Quality & Best Practices**
+
 - ESLint configuration
 - TypeScript strict mode
 - Error boundaries
@@ -114,6 +121,7 @@ wishluu/
 - Accessibility (a11y)
 
 ### 8. **Backend Integration**
+
 - Firebase setup and configuration
 - Firestore database operations
 - Authentication patterns
@@ -123,6 +131,7 @@ wishluu/
 ## 🎯 Current Status
 
 ### ✅ Completed
+
 - Beautiful landing page with hero section, features, and occasions
 - Interactive wish creation form with real-time preview
 - Dynamic wish viewing page with animations and confetti effects
@@ -140,13 +149,16 @@ wishluu/
   - Proper project structure
 
 ### 🔄 In Progress
+
 - Firebase integration for data persistence
 - User authentication
 - Wish sharing functionality
 - Advanced animations and interactions
 
 ### 📋 Next Steps
+
 1. **Install Firebase Dependencies**
+
    ```bash
    npm install firebase
    ```
@@ -159,6 +171,7 @@ wishluu/
 
 3. **Environment Variables**
    Create a `.env.local` file:
+
    ```env
    NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
@@ -176,17 +189,20 @@ wishluu/
 ## 🎨 Design System
 
 ### Color Palette
+
 - **Primary**: Purple to Pink gradients
 - **Secondary**: Various theme gradients (Ocean, Sunset, Forest, Royal)
 - **Background**: Light purple to pink gradients
 - **Text**: Dark gray for readability
 
 ### Typography
+
 - **Font**: Geist Sans (modern, clean)
 - **Headings**: Bold weights for impact
 - **Body**: Regular weight for readability
 
 ### Components
+
 - **Cards**: Rounded corners with shadows
 - **Buttons**: Gradient backgrounds with hover effects
 - **Forms**: Clean inputs with focus states
@@ -195,18 +211,22 @@ wishluu/
 ## 🚀 Getting Started
 
 ### 1. Create a Wish
+
 Visit `/wishes/create/custom-blank` to start building your own custom wish from scratch.
 
 ### 2. Add Elements
+
 - Use the Element Palette to add interactive elements like balloons and beautiful text
 - Drag elements to your canvas
 - Customize properties in the Properties Panel
 
 ### 3. Preview Your Wish
+
 - Click the "Preview" button to see how your wish will look when shared
 - Toggle back to edit mode to make adjustments
 
 ### 4. Save & Share
+
 - Fill in recipient name and message
 - Click "Save & Share" to create your wish
 - Copy the generated link and share with anyone!
@@ -214,12 +234,14 @@ Visit `/wishes/create/custom-blank` to start building your own custom wish from 
 ## 🎯 Available Elements
 
 ### Interactive Balloons
+
 - Customizable number of balloons
 - Multiple color options
 - Interactive pop animations
 - Custom balloon images
 
 ### Beautiful Text
+
 - Multiple font options (Playfair, Inter, etc.)
 - Customizable colors and sizes
 - Animation effects
@@ -228,6 +250,7 @@ Visit `/wishes/create/custom-blank` to start building your own custom wish from 
 ## 🎨 Themes & Customization
 
 ### Built-in Themes
+
 - Purple Dream
 - Ocean Blue
 - Sunset
@@ -236,6 +259,7 @@ Visit `/wishes/create/custom-blank` to start building your own custom wish from 
 - And more...
 
 ### Custom Backgrounds
+
 - Set any custom background color
 - Override theme gradients
 - Perfect for brand-specific wishes
@@ -243,6 +267,7 @@ Visit `/wishes/create/custom-blank` to start building your own custom wish from 
 ## 📱 Responsive Design
 
 The wish builder and preview work perfectly on:
+
 - Desktop computers
 - Tablets
 - Mobile phones
@@ -263,6 +288,7 @@ Check out the demo at `/presentation/demo` to see all the new features in action
 ## 📝 Usage Examples
 
 ### Creating a Birthday Wish
+
 1. Go to `/wishes/create/custom-blank`
 2. Add interactive balloons element
 3. Add beautiful text with birthday message
@@ -271,6 +297,7 @@ Check out the demo at `/presentation/demo` to see all the new features in action
 6. Save and share the link!
 
 ### Creating a Valentine's Wish
+
 1. Start with a custom template
 2. Add romantic text elements
 3. Use pink/purple color scheme
@@ -290,6 +317,7 @@ Check out the demo at `/presentation/demo` to see all the new features in action
 This project is perfect for learning:
 
 ### **Next.js 15**: Latest features and App Router
+
 - App Router vs Pages Router
 - Server and Client Components
 - Dynamic routes and layouts
@@ -297,6 +325,7 @@ This project is perfect for learning:
 - Built-in optimizations
 
 ### **TypeScript**: Type safety and better development experience
+
 - Strict type checking
 - Interface definitions
 - Generic types
@@ -304,6 +333,7 @@ This project is perfect for learning:
 - Module resolution
 
 ### **React Patterns**: Modern React development
+
 - Custom hooks
 - Context API
 - Error boundaries
@@ -311,24 +341,28 @@ This project is perfect for learning:
 - Performance optimization
 
 ### **State Management**: Scalable state solutions
+
 - React Context + useReducer
 - State normalization
 - Optimistic updates
 - Error handling
 
 ### **Form Handling**: User input management
+
 - Controlled components
 - Validation
 - Error states
 - Accessibility
 
 ### **Styling**: Modern CSS approaches
+
 - Tailwind CSS
 - Design systems
 - Responsive design
 - Animations
 
 ### **Code Quality**: Professional development practices
+
 - ESLint configuration
 - TypeScript strict mode
 - Error boundaries
@@ -337,12 +371,14 @@ This project is perfect for learning:
 ## 🔧 Development
 
 ### Available Scripts
+
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 
 ### Code Style
+
 - Use TypeScript for type safety
 - Follow Next.js best practices
 - Use Tailwind CSS for styling
@@ -352,6 +388,7 @@ This project is perfect for learning:
 - Use proper naming conventions
 
 ### Best Practices Implemented
+
 1. **TypeScript Strict Mode**: Full type safety
 2. **Custom Hooks**: Reusable logic extraction
 3. **Error Boundaries**: Graceful error handling
@@ -382,24 +419,29 @@ This project is perfect for learning:
 ## 📚 Learning Resources
 
 ### Next.js
+
 - [Next.js Documentation](https://nextjs.org/docs)
 - [App Router Guide](https://nextjs.org/docs/app)
 - [Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components)
 
 ### TypeScript
+
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [React TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app/)
 
 ### React
+
 - [React Documentation](https://react.dev/)
 - [React Hooks](https://react.dev/reference/react)
 - [Context API](https://react.dev/reference/react/createContext)
 
 ### Tailwind CSS
+
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [Tailwind UI](https://tailwindui.com/)
 
 ### Firebase
+
 - [Firebase Documentation](https://firebase.google.com/docs)
 - [Firestore Guide](https://firebase.google.com/docs/firestore)
 

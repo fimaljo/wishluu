@@ -98,4 +98,4 @@ export interface TemplateCategory {
   emoji: string;
   count: number;
   templates: string[];
-} 
+}
