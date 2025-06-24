@@ -171,7 +171,7 @@ export function PresentationMode({ wish, onClose, isOpen }: PresentationModeProp
               startAnimation={true}
               resetAnimation={false}
               onBalloonPop={(balloonId) => {
-                // console.log(`Balloon ${balloonId} popped!`);
+                console.log(`Balloon ${balloonId} popped!`);
               }}
               onAllBalloonsPopped={() => {
                 handleElementComplete(element.id);
@@ -272,7 +272,7 @@ export function PresentationMode({ wish, onClose, isOpen }: PresentationModeProp
                 </svg>
               </button>
               <span className="text-white font-medium">
-                {wish.recipientName}&apos;s Wish
+                {wish.recipientName}'s Wish
               </span>
             </div>
             

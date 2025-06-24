@@ -3,7 +3,7 @@ import { Wish } from '@/types';
 
 // Simple in-memory storage for demo purposes
 // In a real app, this would be replaced with Firebase or a database
-const wishStorage: Wish[] = [
+let wishStorage: Wish[] = [
   {
     id: 'wish_1703123456789',
     recipientName: 'Sarah',

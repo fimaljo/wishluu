@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { InteractiveBalloons } from '@/components/ui/InteractiveBalloons';
 import { BeautifulText } from '@/components/ui/BeautifulText';
@@ -247,7 +247,7 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
               startAnimation={true}
               resetAnimation={false}
               onBalloonPop={(balloonId) => {
-                // console.log(`Balloon ${balloonId} popped!`);
+                console.log(`Balloon ${balloonId} popped!`);
               }}
               balloonImages={Array.from({ length: properties.numberOfBalloons || 5 }, (_, index) => 
                 properties[`balloonImage${index}`] || null
@@ -341,7 +341,7 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
                 </span>
               </Link>
               <span className="text-white font-medium">
-                {wish.recipientName}&apos;s Wish
+                {wish.recipientName}'s Wish
               </span>
             </div>
             
