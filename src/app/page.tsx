@@ -93,10 +93,8 @@ export default function Home() {
           <br />
           <span className="text-gray-800">with Interactive Wishes</span>
         </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Transform your special moments into unforgettable experiences. Create and send custom, 
-          interactive wishes that bring emotions to life for birthdays, Valentine's Day, Mother's Day, 
-          proposals, and more.
+        <p className="text-lg text-gray-600 mb-8">
+          Create beautiful, interactive wishes that&apos;ll make your loved ones&apos; day special
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link 

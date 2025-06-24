@@ -47,11 +47,11 @@ export function WishCanvas({
     aurora: 'from-teal-400 to-blue-500'
   };
 
-  // Debug: Log the current theme
-  console.log('WishCanvas - Current theme:', theme);
-  console.log('WishCanvas - Theme gradient:', themeGradients[theme as keyof typeof themeGradients] || themeGradients.purple);
-  console.log('WishCanvas - Available theme keys:', Object.keys(themeGradients));
-  console.log('WishCanvas - Custom background color:', customBackgroundColor);
+  // Debug theme changes
+  // console.log('WishCanvas - Current theme:', theme);
+  // console.log('WishCanvas - Theme gradient:', themeGradients[theme as keyof typeof themeGradients] || themeGradients.purple);
+  // console.log('WishCanvas - Available theme keys:', Object.keys(themeGradients));
+  // console.log('WishCanvas - Custom background color:', customBackgroundColor);
 
   const handleSettingsToggle = () => {
     const newState = !showCanvasSettings;
@@ -148,7 +148,7 @@ export function WishCanvas({
               height: '100%'
             }}
             onClick={() => {
-              console.log('Element clicked:', element.id, element.elementType);
+              // console.log('Element clicked:', element.id, element.elementType);
               onSelectElement(element);
             }}
           >
@@ -162,7 +162,7 @@ export function WishCanvas({
               startAnimation={isPreviewMode ? true : (properties.startAnimation || false)}
               resetAnimation={properties.resetAnimation || false}
               onBalloonPop={(balloonId) => {
-                console.log(`Balloon ${balloonId} popped!`);
+                // console.log(`Balloon ${balloonId} popped!`);
                 // Check if all balloons are popped and trigger next step
                 if (isPreviewMode) {
                   // This will be handled by the InteractiveBalloons component
@@ -199,7 +199,7 @@ export function WishCanvas({
                 handleElementComplete(element.id);
               } else {
                 // In edit mode, clicking selects the element
-                console.log('Element clicked:', element.id, element.elementType);
+                // console.log('Element clicked:', element.id, element.elementType);
                 onSelectElement(element);
               }
             }}

@@ -1,80 +1,47 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { InteractiveBalloons } from '@/components/ui/InteractiveBalloons';
-import { BeautifulText } from '@/components/ui/BeautifulText';
+import { InteractiveBalloons } from './InteractiveBalloons';
+import { BeautifulText } from './BeautifulText';
+import { Wish } from '@/types';
 
-interface WishData {
-  id: string;
-  recipientName: string;
-  occasion: string;
-  message: string;
-  theme: string;
-  animation: string;
-  createdAt: string;
-  senderName?: string;
-  elements?: any[]; // Canvas elements from the builder
-  customBackgroundColor?: string | null; // Custom background color
+interface PresentationModeProps {
+  wish: Wish;
+  onClose: () => void;
+  isOpen: boolean;
 }
 
-export default function WishPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
-  const [wish, setWish] = useState<WishData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function PresentationMode({ wish, onClose, isOpen }: PresentationModeProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [autoPlay, setAutoPlay] = useState(true);
+  const [autoPlay, setAutoPlay] = useState(false);
   const [stepElements, setStepElements] = useState<any[]>([]);
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
 
-  const occasions = {
-    birthday: { label: 'Birthday', emoji: '🎂', color: 'from-pink-400 to-rose-500' },
-    valentine: { label: "Valentine's Day", emoji: '💕', color: 'from-red-400 to-pink-500' },
-    'mothers-day': { label: "Mother's Day", emoji: '🌷', color: 'from-purple-400 to-pink-500' },
-    proposal: { label: 'Proposal', emoji: '💍', color: 'from-blue-400 to-purple-500' },
-    anniversary: { label: 'Anniversary', emoji: '💑', color: 'from-green-400 to-blue-500' },
-    graduation: { label: 'Graduation', emoji: '🎓', color: 'from-yellow-400 to-orange-500' },
-    'thank-you': { label: 'Thank You', emoji: '🙏', color: 'from-indigo-400 to-purple-500' },
-    congratulations: { label: 'Congratulations', emoji: '🎉', color: 'from-cyan-400 to-blue-500' },
-  };
-
-  const themes = {
-    purple: 'from-purple-400 to-pink-400',
-    ocean: 'from-blue-400 to-cyan-400',
-    sunset: 'from-orange-400 to-pink-400',
-    forest: 'from-green-400 to-emerald-400',
-    royal: 'from-yellow-400 to-orange-400',
-  };
+  // Parse step sequence from wish elements
+  useEffect(() => {
+    if (wish && wish.elements && wish.elements.length > 0) {
+      // Use the same logic as WishCanvas for step sequence
+      // For now, show all elements in sequence
+      setStepElements(wish.elements);
+    } else {
+      setStepElements([]);
+    }
+  }, [wish]);
 
   useEffect(() => {
-    const fetchWish = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const response = await fetch(`/api/wishes/${id}`);
-        const result = await response.json();
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to fetch wish');
+    if (isOpen && wish) {
+      // Start auto-play after 2 seconds
+      const timer = setTimeout(() => {
+        if (autoPlay) {
+          setIsPlaying(true);
         }
-        
-        setWish(result.data);
-        setStepElements(result.data.elements || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load wish');
-        console.error('Error fetching wish:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      }, 2000);
 
-    if (id) {
-      fetchWish();
+      return () => clearTimeout(timer);
     }
-  }, [id]);
+  }, [isOpen, autoPlay, wish]);
 
   useEffect(() => {
     if (isPlaying && stepElements.length > 1) {
@@ -87,37 +54,11 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
             return prev;
           }
         });
-      }, 4000); // 4 seconds per step
+      }, 3000); // 3 seconds per step
 
       return () => clearInterval(interval);
     }
   }, [isPlaying, stepElements.length]);
-
-  // Auto-start presentation after 2 seconds
-  useEffect(() => {
-    if (!isLoading && wish && autoPlay) {
-      const timer = setTimeout(() => {
-        setIsPlaying(true);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading, wish, autoPlay]);
-
-  // Hide controls after 3 seconds of inactivity
-  useEffect(() => {
-    if (!showControls) return;
-
-    const timer = setTimeout(() => {
-      setShowControls(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [showControls]);
-
-  const handleMouseMove = () => {
-    setShowControls(true);
-  };
 
   const handleNext = () => {
     if (currentStep < stepElements.length - 1) {
@@ -152,60 +93,43 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your special wish...</p>
-        </div>
-      </div>
-    );
-  }
+  // Hide controls after 3 seconds of inactivity
+  useEffect(() => {
+    if (!showControls) return;
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">😔</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Error Loading Wish</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <Link 
-            href="/"
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full hover:shadow-lg transition-all duration-300"
-          >
-            Create Your Own Wish
-          </Link>
-        </div>
-      </div>
-    );
-  }
+    const timer = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
 
-  if (!wish) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">😔</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Wish Not Found</h1>
-          <p className="text-gray-600 mb-6">This wish may have been deleted or the link is incorrect.</p>
-          <Link 
-            href="/"
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full hover:shadow-lg transition-all duration-300"
-          >
-            Create Your Own Wish
-          </Link>
-        </div>
-      </div>
-    );
-  }
+    return () => clearTimeout(timer);
+  }, [showControls]);
 
-  const occasionData = occasions[wish.occasion as keyof typeof occasions];
+  const handleMouseMove = () => {
+    setShowControls(true);
+  };
+
+  const handleElementComplete = (elementId: string) => {
+    setCompletedSteps(prev => new Set([...prev, elementId]));
+    setCurrentStep(prev => prev + 1);
+  };
+
+  if (!isOpen || !wish) return null;
+
+  const themes = {
+    purple: 'from-purple-400 to-pink-400',
+    ocean: 'from-blue-400 to-cyan-400',
+    sunset: 'from-orange-400 to-pink-400',
+    forest: 'from-green-400 to-emerald-400',
+    royal: 'from-yellow-400 to-orange-400',
+  };
+
   const themeGradient = themes[wish.theme as keyof typeof themes] || themes.purple;
 
+  // Use the exact same rendering logic as WishCanvas
   const renderElement = (element: any) => {
     const { properties } = element;
 
-    // Apply transition classes based on element properties (same as WishCanvas)
+    // Apply transition classes based on element properties
     const getTransitionClasses = (transition?: string) => {
       switch (transition) {
         case 'fade': return 'animate-fade-in';
@@ -239,7 +163,7 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
             }}
           >
             <InteractiveBalloons
-              key={`${element.id}-shared`}
+              key={`${element.id}-presentation`}
               numberOfBalloons={properties.numberOfBalloons || 5}
               balloonColors={properties.balloonColors || ['#FF6B9D', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']}
               imageUrl={properties.imageUrl || null}
@@ -248,6 +172,9 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
               resetAnimation={false}
               onBalloonPop={(balloonId) => {
                 // console.log(`Balloon ${balloonId} popped!`);
+              }}
+              onAllBalloonsPopped={() => {
+                handleElementComplete(element.id);
               }}
               balloonImages={Array.from({ length: properties.numberOfBalloons || 5 }, (_, index) => 
                 properties[`balloonImage${index}`] || null
@@ -268,6 +195,10 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
               transform: 'translate(-50%, -50%)',
               width: 'auto',
               maxWidth: '80%'
+            }}
+            onClick={() => {
+              // In presentation mode, clicking text progresses to next step
+              handleElementComplete(element.id);
             }}
           >
             <BeautifulText
@@ -295,11 +226,11 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <div 
-      className="min-h-screen bg-black flex items-center justify-center"
+      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
       onMouseMove={handleMouseMove}
       onClick={() => setShowControls(!showControls)}
     >
-      {/* Background */}
+      {/* Base Background - Same as WishCanvas */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50">
         {/* Theme Background */}
         {wish.customBackgroundColor ? (
@@ -332,14 +263,14 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
           {/* Top Controls */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-white bg-opacity-20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">W</span>
-                </div>
-                <span className="text-white font-medium">
-                  WishLuu
-                </span>
-              </Link>
+              <button
+                onClick={onClose}
+                className="bg-black bg-opacity-50 text-white p-2 rounded-lg hover:bg-opacity-70 transition-all"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
               <span className="text-white font-medium">
                 {wish.recipientName}&apos;s Wish
               </span>

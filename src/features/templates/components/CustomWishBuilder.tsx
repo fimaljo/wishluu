@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { ElementPalette } from './ElementPalette';
 import { WishCanvas } from './WishCanvas';
 import { ElementPropertiesPanel } from './ElementPropertiesPanel';
+import { SaveShareDialog } from '@/components/ui/SaveShareDialog';
+import { PresentationMode } from '@/components/ui/PresentationMode';
 import { getAllElements } from '@/config/elements';
 import { premiumService, UserPremiumStatus } from '@/lib/premiumService';
 import { useWishManagement } from '@/features/wishes/hooks/useWishManagement';
@@ -44,6 +46,13 @@ export function CustomWishBuilder({ onBack, templateId, isUserPremium: propIsUse
   const [showStepManager, setShowStepManager] = useState(false);
   const [stepSequence, setStepSequence] = useState<string[][]>([]); // Array of steps, each step is an array of element IDs
 
+  // Save and Share Dialog
+  const [showSaveShareDialog, setShowSaveShareDialog] = useState(false);
+  const [currentWish, setCurrentWish] = useState<Wish | null>(null);
+
+  // Presentation Mode
+  const [showPresentationMode, setShowPresentationMode] = useState(false);
+
   // Load user premium status
   useEffect(() => {
     const loadPremiumStatus = async () => {
@@ -64,10 +73,10 @@ export function CustomWishBuilder({ onBack, templateId, isUserPremium: propIsUse
   }, []);
 
   // Debug theme changes
-  console.log('CustomWishBuilder - Current theme:', theme);
-  console.log('CustomWishBuilder - Selected element:', selectedElement);
-  console.log('CustomWishBuilder - Elements count:', elements.length);
-  console.log('CustomWishBuilder - User premium status:', userPremiumStatus);
+  // console.log('CustomWishBuilder - Current theme:', theme);
+  // console.log('CustomWishBuilder - Selected element:', selectedElement);
+  // console.log('CustomWishBuilder - Elements count:', elements.length);
+  // console.log('CustomWishBuilder - User premium status:', userPremiumStatus);
 
   const handleAddToCanvas = (elementId: string) => {
     const element = availableElements.find(e => e.id === elementId);
@@ -402,50 +411,75 @@ export function CustomWishBuilder({ onBack, templateId, isUserPremium: propIsUse
   };
 
   const handleSaveWish = async () => {
-    if (!recipientName.trim() || !message.trim()) {
-      alert('Please fill in recipient name and message before saving.');
-      return;
-    }
-
     if (elements.length === 0) {
       alert('Please add at least one element to your wish before saving.');
       return;
     }
 
+    // Create the wish object for the dialog
+    const wishData = {
+      recipientName: recipientName.trim(),
+      message: message.trim(),
+      theme,
+      animation: 'fade', // Default animation
+      occasion: templateId || 'custom',
+      isPublic: true,
+      elements: elements, // Include the canvas elements
+      customBackgroundColor
+    };
+
+    setCurrentWish(wishData as Wish);
+    setShowSaveShareDialog(true);
+  };
+
+  const handleSaveFromDialog = async (wishData: any) => {
     setIsSaving(true);
     try {
-      // Create the wish object
-      const wishData = {
-        recipientName: recipientName.trim(),
-        message: message.trim(),
-        theme,
-        animation: 'fade', // Default animation
-        occasion: templateId || 'custom',
-        isPublic: true,
-        elements: elements, // Include the canvas elements
-        customBackgroundColor
-      };
-
       // Save the wish using the wish management hook
       const savedWish = await createWish(wishData);
-      
-      if (savedWish) {
-        // Generate share URL
-        const shareUrl = await shareWish(savedWish);
-        setShareUrl(shareUrl);
-        
-        // Show success message with share URL
-        alert(`Wish saved successfully! Share URL: ${shareUrl}`);
-        
-        // Optionally redirect to the wish view page
-        // window.location.href = `/wish/${savedWish.id}`;
-      }
+      return savedWish;
     } catch (error) {
       console.error('Error saving wish:', error);
       alert('Failed to save wish. Please try again.');
+      return null;
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleShareFromDialog = async (wish: Wish) => {
+    try {
+      // Generate share URL
+      const shareUrl = await shareWish(wish);
+      return shareUrl;
+    } catch (error) {
+      console.error('Error sharing wish:', error);
+      alert('Failed to share wish. Please try again.');
+      return '';
+    }
+  };
+
+  const handleOpenPresentationMode = () => {
+    if (!currentWish) {
+      // If no wish is saved yet, create a temporary wish for presentation
+      const tempWish = {
+        id: `temp_${Date.now()}`,
+        recipientName: recipientName.trim() || 'Your Loved One',
+        message: message.trim() || 'A special wish for you!',
+        theme,
+        animation: 'fade',
+        occasion: templateId || 'custom',
+        isPublic: true,
+        elements: elements,
+        customBackgroundColor,
+        createdAt: new Date().toISOString(),
+        views: 0,
+        likes: 0
+      } as Wish;
+      
+      setCurrentWish(tempWish);
+    }
+    setShowPresentationMode(true);
   };
 
   const handleUpgradeClick = async () => {
@@ -458,7 +492,7 @@ export function CustomWishBuilder({ onBack, templateId, isUserPremium: propIsUse
       const newStatus = await premiumService.getUserPremiumStatus(userId);
       setUserPremiumStatus(newStatus);
       
-      console.log('User upgraded successfully');
+      // console.log('User upgraded successfully');
     } catch (error) {
       console.error('Error upgrading user:', error);
       alert('Error upgrading user. Please try again.');
@@ -498,12 +532,20 @@ export function CustomWishBuilder({ onBack, templateId, isUserPremium: propIsUse
               >
                 {isPreviewMode ? 'Exit Preview' : 'Preview'}
               </Button>
+              {elements.length > 0 && (
+                <Button 
+                  variant="outline"
+                  onClick={handleOpenPresentationMode}
+                >
+                  🎭 Presentation
+                </Button>
+              )}
               <Button 
                 variant="primary" 
                 onClick={handleSaveWish}
-                disabled={isSaving || !recipientName.trim() || !message.trim() || elements.length === 0}
+                disabled={elements.length === 0}
               >
-                {isSaving ? 'Saving...' : 'Save & Share'}
+                Save & Share
               </Button>
             </div>
           </div>
@@ -724,35 +766,22 @@ export function CustomWishBuilder({ onBack, templateId, isUserPremium: propIsUse
         </div>
       </div>
 
-      {/* Share URL Modal */}
-      {shareUrl && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Wish Created Successfully! 🎉</h3>
-            <p className="text-gray-600 mb-4">Your wish has been saved and is ready to share.</p>
-            <div className="bg-gray-100 p-3 rounded-lg mb-4">
-              <p className="text-sm text-gray-700 break-all">{shareUrl}</p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="primary" 
-                onClick={() => {
-                  navigator.clipboard.writeText(shareUrl);
-                  alert('Link copied to clipboard!');
-                }}
-              >
-                Copy Link
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShareUrl(null)}
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Save & Share Dialog */}
+      <SaveShareDialog
+        isOpen={showSaveShareDialog}
+        onClose={() => setShowSaveShareDialog(false)}
+        wish={currentWish}
+        onSave={handleSaveFromDialog}
+        onShare={handleShareFromDialog}
+        isSaving={isSaving}
+      />
+
+      {/* Presentation Mode */}
+      <PresentationMode
+        isOpen={showPresentationMode}
+        onClose={() => setShowPresentationMode(false)}
+        wish={currentWish!}
+      />
     </div>
   );
 } 
