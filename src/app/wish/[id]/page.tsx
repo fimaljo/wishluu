@@ -204,12 +204,42 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
 
   const renderElement = (element: any) => {
     const { properties } = element;
+
+    // Apply transition classes based on element properties (same as WishCanvas)
+    const getTransitionClasses = (transition?: string) => {
+      switch (transition) {
+        case 'fade': return 'animate-fade-in';
+        case 'slide-up': return 'animate-slide-up';
+        case 'slide-down': return 'animate-slide-down';
+        case 'slide-left': return 'animate-slide-left';
+        case 'slide-right': return 'animate-slide-right';
+        case 'zoom-in': return 'animate-zoom-in';
+        case 'zoom-out': return 'animate-zoom-out';
+        case 'bounce': return 'animate-bounce';
+        case 'rotate': return 'animate-spin';
+        case 'flip': return 'animate-flip';
+        default: return 'animate-fade-in';
+      }
+    };
     
     switch (element.elementType) {
       case 'balloons-interactive':
         return (
-          <div className="absolute inset-0 w-full h-full">
+          <div
+            key={element.id}
+            className={`absolute ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: '100%',
+              height: '100%'
+            }}
+          >
             <InteractiveBalloons
+              key={`${element.id}-shared`}
               numberOfBalloons={properties.numberOfBalloons || 5}
               balloonColors={properties.balloonColors || ['#FF6B9D', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']}
               imageUrl={properties.imageUrl || null}
@@ -228,10 +258,21 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
 
       case 'beautiful-text':
         return (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            key={element.id}
+            className={`absolute ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              maxWidth: '80%'
+            }}
+          >
             <BeautifulText
-              title={properties.title || wish.recipientName}
-              message={properties.message || wish.message}
+              title={properties.title || 'Happy Birthday!'}
+              message={properties.message || 'Wishing you a wonderful day!'}
               titleFont={properties.titleFont || 'playfair'}
               messageFont={properties.messageFont || 'inter'}
               titleColor={properties.titleColor || '#FF6B9D'}
@@ -259,19 +300,22 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
       onClick={() => setShowControls(!showControls)}
     >
       {/* Background */}
-      {wish.customBackgroundColor ? (
-        <div 
-          className="absolute inset-0"
-          style={{ backgroundColor: wish.customBackgroundColor }}
-        />
-      ) : (
-        <div className={`absolute inset-0 bg-gradient-to-br ${themeGradient}`} />
-      )}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50">
+        {/* Theme Background */}
+        {wish.customBackgroundColor ? (
+          <div 
+            className="absolute inset-0 opacity-60"
+            style={{ backgroundColor: wish.customBackgroundColor }}
+          />
+        ) : (
+          <div className={`absolute inset-0 bg-gradient-to-br ${themeGradient} opacity-60`} />
+        )}
+      </div>
 
       {/* Content */}
       <div className="relative w-full h-full flex items-center justify-center">
         {stepElements.length > 0 ? (
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-full p-4 sm:p-6 md:p-8 overflow-auto">
             {renderElement(stepElements[currentStep])}
           </div>
         ) : (
