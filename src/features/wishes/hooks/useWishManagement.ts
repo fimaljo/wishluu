@@ -16,23 +16,22 @@ export function useWishManagement() {
     setLocalError(null);
     
     try {
-      // Simulate API call (replace with actual Firebase call)
-      const newWish: Wish = {
-        id: `wish_${Date.now()}`,
-        recipientName: wishData.recipientName,
-        occasion: wishData.occasion,
-        message: wishData.message,
-        theme: wishData.theme,
-        animation: wishData.animation,
-        createdAt: new Date().toISOString(),
-        isPublic: true,
-        views: 0,
-        likes: 0,
-        ...(wishData.senderName && { senderName: wishData.senderName }),
-        ...(wishData.senderEmail && { senderEmail: wishData.senderEmail }),
-        ...(wishData.elements && { elements: wishData.elements }),
-        ...(wishData.customBackgroundColor && { customBackgroundColor: wishData.customBackgroundColor }),
-      };
+      // Save to API first
+      const response = await fetch('/api/wishes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(wishData),
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save wish');
+      }
+
+      const newWish: Wish = result.data;
 
       // Add to global state
       addWish(newWish);

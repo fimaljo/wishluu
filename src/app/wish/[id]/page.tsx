@@ -22,6 +22,7 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
   const { id } = React.use(params);
   const [wish, setWish] = useState<WishData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -48,54 +49,31 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
   };
 
   useEffect(() => {
-    // Simulate loading wish data
-    setTimeout(() => {
-      const wishData = {
-        id: id,
-        recipientName: 'Sarah',
-        occasion: 'birthday',
-        message: 'Happy Birthday, Sarah! 🎉\n\nOn this special day, I want you to know how much joy and happiness you bring to everyone around you. Your smile lights up every room you enter, and your kindness touches the hearts of all who know you.\n\nMay this year bring you countless moments of laughter, love, and beautiful memories. You deserve all the wonderful things life has to offer!\n\nWith love and warmest wishes,\nYour Secret Admirer 💕',
-        theme: 'purple',
-        animation: 'fade',
-        createdAt: new Date().toISOString(),
-        senderName: 'Your Secret Admirer',
-        elements: [
-          {
-            id: 'balloons_1',
-            elementType: 'balloons-interactive',
-            properties: {
-              numberOfBalloons: 8,
-              balloonColors: ['#FF6B9D', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#FF9FF3', '#54A0FF', '#5F27CD'],
-              balloonSize: 70
-            }
-          },
-          {
-            id: 'text_1',
-            elementType: 'beautiful-text',
-            properties: {
-              title: 'Happy Birthday, Sarah!',
-              message: 'Wishing you a day filled with joy, love, and beautiful memories! 🎉',
-              titleFont: 'playfair',
-              messageFont: 'inter',
-              titleColor: '#FF6B9D',
-              messageColor: '#4A5568',
-              titleSize: 56,
-              messageSize: 20,
-              alignment: 'center',
-              animation: 'fade-in',
-              shadow: true,
-              gradient: true,
-              padding: 30
-            }
-          }
-        ],
-        customBackgroundColor: null
-      };
-      
-      setWish(wishData);
-      setStepElements(wishData.elements || []);
-      setIsLoading(false);
-    }, 1000);
+    const fetchWish = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await fetch(`/api/wishes/${id}`);
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to fetch wish');
+        }
+        
+        setWish(result.data);
+        setStepElements(result.data.elements || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load wish');
+        console.error('Error fetching wish:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchWish();
+    }
   }, [id]);
 
   useEffect(() => {
@@ -180,6 +158,24 @@ export default function WishPage({ params }: { params: Promise<{ id: string }> }
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your special wish...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😔</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Error Loading Wish</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Link 
+            href="/"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full hover:shadow-lg transition-all duration-300"
+          >
+            Create Your Own Wish
+          </Link>
         </div>
       </div>
     );

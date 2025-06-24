@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Wish } from '@/types';
+import { addWishToStorage } from './[id]/route';
 
 // GET /api/wishes - Get all wishes
 export async function GET() {
@@ -59,7 +60,12 @@ export async function POST(request: NextRequest) {
       likes: 0,
       ...(body.senderName && { senderName: body.senderName }),
       ...(body.senderEmail && { senderEmail: body.senderEmail }),
+      ...(body.elements && { elements: body.elements }),
+      ...(body.customBackgroundColor && { customBackgroundColor: body.customBackgroundColor }),
     };
+
+    // Add to storage so it can be retrieved later
+    addWishToStorage(newWish);
 
     return NextResponse.json({ 
       success: true, 
