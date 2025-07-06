@@ -217,18 +217,20 @@ export function ElementPropertiesPanel({
   return (
     <div className='bg-white rounded-lg shadow-sm border h-full flex flex-col'>
       {/* Header */}
-      <div className='p-4 border-b flex-shrink-0'>
-        <h3 className='text-lg font-semibold text-gray-800'>Properties</h3>
+      <div className='p-3 md:p-4 border-b flex-shrink-0'>
+        <h3 className='text-base md:text-lg font-semibold text-gray-800'>
+          Properties
+        </h3>
         {element && !showCanvasSettings && (
-          <p className='text-sm text-gray-500'>
+          <p className='text-xs md:text-sm text-gray-500'>
             Editing: {element.elementType}
           </p>
         )}
 
         {/* Multiple Element Selector */}
         {elements && elements.length > 1 && onSwitchToElement && (
-          <div className='mt-3'>
-            <label className='block text-xs font-medium text-gray-700 mb-2'>
+          <div className='mt-2 md:mt-3'>
+            <label className='block text-xs font-medium text-gray-700 mb-1 md:mb-2'>
               Available Elements:
             </label>
             <div className='flex flex-wrap gap-1'>
@@ -236,7 +238,7 @@ export function ElementPropertiesPanel({
                 <div key={canvasElement.id} className='flex items-center'>
                   <button
                     onClick={() => onSwitchToElement(canvasElement.id)}
-                    className={`px-2 py-1 text-xs rounded-l border transition-colors ${
+                    className={`px-1 md:px-2 py-1 text-xs rounded-l border transition-colors ${
                       element?.id === canvasElement.id
                         ? 'bg-purple-100 border-purple-300 text-purple-700'
                         : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
@@ -260,7 +262,7 @@ export function ElementPropertiesPanel({
 
       {/* Content - Scrollable */}
       <div className='flex-1 overflow-y-auto'>
-        <div className='p-4 space-y-6'>
+        <div className='p-3 md:p-4 space-y-4 md:space-y-6'>
           {/* Canvas Settings Section - Only show if showCanvasSettings is true */}
           {showCanvasSettings && (
             <div className='border-b pb-6'>
@@ -269,25 +271,25 @@ export function ElementPropertiesPanel({
               </h3>
 
               {/* Theme Selection */}
-              <div className='mb-6'>
-                <label className='block text-sm font-medium text-gray-700 mb-3'>
+              <div className='mb-4 md:mb-6'>
+                <label className='block text-sm font-medium text-gray-700 mb-2 md:mb-3'>
                   Background Theme
                 </label>
-                <div className='grid grid-cols-2 gap-2'>
+                <div className='grid grid-cols-2 md:grid-cols-2 gap-2'>
                   {themes.map(themeOption => (
                     <button
                       key={themeOption.value}
                       onClick={() => {
                         onUpdateTheme(themeOption.value);
                       }}
-                      className={`p-3 rounded-lg border-2 transition-all text-left ${
+                      className={`p-2 md:p-3 rounded-lg border-2 transition-all text-left ${
                         theme === themeOption.value
                           ? 'border-purple-500 ring-2 ring-purple-200'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div
-                        className={`w-full h-8 rounded mb-2 ${themeOption.preview}`}
+                        className={`w-full h-6 md:h-8 rounded mb-1 md:mb-2 ${themeOption.preview}`}
                       ></div>
                       <div className='text-xs font-medium text-gray-800'>
                         {themeOption.name}

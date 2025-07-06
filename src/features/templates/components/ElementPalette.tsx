@@ -76,8 +76,10 @@ export function ElementPalette({
   return (
     <div className='bg-white rounded-lg shadow-sm border h-full flex flex-col'>
       {/* Header */}
-      <div className='p-4 border-b flex-shrink-0'>
-        <h3 className='text-lg font-semibold text-gray-800 mb-3'>Elements</h3>
+      <div className='p-3 md:p-4 border-b flex-shrink-0'>
+        <h3 className='text-base md:text-lg font-semibold text-gray-800 mb-2 md:mb-3'>
+          Elements
+        </h3>
 
         {/* Category Tabs */}
         <div className='flex flex-wrap gap-1'>
@@ -85,7 +87,7 @@ export function ElementPalette({
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+              className={`px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium transition-colors ${
                 selectedCategory === category.id
                   ? 'bg-purple-100 text-purple-700'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -98,8 +100,8 @@ export function ElementPalette({
       </div>
 
       {/* Elements List */}
-      <div className='flex-1 p-4 overflow-y-auto'>
-        <div className='grid grid-cols-2 gap-3'>
+      <div className='flex-1 p-3 md:p-4 overflow-y-auto'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3'>
           {filteredElements.map(element => {
             const isSelected =
               selectedCategory === 'selected'
@@ -110,13 +112,13 @@ export function ElementPalette({
               <button
                 key={element.id}
                 onClick={() => handleElementClick(element.id)}
-                className={`p-3 rounded-lg border transition-all duration-200 text-left group relative ${
+                className={`p-2 md:p-3 rounded-lg border transition-all duration-200 text-left group relative ${
                   isSelected
                     ? 'bg-blue-50 border-blue-200 hover:bg-red-50 hover:border-red-200'
                     : 'bg-gray-50 border-transparent hover:bg-purple-50 hover:border-purple-200'
                 }`}
               >
-                <div className='text-2xl mb-2 relative'>
+                <div className='text-xl md:text-2xl mb-1 md:mb-2 relative'>
                   {element.icon}
                   {/* Premium Badge - positioned on top right of emoji */}
                   {element.isPremium && !isUserPremium && (
@@ -126,7 +128,7 @@ export function ElementPalette({
                   )}
                 </div>
                 <div
-                  className={`text-sm font-medium ${
+                  className={`text-xs md:text-sm font-medium ${
                     isSelected
                       ? 'text-blue-700 group-hover:text-red-700'
                       : 'text-gray-800 group-hover:text-purple-700'
@@ -134,13 +136,13 @@ export function ElementPalette({
                 >
                   {element.name}
                 </div>
-                <div className='text-xs text-gray-500 mt-1'>
+                <div className='text-xs text-gray-500 mt-1 hidden md:block'>
                   {selectedCategory === 'selected'
                     ? 'Click to unselect (removes from canvas)'
                     : 'Click to add another instance'}
                 </div>
                 {isSelected && selectedCategory !== 'selected' && (
-                  <div className='absolute top-2 right-2 text-blue-500 text-xs'>
+                  <div className='absolute top-1 md:top-2 right-1 md:right-2 text-blue-500 text-xs'>
                     {
                       selectedElements.filter(
                         selected => selected.id === element.id
@@ -154,11 +156,11 @@ export function ElementPalette({
         </div>
 
         {filteredElements.length === 0 && (
-          <div className='text-center py-8 text-gray-500'>
-            <div className='text-4xl mb-2'>
+          <div className='text-center py-6 md:py-8 text-gray-500'>
+            <div className='text-3xl md:text-4xl mb-2'>
               {selectedCategory === 'selected' ? '📌' : '🔍'}
             </div>
-            <p>
+            <p className='text-sm md:text-base'>
               {selectedCategory === 'selected'
                 ? 'No selected elements'
                 : 'No elements in this category'}

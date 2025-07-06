@@ -42,6 +42,12 @@ export function CustomWishBuilder({
   const [isSaving, setIsSaving] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
 
+  // Mobile responsive state
+  const [mobileView, setMobileView] = useState<
+    'canvas' | 'palette' | 'properties' | 'steps'
+  >('canvas');
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
   // Premium user status from service
   const [userPremiumStatus, setUserPremiumStatus] =
     useState<UserPremiumStatus | null>(null);
@@ -63,6 +69,17 @@ export function CustomWishBuilder({
 
   // Presentation Mode
   const [showPresentationMode, setShowPresentationMode] = useState(false);
+
+  // Check if screen is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setMobileView(window.innerWidth < 768 ? 'canvas' : 'canvas');
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load user premium status
   useEffect(() => {
@@ -199,201 +216,221 @@ export function CustomWishBuilder({
       setShowCanvasSettings(false);
     } else {
       setSelectedElement(element);
-      // Switch to element properties when an element is selected from canvas
+      setSelectedElements([element]);
       setShowCanvasSettings(false);
     }
   };
 
-  // Function to switch between selected elements for editing
   const handleSwitchToElement = (elementId: string) => {
     const element = elements.find(el => el.id === elementId);
     if (element) {
       setSelectedElement(element);
+      setSelectedElements([element]);
       setShowCanvasSettings(false);
     }
   };
 
-  // Function to get all selected elements for display
   const getSelectedElementsForDisplay = () => {
-    // Return the actual selected elements that still exist in the elements array
-    return selectedElements.filter(selected =>
-      elements.some(el => el.id === selected.id)
-    );
+    return selectedElements.length > 0 ? selectedElements : elements;
   };
 
-  // Only allow combining if both are 'balloons-interactive' or 'beautiful-text'
   const canCombine = (step: string[], newElementId: string) => {
-    if (step.length === 0) return true;
-    if (step.length >= 2) return false; // Still limit 2 elements per step, but allow more steps
-    const elementA = elements.find(el => el.id === step[0]);
-    const elementB = elements.find(el => el.id === newElementId);
-    if (!elementA || !elementB) return false;
-    const allowed = ['balloons-interactive', 'beautiful-text'];
-    return (
-      allowed.includes(elementA.elementType) &&
-      allowed.includes(elementB.elementType)
-    );
+    // Check if the new element can be combined with the current step
+    if (step.length >= 2) return false; // Max 2 elements per step
+
+    // Check if the new element is already in the step
+    if (step.includes(newElementId)) return false;
+
+    // Check if the new element is compatible with existing elements in the step
+    const existingElements = step
+      .map(id => elements.find(el => el.id === id))
+      .filter(Boolean);
+    const newElement = elements.find(el => el.id === newElementId);
+
+    if (!newElement) return false;
+
+    // For now, allow any combination of different element types
+    const existingTypes = existingElements.map(el => el?.elementType);
+    return !existingTypes.includes(newElement.elementType);
   };
 
-  // Check if we can add more steps (limit to 10 steps)
   const canAddMoreSteps = () => {
-    return stepSequence.length < 10;
+    // Check if we can add more steps based on available elements
+    const usedElementIds = new Set();
+    stepSequence.forEach(step => {
+      step.forEach(id => usedElementIds.add(id));
+    });
+
+    const availableElements = elements.filter(el => !usedElementIds.has(el.id));
+    return availableElements.length > 0 && stepSequence.length < 10;
   };
 
-  // Quick sequence presets
-  const quickSequencePresets = [
-    {
-      name: 'Balloons → Balloons+Text',
-      description: 'Start with balloons, then show balloons with text',
-      pattern: [
-        ['balloons-interactive'],
-        ['balloons-interactive', 'beautiful-text'],
-      ],
-    },
-    {
-      name: 'Text → Balloons',
-      description: 'Start with text, then show balloons',
-      pattern: [['beautiful-text'], ['balloons-interactive']],
-    },
-    {
-      name: 'Balloons → Text',
-      description: 'Start with balloons, then show text',
-      pattern: [['balloons-interactive'], ['beautiful-text']],
-    },
-    {
-      name: 'Text → Balloons+Text',
-      description: 'Start with text, then show text with balloons',
-      pattern: [['beautiful-text'], ['beautiful-text', 'balloons-interactive']],
-    },
-  ];
-
-  // Get available element types from user's canvas
   const getAvailableElementTypes = () => {
-    const elementTypes = elements.map(el => el.elementType);
-    return {
-      hasBalloons: elementTypes.includes('balloons-interactive'),
-      hasText: elementTypes.includes('beautiful-text'),
-      hasConfetti: elementTypes.includes('confetti'),
-      hasMusic: elementTypes.includes('music-player'),
-    };
+    const types = new Set<string>();
+    elements.forEach(element => {
+      types.add(element.elementType);
+    });
+    return Array.from(types);
   };
 
-  // Get count of each element type
   const getElementTypeCounts = () => {
     const counts: { [key: string]: number } = {};
-    elements.forEach(el => {
-      counts[el.elementType] = (counts[el.elementType] || 0) + 1;
+    elements.forEach(element => {
+      counts[element.elementType] = (counts[element.elementType] || 0) + 1;
     });
     return counts;
   };
 
-  // Get available elements for step sequence (including duplicates)
   const getAvailableElementsForSteps = () => {
-    const usedElementIds = stepSequence.flat();
-    return elements.filter(el => !usedElementIds.includes(el.id));
+    // Return elements that haven't been added to steps yet
+    const usedElementIds = new Set();
+    stepSequence.forEach(step => {
+      step.forEach(id => usedElementIds.add(id));
+    });
+
+    return elements.filter(el => !usedElementIds.has(el.id));
   };
 
-  // Filter presets based on available elements
   const getAvailablePresets = () => {
-    const available = getAvailableElementTypes();
+    const elementTypes = getAvailableElementTypes();
     const elementCounts = getElementTypeCounts();
-    const usedElementIds = stepSequence.flat();
-    const remainingElements = elements.filter(
-      el => !usedElementIds.includes(el.id)
-    );
-    const remainingCounts: { [key: string]: number } = {};
-    remainingElements.forEach(el => {
-      remainingCounts[el.elementType] =
-        (remainingCounts[el.elementType] || 0) + 1;
-    });
+
+    const quickSequencePresets = [
+      {
+        name: 'Birthday Celebration',
+        description: 'Perfect for birthday wishes',
+        steps: [['beautiful-text'], ['balloons-interactive']],
+        requiredElements: {
+          'beautiful-text': 1,
+          'balloons-interactive': 1,
+        },
+      },
+      {
+        name: 'Romantic Surprise',
+        description: 'Sweet and romantic sequence',
+        steps: [['beautiful-text'], ['balloons-interactive']],
+        requiredElements: {
+          'beautiful-text': 1,
+          'balloons-interactive': 1,
+        },
+      },
+      {
+        name: 'Celebration Flow',
+        description: 'Dynamic celebration sequence',
+        steps: [['beautiful-text'], ['balloons-interactive']],
+        requiredElements: {
+          'beautiful-text': 1,
+          'balloons-interactive': 1,
+        },
+      },
+    ];
 
     return quickSequencePresets.filter(preset => {
-      const requiredTypes = preset.pattern.flat();
-      return requiredTypes.every(type => {
-        if (type === 'balloons-interactive')
-          return (remainingCounts[type] || 0) > 0;
-        if (type === 'beautiful-text') return (remainingCounts[type] || 0) > 0;
-        if (type === 'confetti') return (remainingCounts[type] || 0) > 0;
-        if (type === 'music-player') return (remainingCounts[type] || 0) > 0;
-        return false;
-      });
+      // Check if we have the required elements
+      for (const [elementType, count] of Object.entries(
+        preset.requiredElements
+      )) {
+        if ((elementCounts[elementType] || 0) < count) {
+          return false;
+        }
+      }
+      return true;
     });
   };
 
-  // Add a second step to existing sequence
   const handleAddNextStep = () => {
-    if (stepSequence.length === 0) {
-      // If no steps exist, create first step with first available element
-      const availableElements = getAvailableElementsForSteps();
-      if (availableElements.length > 0) {
-        const firstElement = availableElements[0];
-        if (firstElement) {
-          setStepSequence([[firstElement.id]]);
-        }
-      }
-    } else {
-      // Add next step with remaining elements
-      const availableElements = getAvailableElementsForSteps();
+    if (!canAddMoreSteps()) return;
 
-      if (availableElements.length > 0 && availableElements[0]) {
-        // Add the first available element as the next step
-        setStepSequence([...stepSequence, [availableElements[0].id]]);
-      }
-    }
+    const availableElements = getAvailableElementsForSteps();
+    if (availableElements.length === 0) return;
+
+    // Add the first available element to a new step
+    const firstElement = availableElements[0];
+    if (!firstElement) return;
+
+    const newStep = [firstElement.id];
+    setStepSequence([...stepSequence, newStep]);
   };
 
+  const quickSequencePresets = [
+    {
+      name: 'Birthday Celebration',
+      description: 'Perfect for birthday wishes',
+      steps: [['beautiful-text'], ['balloons-interactive']],
+      requiredElements: {
+        'beautiful-text': 1,
+        'balloons-interactive': 1,
+      },
+    },
+    {
+      name: 'Romantic Surprise',
+      description: 'Sweet and romantic sequence',
+      steps: [['beautiful-text'], ['balloons-interactive']],
+      requiredElements: {
+        'beautiful-text': 1,
+        'balloons-interactive': 1,
+      },
+    },
+    {
+      name: 'Celebration Flow',
+      description: 'Dynamic celebration sequence',
+      steps: [['beautiful-text'], ['balloons-interactive']],
+      requiredElements: {
+        'beautiful-text': 1,
+        'balloons-interactive': 1,
+      },
+    },
+  ];
+
   const handleQuickSequence = (preset: (typeof quickSequencePresets)[0]) => {
-    // Clear current sequence
+    // Clear existing sequence
     setStepSequence([]);
 
-    // Create the sequence based on available elements
+    // Add elements to steps based on preset
+    const elementTypeCounts: { [key: string]: number } = {};
     const newSequence: string[][] = [];
 
-    for (const stepPattern of preset.pattern) {
-      const stepElements: string[] = [];
-
-      for (const elementType of stepPattern) {
-        // Find an available element of this type that's not already used
-        const availableElement = elements.find(
-          el =>
-            el.elementType === elementType &&
-            !newSequence.flat().includes(el.id)
-        );
+    preset.steps.forEach(stepElementTypes => {
+      const step: string[] = [];
+      stepElementTypes.forEach(elementType => {
+        // Find an element of this type that hasn't been used yet
+        const availableElement = elements.find(el => {
+          const currentCount = elementTypeCounts[el.elementType] || 0;
+          const requiredCount =
+            preset.requiredElements[
+              el.elementType as keyof typeof preset.requiredElements
+            ] || 0;
+          return el.elementType === elementType && currentCount < requiredCount;
+        });
 
         if (availableElement) {
-          stepElements.push(availableElement.id);
+          step.push(availableElement.id);
+          elementTypeCounts[availableElement.elementType] =
+            (elementTypeCounts[availableElement.elementType] || 0) + 1;
         }
+      });
+      if (step.length > 0) {
+        newSequence.push(step);
       }
-
-      if (stepElements.length > 0) {
-        newSequence.push(stepElements);
-      }
-    }
+    });
 
     setStepSequence(newSequence);
   };
 
-  // Add to a new step or combine with the last step if allowed
   const handleAddToStepSequence = (elementId: string) => {
-    // Check step limit
-    if (!canAddMoreSteps()) {
-      alert('Maximum 10 steps allowed. Please remove some steps to add more.');
-      return;
+    // Try to add to the last step if it can be combined
+    if (stepSequence.length > 0) {
+      const lastStep = stepSequence[stepSequence.length - 1];
+      if (lastStep && canCombine(lastStep, elementId)) {
+        const updatedSequence = [...stepSequence];
+        updatedSequence[updatedSequence.length - 1] = [...lastStep, elementId];
+        setStepSequence(updatedSequence);
+        return;
+      }
     }
 
-    // Try to combine with last step if allowed
-    const lastStep = stepSequence[stepSequence.length - 1];
-    if (
-      stepSequence.length > 0 &&
-      lastStep &&
-      canCombine(lastStep, elementId)
-    ) {
-      const newSequence = [...stepSequence];
-      newSequence[newSequence.length - 1] = [...lastStep, elementId];
-      setStepSequence(newSequence);
-    } else {
-      setStepSequence([...stepSequence, [elementId]]);
-    }
+    // Create a new step with this element
+    setStepSequence([...stepSequence, [elementId]]);
   };
 
   const handleRemoveFromStepSequence = (elementId: string) => {
@@ -409,8 +446,8 @@ export function CustomWishBuilder({
     const [movedStep] = newSequence.splice(fromIndex, 1);
     if (movedStep) {
       newSequence.splice(toIndex, 0, movedStep);
+      setStepSequence(newSequence);
     }
-    setStepSequence(newSequence);
   };
 
   const handleClearStepSequence = () => {
@@ -418,7 +455,7 @@ export function CustomWishBuilder({
   };
 
   const handleAutoGenerateSequence = () => {
-    // Auto-generate: each allowed element in its own step
+    // Automatically create a step for each interactive element
     const interactiveElements = elements.filter(
       el =>
         el.elementType === 'balloons-interactive' ||
@@ -426,14 +463,18 @@ export function CustomWishBuilder({
         el.elementType === 'confetti' ||
         el.elementType === 'music-player'
     );
-    const steps = interactiveElements.map(el => [el.id as string]);
-    setStepSequence(steps);
+
+    const newSequence = interactiveElements.map(el => [el.id]);
+    setStepSequence(newSequence);
   };
 
   const handlePreviewToggle = () => {
     setIsPreviewMode(!isPreviewMode);
     if (isPreviewMode) {
-      setSelectedElement(null); // Clear selection when exiting preview
+      // Exiting preview mode, switch back to canvas view on mobile
+      if (window.innerWidth < 768) {
+        setMobileView('canvas');
+      }
     }
   };
 
@@ -443,69 +484,83 @@ export function CustomWishBuilder({
       return;
     }
 
-    // Create the wish object for the dialog
-    const wishData = {
-      recipientName: recipientName.trim(),
-      message: message.trim(),
-      theme,
-      animation: 'fade', // Default animation
-      occasion: templateId || 'custom',
-      isPublic: true,
-      elements: elements, // Include the canvas elements
-      customBackgroundColor,
-    };
-
-    setCurrentWish(wishData as Wish);
-    setShowSaveShareDialog(true);
-  };
-
-  const handleSaveFromDialog = async (wishData: any) => {
     setIsSaving(true);
     try {
-      // Save the wish using the wish management hook
-      const savedWish = await createWish(wishData);
-      return savedWish;
+      const wishData = {
+        recipientName,
+        message,
+        theme,
+        occasion: templateId || 'custom',
+        animation: 'fade',
+        elements: elements,
+        customBackgroundColor,
+      };
+
+      const createdWish = await createWish(wishData);
+      if (createdWish) {
+        setCurrentWish(createdWish);
+        setShowSaveShareDialog(true);
+      }
     } catch (error) {
       console.error('Error saving wish:', error);
-      alert('Failed to save wish. Please try again.');
-      return null;
+      alert('Error saving wish. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleShareFromDialog = async (wish: Wish) => {
+  const handleSaveFromDialog = async (wishData: any): Promise<Wish | null> => {
     try {
-      // Generate share URL
+      const createdWish = await createWish(wishData);
+      if (createdWish) {
+        setCurrentWish(createdWish);
+        return createdWish;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error saving wish from dialog:', error);
+      alert('Error saving wish. Please try again.');
+      return null;
+    }
+  };
+
+  const handleShareFromDialog = async (wish: Wish): Promise<string> => {
+    try {
       const shareUrl = await shareWish(wish);
+      setShareUrl(shareUrl);
       return shareUrl;
     } catch (error) {
       console.error('Error sharing wish:', error);
-      alert('Failed to share wish. Please try again.');
+      alert('Error sharing wish. Please try again.');
       return '';
     }
   };
 
   const handleOpenPresentationMode = () => {
-    if (!currentWish) {
-      // If no wish is saved yet, create a temporary wish for presentation
-      const tempWish = {
-        id: `temp_${Date.now()}`,
-        recipientName: recipientName.trim() || 'Your Loved One',
-        message: message.trim() || 'A special wish for you!',
-        theme,
-        animation: 'fade',
-        occasion: templateId || 'custom',
-        isPublic: true,
-        elements: elements,
-        customBackgroundColor,
-        createdAt: new Date().toISOString(),
-        views: 0,
-        likes: 0,
-      } as Wish;
-
-      setCurrentWish(tempWish);
+    if (elements.length === 0) {
+      alert(
+        'Please add at least one element to your wish before entering presentation mode.'
+      );
+      return;
     }
+
+    // Create a temporary wish object for presentation
+    const tempWish: Wish = {
+      id: 'temp-presentation',
+      recipientName,
+      message,
+      theme,
+      occasion: templateId || 'custom',
+      animation: 'fade',
+      isPublic: true,
+      elements: elements,
+      customBackgroundColor,
+      createdAt: new Date().toISOString(),
+      views: 0,
+      likes: 0,
+    };
+
+    setCurrentWish(tempWish);
     setShowPresentationMode(true);
   };
 
@@ -532,26 +587,84 @@ export function CustomWishBuilder({
       ? propIsUserPremium
       : userPremiumStatus?.isPremium || false;
 
+  // Mobile navigation component
+  const MobileNavigation = () => (
+    <div className='md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50'>
+      <div className='flex justify-around p-2'>
+        <button
+          onClick={() => setMobileView('canvas')}
+          className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+            mobileView === 'canvas'
+              ? 'bg-purple-100 text-purple-700'
+              : 'text-gray-600'
+          }`}
+        >
+          <span className='text-lg'>🎨</span>
+          <span className='text-xs'>Canvas</span>
+        </button>
+        <button
+          onClick={() => setMobileView('palette')}
+          className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+            mobileView === 'palette'
+              ? 'bg-purple-100 text-purple-700'
+              : 'text-gray-600'
+          }`}
+        >
+          <span className='text-lg'>✨</span>
+          <span className='text-xs'>Elements</span>
+        </button>
+        <button
+          onClick={() => setMobileView('properties')}
+          className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+            mobileView === 'properties'
+              ? 'bg-purple-100 text-purple-700'
+              : 'text-gray-600'
+          }`}
+        >
+          <span className='text-lg'>⚙️</span>
+          <span className='text-xs'>Settings</span>
+        </button>
+        <button
+          onClick={() => setMobileView('steps')}
+          className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+            mobileView === 'steps'
+              ? 'bg-purple-100 text-purple-700'
+              : 'text-gray-600'
+          }`}
+        >
+          <span className='text-lg'>🎭</span>
+          <span className='text-xs'>Steps</span>
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className='h-screen bg-gray-50 flex flex-col'>
       {/* Header */}
       <div className='bg-white shadow-sm border-b flex-shrink-0'>
-        <div className='w-full max-w-[1800px] mx-auto px-6 py-4'>
+        <div className='w-full max-w-[1800px] mx-auto px-4 md:px-6 py-3 md:py-4'>
           <div className='flex items-center justify-between'>
-            <div className='flex items-center space-x-4'>
-              <Button variant='outline' onClick={onBack}>
-                ← Back to Templates
+            <div className='flex items-center space-x-2 md:space-x-4'>
+              <Button
+                variant='outline'
+                onClick={onBack}
+                className='text-sm md:text-base'
+              >
+                ← Back
               </Button>
-              <h1 className='text-2xl font-bold text-gray-900'>
+              <h1 className='text-lg md:text-2xl font-bold text-gray-900'>
                 Custom Wish Builder
               </h1>
               {isPreviewMode && (
-                <span className='px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium'>
-                  Preview Mode
+                <span className='px-2 md:px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm font-medium'>
+                  Preview
                 </span>
               )}
             </div>
-            <div className='flex items-center space-x-4'>
+
+            {/* Desktop buttons */}
+            <div className='hidden md:flex items-center space-x-4'>
               <Button
                 variant='outline'
                 onClick={() => setShowStepManager(!showStepManager)}
@@ -577,13 +690,80 @@ export function CustomWishBuilder({
                 Save & Share
               </Button>
             </div>
+
+            {/* Mobile menu button */}
+            <div className='md:hidden'>
+              <Button
+                variant='outline'
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className='p-2'
+              >
+                ☰
+              </Button>
+            </div>
           </div>
+
+          {/* Mobile menu dropdown */}
+          {showMobileMenu && (
+            <div className='md:hidden mt-3 p-3 bg-gray-50 rounded-lg border'>
+              <div className='space-y-2'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    setShowStepManager(!showStepManager);
+                    setShowMobileMenu(false);
+                  }}
+                  className='w-full justify-start'
+                >
+                  {showStepManager ? 'Hide Steps' : 'Manage Steps'}
+                </Button>
+                <Button
+                  variant={isPreviewMode ? 'primary' : 'outline'}
+                  size='sm'
+                  onClick={() => {
+                    handlePreviewToggle();
+                    setShowMobileMenu(false);
+                  }}
+                  className='w-full justify-start'
+                >
+                  {isPreviewMode ? 'Exit Preview' : 'Preview'}
+                </Button>
+                {elements.length > 0 && (
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => {
+                      handleOpenPresentationMode();
+                      setShowMobileMenu(false);
+                    }}
+                    className='w-full justify-start'
+                  >
+                    🎭 Presentation
+                  </Button>
+                )}
+                <Button
+                  variant='primary'
+                  size='sm'
+                  onClick={() => {
+                    handleSaveWish();
+                    setShowMobileMenu(false);
+                  }}
+                  disabled={elements.length === 0}
+                  className='w-full justify-start'
+                >
+                  Save & Share
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Main Builder */}
-      <div className='flex-1 w-full max-w-[1800px] mx-auto px-6 py-6 overflow-hidden'>
-        <div className='grid grid-cols-12 gap-6 h-full'>
+      <div className='flex-1 w-full max-w-[1800px] mx-auto px-4 md:px-6 py-4 md:py-6 overflow-hidden'>
+        {/* Desktop Layout */}
+        <div className='hidden md:grid md:grid-cols-12 gap-6 h-full'>
           {/* Step Manager Panel */}
           {showStepManager && !isPreviewMode && (
             <div
@@ -881,7 +1061,244 @@ export function CustomWishBuilder({
             </div>
           )}
         </div>
+
+        {/* Mobile Layout */}
+        <div className='md:hidden h-full pb-16'>
+          {/* Step Manager Panel */}
+          {mobileView === 'steps' && !isPreviewMode && (
+            <div className='bg-white rounded-lg shadow-sm border p-4 h-full overflow-y-auto'>
+              <div className='flex items-center justify-between mb-4'>
+                <h3 className='text-lg font-semibold text-gray-800'>
+                  Step Sequence
+                </h3>
+                <div className='flex items-center space-x-2'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={handleAutoGenerateSequence}
+                  >
+                    Auto
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={handleClearStepSequence}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </div>
+
+              {/* Add Next Step Button */}
+              {stepSequence.length > 0 && stepSequence.length < 10 && (
+                <div className='mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200'>
+                  <button
+                    onClick={handleAddNextStep}
+                    className='w-full p-2 bg-white rounded-lg border border-green-300 hover:border-green-400 transition-all text-center'
+                  >
+                    <div className='font-medium text-sm text-green-800'>
+                      ➕ Add Step {stepSequence.length + 1}
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {/* Available Elements */}
+              <div className='mb-4'>
+                <h4 className='text-sm font-medium text-gray-700 mb-2'>
+                  Available Elements
+                </h4>
+                <div className='space-y-2'>
+                  {getAvailableElementsForSteps().map(element => (
+                    <div
+                      key={element.id}
+                      className='p-3 rounded-lg border bg-gray-50 border-gray-200 flex items-center justify-between'
+                    >
+                      <div className='flex items-center space-x-2'>
+                        <span>
+                          {element.elementType === 'balloons-interactive'
+                            ? '🎈'
+                            : '📝'}
+                        </span>
+                        <span className='font-medium text-sm text-gray-800'>
+                          {element.elementType}
+                        </span>
+                      </div>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={() =>
+                          handleAddToStepSequence(element.id as string)
+                        }
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step Sequence */}
+              <div>
+                <h4 className='text-sm font-medium text-gray-700 mb-2'>
+                  Steps
+                </h4>
+                <div className='space-y-2'>
+                  {stepSequence.length === 0 ? (
+                    <div className='text-center text-gray-500 py-8'>
+                      <div className='text-2xl mb-2'>🎭</div>
+                      <p className='text-sm'>No steps defined</p>
+                    </div>
+                  ) : (
+                    stepSequence.map((step, index) => (
+                      <div
+                        key={index}
+                        className='p-3 rounded-lg border bg-white shadow-sm'
+                      >
+                        <div className='flex items-center justify-between mb-2'>
+                          <div className='flex items-center space-x-2'>
+                            <div className='w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold'>
+                              {index + 1}
+                            </div>
+                            <span className='font-medium text-sm text-gray-800'>
+                              Step {index + 1}
+                            </span>
+                          </div>
+                          <div className='flex items-center space-x-1'>
+                            <button
+                              onClick={() =>
+                                handleReorderSteps(
+                                  index,
+                                  Math.max(0, index - 1)
+                                )
+                              }
+                              disabled={index === 0}
+                              className='text-gray-500 hover:text-gray-700 text-sm disabled:opacity-50'
+                            >
+                              ↑
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleReorderSteps(
+                                  index,
+                                  Math.min(stepSequence.length - 1, index + 1)
+                                )
+                              }
+                              disabled={index === stepSequence.length - 1}
+                              className='text-gray-500 hover:text-gray-700 text-sm disabled:opacity-50'
+                            >
+                              ↓
+                            </button>
+                            <button
+                              onClick={() =>
+                                setStepSequence(
+                                  stepSequence.filter((_, i) => i !== index)
+                                )
+                              }
+                              className='text-red-500 hover:text-red-700 text-sm'
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                        <div className='flex flex-wrap gap-1'>
+                          {step.map(id => {
+                            const element = elements.find(el => el.id === id);
+                            return (
+                              <span
+                                key={id}
+                                className='flex items-center bg-purple-100 text-purple-800 rounded px-2 py-1 text-xs'
+                              >
+                                {element?.elementType === 'balloons-interactive'
+                                  ? '🎈'
+                                  : '📝'}
+                                <span className='ml-1'>
+                                  {element?.elementType || 'Unknown'}
+                                </span>
+                                <button
+                                  className='ml-1 text-xs text-red-500'
+                                  onClick={() =>
+                                    handleRemoveFromStepSequence(id)
+                                  }
+                                >
+                                  ✕
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Element Palette */}
+          {mobileView === 'palette' && !isPreviewMode && (
+            <div className='h-full'>
+              <ElementPalette
+                elements={availableElements}
+                onAddElement={handleAddElement}
+                selectedElements={selectedElements}
+                onSelectElement={handleSelectElement}
+                onUnselectElement={handleUnselectElement}
+                isUserPremium={isUserPremium}
+              />
+            </div>
+          )}
+
+          {/* Canvas */}
+          {mobileView === 'canvas' && (
+            <div className='h-full'>
+              <WishCanvas
+                elements={elements}
+                selectedElement={isPreviewMode ? null : selectedElement}
+                onSelectElement={
+                  isPreviewMode ? () => {} : handleCanvasElementSelect
+                }
+                onUpdateElement={handleUpdateElement}
+                recipientName={recipientName}
+                message={message}
+                theme={theme}
+                customBackgroundColor={customBackgroundColor}
+                onCanvasSettingsToggle={setShowCanvasSettings}
+                isPreviewMode={isPreviewMode}
+                stepSequence={stepSequence}
+              />
+            </div>
+          )}
+
+          {/* Properties Panel */}
+          {mobileView === 'properties' && !isPreviewMode && (
+            <div className='h-full'>
+              <ElementPropertiesPanel
+                element={selectedElement}
+                onUpdateElement={handleUpdateElement}
+                onDeleteElement={handleDeleteElement}
+                recipientName={recipientName}
+                message={message}
+                theme={theme}
+                onUpdateRecipientName={setRecipientName}
+                onUpdateMessage={setMessage}
+                onUpdateTheme={setTheme}
+                customBackgroundColor={customBackgroundColor}
+                onUpdateCustomBackgroundColor={setCustomBackgroundColor}
+                showCanvasSettings={showCanvasSettings}
+                isUserPremium={isUserPremium}
+                onUpgradeClick={handleUpgradeClick}
+                selectedElements={getSelectedElementsForDisplay()}
+                elements={elements}
+                onSwitchToElement={handleSwitchToElement}
+              />
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Mobile Navigation */}
+      <MobileNavigation />
 
       {/* Save & Share Dialog */}
       <SaveShareDialog
