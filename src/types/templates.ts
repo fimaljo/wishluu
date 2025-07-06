@@ -9,6 +9,7 @@ export interface Template {
   elements: string[];
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   preview?: string;
+  defaultElements?: WishElement[]; // Default elements configuration for the template
 }
 
 // Premium Property Types

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   InteractiveElement,
   WishElement,
@@ -13,6 +13,11 @@ import { ElementPropertiesPanel } from './ElementPropertiesPanel';
 import { SaveShareDialog } from '@/components/ui/SaveShareDialog';
 import { PresentationMode } from '@/components/ui/PresentationMode';
 import { getAllElements } from '@/config/elements';
+import {
+  getTemplateById,
+  getTemplateDefaultElements,
+} from '@/config/templates';
+import { TemplateService } from '@/lib/templateService';
 import { premiumService, UserPremiumStatus } from '@/lib/premiumService';
 import { useWishManagement } from '@/features/wishes/hooks/useWishManagement';
 import { Wish } from '@/types';
@@ -21,6 +26,7 @@ interface CustomWishBuilderProps {
   onBack: () => void;
   templateId?: string;
   isUserPremium?: boolean;
+  isTemplateMode?: boolean; // New prop to indicate if this is template mode (restricted)
 }
 
 type CreationStep = 'create' | 'steps' | 'preview' | 'save';
@@ -29,12 +35,17 @@ export function CustomWishBuilder({
   onBack,
   templateId,
   isUserPremium: propIsUserPremium,
+  isTemplateMode = false,
 }: CustomWishBuilderProps) {
   const [selectedElement, setSelectedElement] = useState<WishElement | null>(
     null
   );
   const [elements, setElements] = useState<WishElement[]>([]);
   const [selectedElements, setSelectedElements] = useState<WishElement[]>([]);
+  // Track original template elements for restricted mode
+  const [originalTemplateElements, setOriginalTemplateElements] = useState<
+    WishElement[]
+  >([]);
   const [recipientName, setRecipientName] = useState('');
   const [message, setMessage] = useState('');
   const [theme, setTheme] = useState('purple');
@@ -60,6 +71,13 @@ export function CustomWishBuilder({
 
   // Get elements from centralized config
   const availableElements = getAllElements();
+
+  // Template mode logic
+  const template = templateId ? getTemplateById(templateId) : null;
+  const isRestrictedMode = isTemplateMode && templateId !== 'custom-blank';
+
+  // Track loaded template to prevent infinite re-renders
+  const loadedTemplateRef = useRef<string | null>(null);
 
   // Step management
   const [stepSequence, setStepSequence] = useState<string[][]>([]);
@@ -99,6 +117,24 @@ export function CustomWishBuilder({
     loadPremiumStatus();
   }, []);
 
+  // Load template default elements
+  useEffect(() => {
+    if (
+      template?.id &&
+      template?.defaultElements &&
+      loadedTemplateRef.current !== template.id
+    ) {
+      setElements(template.defaultElements);
+      setOriginalTemplateElements(template.defaultElements);
+      if (template.defaultElements.length > 0) {
+        setSelectedElement(template.defaultElements[0] || null);
+        // Also initialize selectedElements array with the template elements
+        setSelectedElements(template.defaultElements);
+      }
+      loadedTemplateRef.current = template.id;
+    }
+  }, [template?.id]); // Only depend on template ID, not the entire template object
+
   const handleAddToCanvas = (elementId: string) => {
     const element = availableElements.find(e => e.id === elementId);
     if (element) {
@@ -114,6 +150,52 @@ export function CustomWishBuilder({
   };
 
   const handleSelectElement = (elementId: string) => {
+    // In restricted mode, check if element type exists in original template
+    if (isRestrictedMode) {
+      // Check if this element type exists in the original template
+      const elementTypeExists = originalTemplateElements.some(
+        el => el.elementType === elementId
+      );
+      if (!elementTypeExists) {
+        // If element type doesn't exist in template, don't allow adding it
+        return;
+      }
+
+      // Check if this element type already exists in the current canvas
+      const canvasElementExists = elements.some(
+        el => el.elementType === elementId
+      );
+      if (canvasElementExists) {
+        // If element type exists in canvas, just select it for editing
+        const existingElement = elements.find(
+          el => el.elementType === elementId
+        );
+        if (existingElement) {
+          setSelectedElement(existingElement);
+          setSelectedElements([existingElement]);
+          setShowCanvasSettings(false);
+        }
+        return;
+      }
+
+      // If element type exists in template but not in canvas, add it back
+      const templateElement = originalTemplateElements.find(
+        el => el.elementType === elementId
+      );
+      if (templateElement) {
+        const newElement: WishElement = {
+          id: `${elementId}_${Date.now()}`,
+          elementType: elementId,
+          properties: { ...templateElement.properties },
+          order: elements.length,
+        };
+        setElements([...elements, newElement]);
+        setSelectedElement(newElement);
+        setShowCanvasSettings(false);
+      }
+      return;
+    }
+
     const element = availableElements.find(el => el.id === elementId);
     if (element) {
       const selectedElement: WishElement = {
@@ -138,18 +220,32 @@ export function CustomWishBuilder({
 
   const handleUnselectElement = (elementId: string) => {
     setSelectedElements(selectedElements.filter(el => el.id !== elementId));
-    setElements(
-      elements.filter(
-        el =>
-          !(el.elementType === elementId && el.id.startsWith(elementId + '_'))
-      )
-    );
-    if (selectedElement?.elementType === elementId) {
+
+    // In template mode, we need to handle element removal differently
+    if (isRestrictedMode) {
+      // Remove the element by its actual ID
+      setElements(elements.filter(el => el.id !== elementId));
+    } else {
+      // In normal mode, remove by element type and ID pattern
+      setElements(
+        elements.filter(
+          el =>
+            !(el.elementType === elementId && el.id.startsWith(elementId + '_'))
+        )
+      );
+    }
+
+    if (selectedElement?.id === elementId) {
       setSelectedElement(null);
     }
   };
 
   const handleAddElement = (elementType: string) => {
+    // In restricted mode, users can only remove elements, not add new ones
+    if (isRestrictedMode) {
+      return;
+    }
+
     const element = availableElements.find(e => e.id === elementType);
     if (element) {
       const newElement: WishElement = {
@@ -1008,10 +1104,14 @@ export function CustomWishBuilder({
               <ElementPalette
                 elements={availableElements}
                 onAddElement={handleAddElement}
-                selectedElements={selectedElements}
+                selectedElements={
+                  isRestrictedMode ? originalTemplateElements : selectedElements
+                }
                 onSelectElement={handleSelectElement}
                 onUnselectElement={handleUnselectElement}
                 isUserPremium={isUserPremium}
+                isRestrictedMode={isRestrictedMode}
+                canvasElements={elements}
               />
             </div>
           )}
@@ -1283,10 +1383,14 @@ export function CustomWishBuilder({
               <ElementPalette
                 elements={availableElements}
                 onAddElement={handleAddElement}
-                selectedElements={selectedElements}
+                selectedElements={
+                  isRestrictedMode ? originalTemplateElements : selectedElements
+                }
                 onSelectElement={handleSelectElement}
                 onUnselectElement={handleUnselectElement}
                 isUserPremium={isUserPremium}
+                isRestrictedMode={isRestrictedMode}
+                canvasElements={elements}
               />
             </div>
           )}

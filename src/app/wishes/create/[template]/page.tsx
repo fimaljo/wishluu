@@ -8,10 +8,15 @@ export default function TemplateBuilderPage() {
   const params = useParams();
   const templateId = params.template as string;
 
+  // Determine if this is template mode (not custom-blank)
+  const isTemplateMode = templateId !== 'custom-blank';
+
   return (
     <CustomWishBuilder
       onBack={() => (window.location.href = '/')}
       templateId={templateId}
+      isTemplateMode={isTemplateMode}
+      isUserPremium={false}
     />
   );
 }
