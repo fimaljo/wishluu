@@ -1,7 +1,9 @@
 import { InteractiveElement } from '@/types/templates';
 
+// Centralized Elements Configuration
+// This is the single source of truth for all elements in the application
 export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
-  // Interactive Balloons Element
+  // ===== ANIMATION ELEMENTS =====
   {
     id: 'balloons-interactive',
     type: 'animation',
@@ -10,6 +12,14 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
     icon: '🎈',
     category: 'birthday',
     isPremium: false,
+    tags: [
+      'balloons',
+      'interactive',
+      'birthday',
+      'celebration',
+      'click',
+      'pop',
+    ],
     properties: {
       numberOfBalloons: 5,
       balloonColors: ['#FF6B9D', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'],
@@ -20,9 +30,14 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       balloonSize: 60,
       floatSpeed: 2,
       interactive: true,
+      transition: 'fade',
+      zIndex: 10,
+      scale: 1,
+      showHint: true, // Control hint visibility
     },
   },
-  // Beautiful Text Element
+
+  // ===== TEXT ELEMENTS =====
   {
     id: 'beautiful-text',
     type: 'text',
@@ -46,6 +61,8 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       shadow: true,
       gradient: false,
       padding: 20,
+      transition: 'fade',
+      zIndex: 15,
     },
     propertyDefinitions: [
       {
@@ -200,19 +217,193 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
   },
 ];
 
-// Helper function to get element by ID
+// ===== HELPER FUNCTIONS =====
+
+/**
+ * Get element by ID
+ */
 export const getElementById = (id: string): InteractiveElement | undefined => {
   return ELEMENT_DEFINITIONS.find(element => element.id === id);
 };
 
-// Helper function to get all elements
+/**
+ * Get all elements
+ */
 export const getAllElements = (): InteractiveElement[] => {
   return ELEMENT_DEFINITIONS;
 };
 
-// Helper function to get elements by category
+/**
+ * Get elements by category
+ */
 export const getElementsByCategory = (
   category: string
 ): InteractiveElement[] => {
   return ELEMENT_DEFINITIONS.filter(element => element.category === category);
+};
+
+/**
+ * Get elements by type
+ */
+export const getElementsByType = (type: string): InteractiveElement[] => {
+  return ELEMENT_DEFINITIONS.filter(element => element.type === type);
+};
+
+/**
+ * Get premium elements only
+ */
+export const getPremiumElements = (): InteractiveElement[] => {
+  return ELEMENT_DEFINITIONS.filter(element => element.isPremium);
+};
+
+/**
+ * Get free elements only
+ */
+export const getFreeElements = (): InteractiveElement[] => {
+  return ELEMENT_DEFINITIONS.filter(element => !element.isPremium);
+};
+
+/**
+ * Get elements by search term
+ */
+export const searchElements = (searchTerm: string): InteractiveElement[] => {
+  const term = searchTerm.toLowerCase();
+  return ELEMENT_DEFINITIONS.filter(
+    element =>
+      element.name.toLowerCase().includes(term) ||
+      element.description.toLowerCase().includes(term) ||
+      element.category.toLowerCase().includes(term) ||
+      element.tags?.some((tag: string) => tag.toLowerCase().includes(term))
+  );
+};
+
+/**
+ * Get all available categories
+ */
+export const getCategories = (): string[] => {
+  const categories = ELEMENT_DEFINITIONS.map(element => element.category);
+  return [...new Set(categories)];
+};
+
+/**
+ * Get element count by category
+ */
+export const getElementCountByCategory = (category: string): number => {
+  return getElementsByCategory(category).length;
+};
+
+/**
+ * Get recommended elements based on context
+ */
+export const getRecommendedElements = (
+  context: string
+): InteractiveElement[] => {
+  const recommendations: { [key: string]: string[] } = {
+    birthday: ['balloons-interactive', 'beautiful-text'],
+    valentine: ['beautiful-text'],
+    celebration: ['balloons-interactive', 'beautiful-text'],
+    basic: ['beautiful-text'],
+  };
+
+  const recommendedIds = recommendations[context] || [];
+  return ELEMENT_DEFINITIONS.filter(element =>
+    recommendedIds.includes(element.id)
+  );
+};
+
+/**
+ * Validate element properties
+ */
+export const validateElementProperties = (
+  elementId: string,
+  properties: any
+): boolean => {
+  const element = getElementById(elementId);
+  if (!element) return false;
+
+  // Add validation logic here based on element type
+  return true;
+};
+
+/**
+ * Get default properties for an element
+ */
+export const getDefaultProperties = (elementId: string): any => {
+  const element = getElementById(elementId);
+  return element ? { ...element.properties } : {};
+};
+
+/**
+ * Clone element with new ID
+ */
+export const cloneElement = (
+  elementId: string,
+  newId?: string
+): InteractiveElement | null => {
+  const element = getElementById(elementId);
+  if (!element) return null;
+
+  return {
+    ...element,
+    id: newId || `${elementId}_${Date.now()}`,
+  };
+};
+
+// ===== ELEMENT METADATA =====
+
+export const ELEMENT_CATEGORIES = [
+  {
+    id: 'all',
+    name: 'All Elements',
+    emoji: '✨',
+    description: 'All available elements',
+  },
+  {
+    id: 'basic',
+    name: 'Basic',
+    emoji: '📝',
+    description: 'Essential elements for any wish',
+  },
+  {
+    id: 'birthday',
+    name: 'Birthday',
+    emoji: '🎂',
+    description: 'Perfect for birthday wishes',
+  },
+];
+
+export const ELEMENT_TYPES = [
+  {
+    id: 'animation',
+    name: 'Animations',
+    emoji: '🎬',
+    description: 'Moving and interactive elements',
+  },
+  {
+    id: 'text',
+    name: 'Text',
+    emoji: '📝',
+    description: 'Text and typography elements',
+  },
+];
+
+// ===== EXPORT ALL =====
+
+export default {
+  ELEMENT_DEFINITIONS,
+  getElementById,
+  getAllElements,
+  getElementsByCategory,
+  getElementsByType,
+  getPremiumElements,
+  getFreeElements,
+  searchElements,
+  getCategories,
+  getElementCountByCategory,
+  getRecommendedElements,
+  validateElementProperties,
+  getDefaultProperties,
+  cloneElement,
+  ELEMENT_CATEGORIES,
+  ELEMENT_TYPES,
 };

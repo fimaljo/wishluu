@@ -315,6 +315,7 @@ export default function WishPage({
                 { length: properties.numberOfBalloons || 5 },
                 (_, index) => properties[`balloonImage${index}`] || null
               )}
+              showHint={true} // Always show hints for shared wishes
             />
           </div>
         );

@@ -484,6 +484,27 @@ export function ElementPropertiesPanel({
               </select>
             </div>
 
+            {/* Interaction Hint */}
+            <div>
+              <label className='flex items-center'>
+                <input
+                  type='checkbox'
+                  checked={properties.showHint !== false}
+                  onChange={e =>
+                    handlePropertyChange('showHint', e.target.checked)
+                  }
+                  className='rounded border-gray-300 text-purple-600 focus:ring-purple-500'
+                />
+                <span className='ml-2 text-sm font-medium text-gray-700'>
+                  Show Interaction Hints
+                </span>
+              </label>
+              <p className='text-xs text-gray-500 mt-1'>
+                Display helpful hints to guide users on how to interact with the
+                balloons
+              </p>
+            </div>
+
             {/* Balloon Images Section */}
             <div className='space-y-3'>
               <div>

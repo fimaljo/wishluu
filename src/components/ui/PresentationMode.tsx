@@ -204,6 +204,7 @@ export function PresentationMode({
                 { length: properties.numberOfBalloons || 5 },
                 (_, index) => properties[`balloonImage${index}`] || null
               )}
+              showHint={true} // Always show hints in presentation mode
             />
           </div>
         );

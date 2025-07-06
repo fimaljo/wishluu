@@ -44,6 +44,7 @@ export interface InteractiveElement {
   properties: ElementProperties;
   propertyDefinitions?: PropertyDefinition[];
   isPremium?: boolean;
+  tags?: string[];
 }
 
 export interface ElementProperties {

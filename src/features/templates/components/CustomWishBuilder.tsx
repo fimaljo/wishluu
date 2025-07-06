@@ -20,8 +20,10 @@ import { Wish } from '@/types';
 interface CustomWishBuilderProps {
   onBack: () => void;
   templateId?: string;
-  isUserPremium?: boolean; // Optional prop for demo/testing purposes
+  isUserPremium?: boolean;
 }
+
+type CreationStep = 'create' | 'steps' | 'preview' | 'save';
 
 export function CustomWishBuilder({
   onBack,
@@ -38,11 +40,11 @@ export function CustomWishBuilder({
   const [theme, setTheme] = useState('purple');
   const [customBackgroundColor, setCustomBackgroundColor] = useState('#ffffff');
   const [showCanvasSettings, setShowCanvasSettings] = useState(true);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
 
-  // Mobile responsive state
+  // Step-by-step flow state
+  const [currentStep, setCurrentStep] = useState<CreationStep>('create');
   const [mobileView, setMobileView] = useState<
     'canvas' | 'palette' | 'properties' | 'steps'
   >('canvas');
@@ -60,8 +62,7 @@ export function CustomWishBuilder({
   const availableElements = getAllElements();
 
   // Step management
-  const [showStepManager, setShowStepManager] = useState(false);
-  const [stepSequence, setStepSequence] = useState<string[][]>([]); // Array of steps, each step is an array of element IDs
+  const [stepSequence, setStepSequence] = useState<string[][]>([]);
 
   // Save and Share Dialog
   const [showSaveShareDialog, setShowSaveShareDialog] = useState(false);
@@ -85,8 +86,6 @@ export function CustomWishBuilder({
   useEffect(() => {
     const loadPremiumStatus = async () => {
       try {
-        // For demo purposes, use a fixed user ID
-        // In real app, this would come from authentication
         const userId = 'demo-user-123';
         const status = await premiumService.getUserPremiumStatus(userId);
         setUserPremiumStatus(status);
@@ -99,12 +98,6 @@ export function CustomWishBuilder({
 
     loadPremiumStatus();
   }, []);
-
-  // Debug theme changes
-  // console.log('CustomWishBuilder - Current theme:', theme);
-  // console.log('CustomWishBuilder - Selected element:', selectedElement);
-  // console.log('CustomWishBuilder - Elements count:', elements.length);
-  // console.log('CustomWishBuilder - User premium status:', userPremiumStatus);
 
   const handleAddToCanvas = (elementId: string) => {
     const element = availableElements.find(e => e.id === elementId);
@@ -123,7 +116,6 @@ export function CustomWishBuilder({
   const handleSelectElement = (elementId: string) => {
     const element = availableElements.find(el => el.id === elementId);
     if (element) {
-      // Create selected element
       const selectedElement: WishElement = {
         id: elementId,
         elementType: elementId,
@@ -132,7 +124,6 @@ export function CustomWishBuilder({
       };
       setSelectedElements([...selectedElements, selectedElement]);
 
-      // Also add to canvas automatically
       const canvasElement: WishElement = {
         id: `${elementId}_${Date.now()}`,
         elementType: elementId,
@@ -141,25 +132,18 @@ export function CustomWishBuilder({
       };
       setElements([...elements, canvasElement]);
       setSelectedElement(canvasElement);
-
-      // Switch to element properties when element is selected
       setShowCanvasSettings(false);
     }
   };
 
   const handleUnselectElement = (elementId: string) => {
-    // Remove from selected elements
     setSelectedElements(selectedElements.filter(el => el.id !== elementId));
-
-    // Remove from canvas (find elements that match the elementType and were created from this selection)
     setElements(
       elements.filter(
         el =>
           !(el.elementType === elementId && el.id.startsWith(elementId + '_'))
       )
     );
-
-    // Clear selected element if it was the one being unselected
     if (selectedElement?.elementType === elementId) {
       setSelectedElement(null);
     }
@@ -188,7 +172,6 @@ export function CustomWishBuilder({
     );
     setElements(updatedElements);
 
-    // Maintain the selected element when properties are updated
     if (selectedElement?.id === elementId) {
       setSelectedElement({ ...selectedElement, properties });
     }
@@ -200,7 +183,6 @@ export function CustomWishBuilder({
     if (selectedElement?.id === elementId) {
       setSelectedElement(null);
     }
-    // Also remove from step sequence if it exists there
     setStepSequence(
       stepSequence
         .map(step => step.filter(id => id !== elementId))
@@ -210,7 +192,6 @@ export function CustomWishBuilder({
 
   const handleCanvasElementSelect = (element: WishElement | null) => {
     if (element === null) {
-      // "Select All" was clicked - select all elements
       setSelectedElements(elements);
       setSelectedElement(null);
       setShowCanvasSettings(false);
@@ -235,13 +216,9 @@ export function CustomWishBuilder({
   };
 
   const canCombine = (step: string[], newElementId: string) => {
-    // Check if the new element can be combined with the current step
-    if (step.length >= 2) return false; // Max 2 elements per step
-
-    // Check if the new element is already in the step
+    if (step.length >= 2) return false;
     if (step.includes(newElementId)) return false;
 
-    // Check if the new element is compatible with existing elements in the step
     const existingElements = step
       .map(id => elements.find(el => el.id === id))
       .filter(Boolean);
@@ -249,13 +226,11 @@ export function CustomWishBuilder({
 
     if (!newElement) return false;
 
-    // For now, allow any combination of different element types
     const existingTypes = existingElements.map(el => el?.elementType);
     return !existingTypes.includes(newElement.elementType);
   };
 
   const canAddMoreSteps = () => {
-    // Check if we can add more steps based on available elements
     const usedElementIds = new Set();
     stepSequence.forEach(step => {
       step.forEach(id => usedElementIds.add(id));
@@ -282,7 +257,6 @@ export function CustomWishBuilder({
   };
 
   const getAvailableElementsForSteps = () => {
-    // Return elements that haven't been added to steps yet
     const usedElementIds = new Set();
     stepSequence.forEach(step => {
       step.forEach(id => usedElementIds.add(id));
@@ -291,60 +265,12 @@ export function CustomWishBuilder({
     return elements.filter(el => !usedElementIds.has(el.id));
   };
 
-  const getAvailablePresets = () => {
-    const elementTypes = getAvailableElementTypes();
-    const elementCounts = getElementTypeCounts();
-
-    const quickSequencePresets = [
-      {
-        name: 'Birthday Celebration',
-        description: 'Perfect for birthday wishes',
-        steps: [['beautiful-text'], ['balloons-interactive']],
-        requiredElements: {
-          'beautiful-text': 1,
-          'balloons-interactive': 1,
-        },
-      },
-      {
-        name: 'Romantic Surprise',
-        description: 'Sweet and romantic sequence',
-        steps: [['beautiful-text'], ['balloons-interactive']],
-        requiredElements: {
-          'beautiful-text': 1,
-          'balloons-interactive': 1,
-        },
-      },
-      {
-        name: 'Celebration Flow',
-        description: 'Dynamic celebration sequence',
-        steps: [['beautiful-text'], ['balloons-interactive']],
-        requiredElements: {
-          'beautiful-text': 1,
-          'balloons-interactive': 1,
-        },
-      },
-    ];
-
-    return quickSequencePresets.filter(preset => {
-      // Check if we have the required elements
-      for (const [elementType, count] of Object.entries(
-        preset.requiredElements
-      )) {
-        if ((elementCounts[elementType] || 0) < count) {
-          return false;
-        }
-      }
-      return true;
-    });
-  };
-
   const handleAddNextStep = () => {
     if (!canAddMoreSteps()) return;
 
     const availableElements = getAvailableElementsForSteps();
     if (availableElements.length === 0) return;
 
-    // Add the first available element to a new step
     const firstElement = availableElements[0];
     if (!firstElement) return;
 
@@ -352,73 +278,7 @@ export function CustomWishBuilder({
     setStepSequence([...stepSequence, newStep]);
   };
 
-  const quickSequencePresets = [
-    {
-      name: 'Birthday Celebration',
-      description: 'Perfect for birthday wishes',
-      steps: [['beautiful-text'], ['balloons-interactive']],
-      requiredElements: {
-        'beautiful-text': 1,
-        'balloons-interactive': 1,
-      },
-    },
-    {
-      name: 'Romantic Surprise',
-      description: 'Sweet and romantic sequence',
-      steps: [['beautiful-text'], ['balloons-interactive']],
-      requiredElements: {
-        'beautiful-text': 1,
-        'balloons-interactive': 1,
-      },
-    },
-    {
-      name: 'Celebration Flow',
-      description: 'Dynamic celebration sequence',
-      steps: [['beautiful-text'], ['balloons-interactive']],
-      requiredElements: {
-        'beautiful-text': 1,
-        'balloons-interactive': 1,
-      },
-    },
-  ];
-
-  const handleQuickSequence = (preset: (typeof quickSequencePresets)[0]) => {
-    // Clear existing sequence
-    setStepSequence([]);
-
-    // Add elements to steps based on preset
-    const elementTypeCounts: { [key: string]: number } = {};
-    const newSequence: string[][] = [];
-
-    preset.steps.forEach(stepElementTypes => {
-      const step: string[] = [];
-      stepElementTypes.forEach(elementType => {
-        // Find an element of this type that hasn't been used yet
-        const availableElement = elements.find(el => {
-          const currentCount = elementTypeCounts[el.elementType] || 0;
-          const requiredCount =
-            preset.requiredElements[
-              el.elementType as keyof typeof preset.requiredElements
-            ] || 0;
-          return el.elementType === elementType && currentCount < requiredCount;
-        });
-
-        if (availableElement) {
-          step.push(availableElement.id);
-          elementTypeCounts[availableElement.elementType] =
-            (elementTypeCounts[availableElement.elementType] || 0) + 1;
-        }
-      });
-      if (step.length > 0) {
-        newSequence.push(step);
-      }
-    });
-
-    setStepSequence(newSequence);
-  };
-
   const handleAddToStepSequence = (elementId: string) => {
-    // Try to add to the last step if it can be combined
     if (stepSequence.length > 0) {
       const lastStep = stepSequence[stepSequence.length - 1];
       if (lastStep && canCombine(lastStep, elementId)) {
@@ -429,7 +289,6 @@ export function CustomWishBuilder({
       }
     }
 
-    // Create a new step with this element
     setStepSequence([...stepSequence, [elementId]]);
   };
 
@@ -455,7 +314,6 @@ export function CustomWishBuilder({
   };
 
   const handleAutoGenerateSequence = () => {
-    // Automatically create a step for each interactive element
     const interactiveElements = elements.filter(
       el =>
         el.elementType === 'balloons-interactive' ||
@@ -468,13 +326,36 @@ export function CustomWishBuilder({
     setStepSequence(newSequence);
   };
 
-  const handlePreviewToggle = () => {
-    setIsPreviewMode(!isPreviewMode);
-    if (isPreviewMode) {
-      // Exiting preview mode, switch back to canvas view on mobile
-      if (window.innerWidth < 768) {
-        setMobileView('canvas');
-      }
+  // Step navigation functions
+  const handleNextStep = () => {
+    switch (currentStep) {
+      case 'create':
+        if (elements.length === 0) {
+          alert('Please add at least one element before proceeding.');
+          return;
+        }
+        setCurrentStep('steps');
+        break;
+      case 'steps':
+        setCurrentStep('preview');
+        break;
+      case 'preview':
+        setCurrentStep('save');
+        break;
+    }
+  };
+
+  const handlePreviousStep = () => {
+    switch (currentStep) {
+      case 'steps':
+        setCurrentStep('create');
+        break;
+      case 'preview':
+        setCurrentStep('steps');
+        break;
+      case 'save':
+        setCurrentStep('preview');
+        break;
     }
   };
 
@@ -544,7 +425,6 @@ export function CustomWishBuilder({
       return;
     }
 
-    // Create a temporary wish object for presentation
     const tempWish: Wish = {
       id: 'temp-presentation',
       recipientName,
@@ -566,26 +446,52 @@ export function CustomWishBuilder({
 
   const handleUpgradeClick = async () => {
     try {
-      // For demo purposes, upgrade the user
       const userId = 'demo-user-123';
       await premiumService.upgradeUser(userId, 'pro');
-
-      // Reload premium status
       const newStatus = await premiumService.getUserPremiumStatus(userId);
       setUserPremiumStatus(newStatus);
-
-      // console.log('User upgraded successfully');
     } catch (error) {
       console.error('Error upgrading user:', error);
       alert('Error upgrading user. Please try again.');
     }
   };
 
-  // Get current premium status - use prop if provided, otherwise use service
   const isUserPremium =
     propIsUserPremium !== undefined
       ? propIsUserPremium
       : userPremiumStatus?.isPremium || false;
+
+  // Get step title and description
+  const getStepInfo = () => {
+    switch (currentStep) {
+      case 'create':
+        return {
+          title: 'Create Your Wish',
+          description: 'Add elements to build your wish',
+          stepNumber: 1,
+        };
+      case 'steps':
+        return {
+          title: 'Manage Steps',
+          description: 'Organize your elements into steps',
+          stepNumber: 2,
+        };
+      case 'preview':
+        return {
+          title: 'Preview',
+          description: 'See how your wish will look',
+          stepNumber: 3,
+        };
+      case 'save':
+        return {
+          title: 'Save & Share',
+          description: 'Save and share your wish',
+          stepNumber: 4,
+        };
+    }
+  };
+
+  const stepInfo = getStepInfo();
 
   // Mobile navigation component
   const MobileNavigation = () => (
@@ -624,17 +530,19 @@ export function CustomWishBuilder({
           <span className='text-lg'>⚙️</span>
           <span className='text-xs'>Settings</span>
         </button>
-        <button
-          onClick={() => setMobileView('steps')}
-          className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
-            mobileView === 'steps'
-              ? 'bg-purple-100 text-purple-700'
-              : 'text-gray-600'
-          }`}
-        >
-          <span className='text-lg'>🎭</span>
-          <span className='text-xs'>Steps</span>
-        </button>
+        {currentStep === 'steps' && (
+          <button
+            onClick={() => setMobileView('steps')}
+            className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+              mobileView === 'steps'
+                ? 'bg-purple-100 text-purple-700'
+                : 'text-gray-600'
+            }`}
+          >
+            <span className='text-lg'>🎭</span>
+            <span className='text-xs'>Steps</span>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -642,121 +550,244 @@ export function CustomWishBuilder({
   return (
     <div className='h-screen bg-gray-50 flex flex-col'>
       {/* Header */}
-      <div className='bg-white shadow-sm border-b flex-shrink-0'>
-        <div className='w-full max-w-[1800px] mx-auto px-4 md:px-6 py-3 md:py-4'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center space-x-2 md:space-x-4'>
+      <div className='bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 border-b border-purple-100 flex-shrink-0'>
+        <div className='w-full max-w-[1800px] mx-auto px-4 md:px-6 py-3'>
+          {/* Main Header Row */}
+          <div className='flex items-center justify-between relative'>
+            {/* Left Section - Back Button and Title */}
+            <div className='flex items-center space-x-2 md:space-x-3 min-w-0 flex-1'>
               <Button
                 variant='outline'
                 onClick={onBack}
-                className='text-sm md:text-base'
+                className='text-xs md:text-sm px-2 md:px-3 py-1.5 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 flex-shrink-0'
               >
-                ← Back
+                <span className='hidden sm:inline'>← Back</span>
+                <span className='sm:hidden'>←</span>
               </Button>
-              <h1 className='text-lg md:text-2xl font-bold text-gray-900'>
-                Custom Wish Builder
-              </h1>
-              {isPreviewMode && (
-                <span className='px-2 md:px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm font-medium'>
-                  Preview
-                </span>
-              )}
+
+              <div className='flex flex-col min-w-0 flex-1'>
+                <h1 className='text-sm md:text-lg lg:text-xl font-bold text-gray-900 truncate'>
+                  {stepInfo.title}
+                </h1>
+                <div className='flex items-center space-x-1 md:space-x-2'>
+                  <span className='text-xs text-purple-600 font-medium'>
+                    Step {stepInfo.stepNumber} of 4
+                  </span>
+                  <span className='text-gray-400 hidden sm:inline'>•</span>
+                  <span className='text-xs text-gray-600 truncate hidden sm:inline'>
+                    {stepInfo.description}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Desktop buttons */}
-            <div className='hidden md:flex items-center space-x-4'>
-              <Button
-                variant='outline'
-                onClick={() => setShowStepManager(!showStepManager)}
-              >
-                {showStepManager ? 'Hide Steps' : 'Manage Steps'}
-              </Button>
-              <Button
-                variant={isPreviewMode ? 'primary' : 'outline'}
-                onClick={handlePreviewToggle}
-              >
-                {isPreviewMode ? 'Exit Preview' : 'Preview'}
-              </Button>
-              {elements.length > 0 && (
-                <Button variant='outline' onClick={handleOpenPresentationMode}>
-                  🎭 Presentation
+            {/* Center Section - Progress Stepper */}
+            <div className='hidden lg:flex items-center justify-center absolute left-1/2 transform -translate-x-1/2'>
+              <div className='flex items-center space-x-2'>
+                {['create', 'steps', 'preview', 'save'].map((step, index) => (
+                  <div key={step} className='flex items-center'>
+                    {/* Step Circle */}
+                    <div className='relative'>
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                          currentStep === step
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-110'
+                            : index <
+                                ['create', 'steps', 'preview', 'save'].indexOf(
+                                  currentStep
+                                )
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                              : 'bg-white border-2 border-gray-200 text-gray-400'
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+
+                      {/* Checkmark for completed steps */}
+                      {index <
+                        ['create', 'steps', 'preview', 'save'].indexOf(
+                          currentStep
+                        ) && (
+                        <div className='absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center'>
+                          <span className='text-white text-xs'>✓</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Step Label */}
+                    <span
+                      className={`ml-1 text-xs font-medium ${
+                        currentStep === step
+                          ? 'text-purple-700'
+                          : index <
+                              ['create', 'steps', 'preview', 'save'].indexOf(
+                                currentStep
+                              )
+                            ? 'text-green-700'
+                            : 'text-gray-500'
+                      }`}
+                    >
+                      {step === 'create' && 'Create'}
+                      {step === 'steps' && 'Steps'}
+                      {step === 'preview' && 'Preview'}
+                      {step === 'save' && 'Save'}
+                    </span>
+
+                    {/* Connector Line */}
+                    {index < 3 && (
+                      <div className='relative mx-1'>
+                        <div className='w-6 h-0.5 bg-gray-200'>
+                          <div
+                            className={`h-full transition-all duration-500 ${
+                              index <
+                              ['create', 'steps', 'preview', 'save'].indexOf(
+                                currentStep
+                              )
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                : 'bg-gray-200'
+                            }`}
+                            style={{
+                              width:
+                                index <
+                                ['create', 'steps', 'preview', 'save'].indexOf(
+                                  currentStep
+                                )
+                                  ? '100%'
+                                  : '0%',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Section - Navigation Buttons */}
+            <div className='flex items-center space-x-1 md:space-x-2 flex-shrink-0'>
+              {currentStep !== 'create' && (
+                <Button
+                  variant='outline'
+                  onClick={handlePreviousStep}
+                  className='text-xs md:text-sm px-2 md:px-3 py-1.5 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200'
+                >
+                  <span className='hidden sm:inline'>← Previous</span>
+                  <span className='sm:hidden'>←</span>
                 </Button>
               )}
-              <Button
-                variant='primary'
-                onClick={handleSaveWish}
-                disabled={elements.length === 0}
-              >
-                Save & Share
-              </Button>
-            </div>
 
-            {/* Mobile menu button */}
-            <div className='md:hidden'>
-              <Button
-                variant='outline'
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className='p-2'
-              >
-                ☰
-              </Button>
+              {currentStep !== 'save' && (
+                <Button
+                  variant='primary'
+                  onClick={handleNextStep}
+                  disabled={
+                    (currentStep === 'create' && elements.length === 0) ||
+                    (currentStep === 'steps' && stepSequence.length === 0)
+                  }
+                  className='text-xs md:text-sm px-3 md:px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                  <span className='hidden sm:inline'>
+                    {currentStep === 'preview' ? 'Save & Share' : 'Next →'}
+                  </span>
+                  <span className='sm:hidden'>
+                    {currentStep === 'preview' ? 'Save' : '→'}
+                  </span>
+                </Button>
+              )}
+
+              {currentStep === 'save' && (
+                <Button
+                  variant='primary'
+                  onClick={handleSaveWish}
+                  disabled={elements.length === 0}
+                  className='text-xs md:text-sm px-2 md:px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                  <span className='hidden sm:inline'>💾 Save & Share</span>
+                  <span className='sm:hidden'>💾</span>
+                </Button>
+              )}
             </div>
           </div>
 
-          {/* Mobile menu dropdown */}
-          {showMobileMenu && (
-            <div className='md:hidden mt-3 p-3 bg-gray-50 rounded-lg border'>
-              <div className='space-y-2'>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => {
-                    setShowStepManager(!showStepManager);
-                    setShowMobileMenu(false);
-                  }}
-                  className='w-full justify-start'
-                >
-                  {showStepManager ? 'Hide Steps' : 'Manage Steps'}
-                </Button>
-                <Button
-                  variant={isPreviewMode ? 'primary' : 'outline'}
-                  size='sm'
-                  onClick={() => {
-                    handlePreviewToggle();
-                    setShowMobileMenu(false);
-                  }}
-                  className='w-full justify-start'
-                >
-                  {isPreviewMode ? 'Exit Preview' : 'Preview'}
-                </Button>
-                {elements.length > 0 && (
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={() => {
-                      handleOpenPresentationMode();
-                      setShowMobileMenu(false);
-                    }}
-                    className='w-full justify-start'
-                  >
-                    🎭 Presentation
-                  </Button>
-                )}
-                <Button
-                  variant='primary'
-                  size='sm'
-                  onClick={() => {
-                    handleSaveWish();
-                    setShowMobileMenu(false);
-                  }}
-                  disabled={elements.length === 0}
-                  className='w-full justify-start'
-                >
-                  Save & Share
-                </Button>
-              </div>
+          {/* Mobile Progress Bar */}
+          <div className='md:hidden mt-3'>
+            <div className='flex items-center justify-center space-x-3'>
+              {['create', 'steps', 'preview', 'save'].map((step, index) => (
+                <div key={step} className='flex flex-col items-center'>
+                  <div className='relative'>
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                        currentStep === step
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-110'
+                          : index <
+                              ['create', 'steps', 'preview', 'save'].indexOf(
+                                currentStep
+                              )
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                            : 'bg-white border-2 border-gray-200 text-gray-400'
+                      }`}
+                    >
+                      {index + 1}
+                    </div>
+
+                    {index <
+                      ['create', 'steps', 'preview', 'save'].indexOf(
+                        currentStep
+                      ) && (
+                      <div className='absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center'>
+                        <span className='text-white text-xs'>✓</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className='mt-1 text-center'>
+                    <div
+                      className={`text-xs font-medium ${
+                        currentStep === step
+                          ? 'text-purple-700'
+                          : index <
+                              ['create', 'steps', 'preview', 'save'].indexOf(
+                                currentStep
+                              )
+                            ? 'text-green-700'
+                            : 'text-gray-500'
+                      }`}
+                    >
+                      {step === 'create' && 'Create'}
+                      {step === 'steps' && 'Steps'}
+                      {step === 'preview' && 'Preview'}
+                      {step === 'save' && 'Save'}
+                    </div>
+                  </div>
+
+                  {index < 3 && (
+                    <div className='absolute top-3 left-full w-full h-0.5 bg-gray-200'>
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          index <
+                          ['create', 'steps', 'preview', 'save'].indexOf(
+                            currentStep
+                          )
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500'
+                            : 'bg-gray-200'
+                        }`}
+                        style={{
+                          width:
+                            index <
+                            ['create', 'steps', 'preview', 'save'].indexOf(
+                              currentStep
+                            )
+                              ? '100%'
+                              : '0%',
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -764,15 +795,9 @@ export function CustomWishBuilder({
       <div className='flex-1 w-full max-w-[1800px] mx-auto px-4 md:px-6 py-4 md:py-6 overflow-hidden'>
         {/* Desktop Layout */}
         <div className='hidden md:grid md:grid-cols-12 gap-6 h-full'>
-          {/* Step Manager Panel */}
-          {showStepManager && !isPreviewMode && (
-            <div
-              className='col-span-12 bg-white rounded-lg shadow-sm border p-6 mb-6 flex flex-col'
-              style={{
-                height: 'calc(100vh - 200px)',
-                maxHeight: 'calc(100vh - 200px)',
-              }}
-            >
+          {/* Step Manager Panel - Only show in steps step */}
+          {currentStep === 'steps' && (
+            <div className='col-span-12 bg-white rounded-lg shadow-sm border p-6 mb-6 flex flex-col'>
               <div className='flex items-center justify-between mb-4'>
                 <h3 className='text-lg font-semibold text-gray-800'>
                   Step Sequence Manager
@@ -796,11 +821,7 @@ export function CustomWishBuilder({
                   </Button>
                 </div>
               </div>
-              <div className='mb-4 p-3 bg-blue-50 rounded text-blue-800 text-sm flex-shrink-0'>
-                <strong>How to use:</strong> Add elements to steps, combine up
-                to 2 allowed elements per step, reorder steps, and remove
-                elements or steps as needed. Hover buttons for tips.
-              </div>
+
               {/* Add Next Step Button */}
               {stepSequence.length > 0 && stepSequence.length < 10 && (
                 <div className='mb-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 flex-shrink-0'>
@@ -818,23 +839,18 @@ export function CustomWishBuilder({
                   </button>
                 </div>
               )}
-              <div
-                className='grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0 overflow-hidden'
-                style={{ minHeight: 0 }}
-              >
+
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0 overflow-hidden'>
                 {/* Available Elements */}
                 <div className='flex flex-col h-full min-h-0'>
                   <h4 className='text-sm font-medium text-gray-700 mb-3'>
                     Available Elements
                   </h4>
-                  <div
-                    className='space-y-2 flex-1 overflow-y-auto min-h-0'
-                    style={{ minHeight: 0 }}
-                  >
+                  <div className='space-y-2 flex-1 overflow-y-auto min-h-0'>
                     {getAvailableElementsForSteps().map(element => (
                       <div
                         key={element.id}
-                        className={`p-3 rounded-lg border flex items-center justify-between transition-colors ${'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                        className='p-3 rounded-lg border flex items-center justify-between transition-colors bg-gray-50 border-gray-200 hover:bg-gray-100'
                       >
                         <div className='flex items-center space-x-2'>
                           <span
@@ -879,15 +895,13 @@ export function CustomWishBuilder({
                     )}
                   </div>
                 </div>
+
                 {/* Step Sequence */}
                 <div className='flex flex-col h-full min-h-0'>
                   <h4 className='text-sm font-medium text-gray-700 mb-3'>
                     Step Sequence
                   </h4>
-                  <div
-                    className='space-y-2 flex-1 overflow-y-auto min-h-0'
-                    style={{ minHeight: 0 }}
-                  >
+                  <div className='space-y-2 flex-1 overflow-y-auto min-h-0'>
                     {stepSequence.length === 0 ? (
                       <div className='text-center text-gray-500 py-8'>
                         <div className='text-2xl mb-2'>🎭</div>
@@ -982,26 +996,14 @@ export function CustomWishBuilder({
                         </div>
                       ))
                     )}
-                    {/* Step Limit Warning */}
-                    {stepSequence.length >= 10 && (
-                      <div className='mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg'>
-                        <div className='flex items-center space-x-2'>
-                          <span className='text-yellow-600'>⚠️</span>
-                          <span className='text-sm text-yellow-800'>
-                            Maximum 10 steps reached. Remove some steps to add
-                            more.
-                          </span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Element Palette - Hidden in preview mode */}
-          {!isPreviewMode && !showStepManager && (
+          {/* Element Palette - Show in create step */}
+          {currentStep === 'create' && (
             <div className='col-span-3 overflow-hidden'>
               <ElementPalette
                 elements={availableElements}
@@ -1014,30 +1016,35 @@ export function CustomWishBuilder({
             </div>
           )}
 
-          {/* Canvas - Full width in preview mode */}
-          <div
-            className={`overflow-hidden ${isPreviewMode ? 'col-span-12' : showStepManager ? 'hidden' : 'col-span-6'}`}
-            style={{ height: showStepManager ? '0' : 'auto' }}
-          >
-            <WishCanvas
-              elements={elements}
-              selectedElement={isPreviewMode ? null : selectedElement}
-              onSelectElement={
-                isPreviewMode ? () => {} : handleCanvasElementSelect
-              }
-              onUpdateElement={handleUpdateElement}
-              recipientName={recipientName}
-              message={message}
-              theme={theme}
-              customBackgroundColor={customBackgroundColor}
-              onCanvasSettingsToggle={setShowCanvasSettings}
-              isPreviewMode={isPreviewMode}
-              stepSequence={stepSequence}
-            />
-          </div>
+          {/* Canvas - Show in create and preview steps */}
+          {(currentStep === 'create' || currentStep === 'preview') && (
+            <div
+              className={`overflow-hidden ${currentStep === 'create' ? 'col-span-6' : 'col-span-12'}`}
+            >
+              <WishCanvas
+                elements={elements}
+                selectedElement={
+                  currentStep === 'preview' ? null : selectedElement
+                }
+                onSelectElement={
+                  currentStep === 'preview'
+                    ? () => {}
+                    : handleCanvasElementSelect
+                }
+                onUpdateElement={handleUpdateElement}
+                recipientName={recipientName}
+                message={message}
+                theme={theme}
+                customBackgroundColor={customBackgroundColor}
+                onCanvasSettingsToggle={setShowCanvasSettings}
+                isPreviewMode={currentStep === 'preview'}
+                stepSequence={stepSequence}
+              />
+            </div>
+          )}
 
-          {/* Properties Panel - Hidden in preview mode */}
-          {!isPreviewMode && !showStepManager && (
+          {/* Properties Panel - Show in create step */}
+          {currentStep === 'create' && (
             <div className='col-span-3 overflow-hidden'>
               <ElementPropertiesPanel
                 element={selectedElement}
@@ -1060,12 +1067,47 @@ export function CustomWishBuilder({
               />
             </div>
           )}
+
+          {/* Save & Share Step */}
+          {currentStep === 'save' && (
+            <div className='col-span-12 bg-white rounded-lg shadow-sm border p-6'>
+              <div className='text-center'>
+                <div className='text-6xl mb-4'>🎉</div>
+                <h2 className='text-2xl font-bold text-gray-800 mb-2'>
+                  Your Wish is Ready!
+                </h2>
+                <p className='text-gray-600 mb-6'>
+                  You've created a beautiful wish with {elements.length} element
+                  {elements.length !== 1 ? 's' : ''}.
+                  {stepSequence.length > 0 &&
+                    ` It has ${stepSequence.length} step${stepSequence.length !== 1 ? 's' : ''} in the sequence.`}
+                </p>
+                <div className='flex flex-col space-y-2'>
+                  <Button
+                    variant='outline'
+                    onClick={() => setCurrentStep('preview')}
+                    className='text-sm'
+                  >
+                    ← Back to Preview
+                  </Button>
+                  <Button
+                    variant='primary'
+                    onClick={handleSaveWish}
+                    disabled={elements.length === 0}
+                    className='text-sm'
+                  >
+                    Save & Share
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Mobile Layout */}
         <div className='md:hidden h-full pb-16'>
           {/* Step Manager Panel */}
-          {mobileView === 'steps' && !isPreviewMode && (
+          {currentStep === 'steps' && mobileView === 'steps' && (
             <div className='bg-white rounded-lg shadow-sm border p-4 h-full overflow-y-auto'>
               <div className='flex items-center justify-between mb-4'>
                 <h3 className='text-lg font-semibold text-gray-800'>
@@ -1236,7 +1278,7 @@ export function CustomWishBuilder({
           )}
 
           {/* Element Palette */}
-          {mobileView === 'palette' && !isPreviewMode && (
+          {currentStep === 'create' && mobileView === 'palette' && (
             <div className='h-full'>
               <ElementPalette
                 elements={availableElements}
@@ -1250,28 +1292,33 @@ export function CustomWishBuilder({
           )}
 
           {/* Canvas */}
-          {mobileView === 'canvas' && (
-            <div className='h-full'>
-              <WishCanvas
-                elements={elements}
-                selectedElement={isPreviewMode ? null : selectedElement}
-                onSelectElement={
-                  isPreviewMode ? () => {} : handleCanvasElementSelect
-                }
-                onUpdateElement={handleUpdateElement}
-                recipientName={recipientName}
-                message={message}
-                theme={theme}
-                customBackgroundColor={customBackgroundColor}
-                onCanvasSettingsToggle={setShowCanvasSettings}
-                isPreviewMode={isPreviewMode}
-                stepSequence={stepSequence}
-              />
-            </div>
-          )}
+          {(currentStep === 'create' || currentStep === 'preview') &&
+            mobileView === 'canvas' && (
+              <div className='h-full'>
+                <WishCanvas
+                  elements={elements}
+                  selectedElement={
+                    currentStep === 'preview' ? null : selectedElement
+                  }
+                  onSelectElement={
+                    currentStep === 'preview'
+                      ? () => {}
+                      : handleCanvasElementSelect
+                  }
+                  onUpdateElement={handleUpdateElement}
+                  recipientName={recipientName}
+                  message={message}
+                  theme={theme}
+                  customBackgroundColor={customBackgroundColor}
+                  onCanvasSettingsToggle={setShowCanvasSettings}
+                  isPreviewMode={currentStep === 'preview'}
+                  stepSequence={stepSequence}
+                />
+              </div>
+            )}
 
           {/* Properties Panel */}
-          {mobileView === 'properties' && !isPreviewMode && (
+          {currentStep === 'create' && mobileView === 'properties' && (
             <div className='h-full'>
               <ElementPropertiesPanel
                 element={selectedElement}
@@ -1292,6 +1339,41 @@ export function CustomWishBuilder({
                 elements={elements}
                 onSwitchToElement={handleSwitchToElement}
               />
+            </div>
+          )}
+
+          {/* Save & Share Step */}
+          {currentStep === 'save' && (
+            <div className='bg-white rounded-lg shadow-sm border p-6'>
+              <div className='text-center'>
+                <div className='text-6xl mb-4'>🎉</div>
+                <h2 className='text-2xl font-bold text-gray-800 mb-2'>
+                  Your Wish is Ready!
+                </h2>
+                <p className='text-gray-600 mb-6'>
+                  You've created a beautiful wish with {elements.length} element
+                  {elements.length !== 1 ? 's' : ''}.
+                  {stepSequence.length > 0 &&
+                    ` It has ${stepSequence.length} step${stepSequence.length !== 1 ? 's' : ''} in the sequence.`}
+                </p>
+                <div className='flex flex-col space-y-2'>
+                  <Button
+                    variant='outline'
+                    onClick={() => setCurrentStep('preview')}
+                    className='text-sm'
+                  >
+                    ← Back to Preview
+                  </Button>
+                  <Button
+                    variant='primary'
+                    onClick={handleSaveWish}
+                    disabled={elements.length === 0}
+                    className='text-sm'
+                  >
+                    Save & Share
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>
