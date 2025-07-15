@@ -127,6 +127,7 @@ export default function WishPage({
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isPlaying, stepElements.length]);
 
   // Auto-start presentation after 2 seconds
@@ -138,6 +139,7 @@ export default function WishPage({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isLoading, wish, autoPlay]);
 
   // Hide controls after 3 seconds of inactivity
@@ -315,6 +317,7 @@ export default function WishPage({
                 { length: properties.numberOfBalloons || 5 },
                 (_, index) => properties[`balloonImage${index}`] || null
               )}
+              showHint={true} // Always show hints for shared wishes
             />
           </div>
         );

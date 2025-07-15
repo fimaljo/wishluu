@@ -40,6 +40,12 @@ export default function Home() {
             Templates
           </Link>
           <Link
+            href='/wishes'
+            className='text-gray-600 hover:text-purple-600 transition-colors'
+          >
+            My Wishes
+          </Link>
+          <Link
             href='/templates'
             className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300'
           >
@@ -94,6 +100,13 @@ export default function Home() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Templates
+            </Link>
+            <Link
+              href='/wishes'
+              className='block text-gray-600 hover:text-purple-600 transition-colors'
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              My Wishes
             </Link>
             <Link
               href='/templates'

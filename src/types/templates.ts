@@ -9,6 +9,8 @@ export interface Template {
   elements: string[];
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   preview?: string;
+  defaultElements?: WishElement[]; // Default elements configuration for the template
+  stepSequence?: string[][]; // Step sequence for presentation mode
 }
 
 // Premium Property Types
@@ -44,6 +46,7 @@ export interface InteractiveElement {
   properties: ElementProperties;
   propertyDefinitions?: PropertyDefinition[];
   isPremium?: boolean;
+  tags?: string[];
 }
 
 export interface ElementProperties {

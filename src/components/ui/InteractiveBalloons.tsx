@@ -25,6 +25,7 @@ interface InteractiveBalloonsProps {
   onBalloonPop?: (balloonId: number) => void;
   onAllBalloonsPopped?: () => void; // Callback when all balloons are popped
   className?: string;
+  showHint?: boolean; // New prop to control hint visibility
 }
 
 export function InteractiveBalloons({
@@ -38,12 +39,15 @@ export function InteractiveBalloons({
   onBalloonPop,
   onAllBalloonsPopped,
   className = '',
+  showHint = true, // Default to showing hint
 }: InteractiveBalloonsProps) {
   const [balloons, setBalloons] = useState<Balloon[]>([]);
   const [poppedImages, setPoppedImages] = useState<
     { id: number; x: number; y: number }[]
   >([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showInteractionHint, setShowInteractionHint] = useState(false);
+  const [hintDismissed, setHintDismissed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Ensure numberOfBalloons is within valid range
@@ -137,11 +141,19 @@ export function InteractiveBalloons({
       // Start animation after a short delay to ensure balloons are positioned
       const timer = setTimeout(() => {
         setIsAnimating(true);
+
+        // Show interaction hint after balloons start floating
+        if (showHint && !hintDismissed) {
+          setTimeout(() => {
+            setShowInteractionHint(true);
+          }, 2000); // Show hint 2 seconds after animation starts
+        }
       }, 100);
 
       return () => clearTimeout(timer);
     }
-  }, [startAnimation, balloons.length]);
+    return undefined;
+  }, [startAnimation, balloons.length, showHint, hintDismissed]);
 
   // Handle reset animation
   useEffect(() => {
@@ -155,10 +167,18 @@ export function InteractiveBalloons({
         }))
       );
       setIsAnimating(false);
+      setShowInteractionHint(false);
+      setHintDismissed(false);
     }
   }, [resetAnimation]);
 
   const handleBalloonClick = (balloonId: number) => {
+    // Hide hint when user interacts with balloons
+    if (showInteractionHint) {
+      setShowInteractionHint(false);
+      setHintDismissed(true);
+    }
+
     setBalloons(prev =>
       prev.map(b => (b.id === balloonId ? { ...b, isPopped: true } : b))
     );
@@ -311,6 +331,15 @@ export function InteractiveBalloons({
           )}
         </div>
       ))}
+
+      {/* Simple Bottom Hint */}
+      {showInteractionHint && showHint && !hintDismissed && (
+        <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none'>
+          <div className='bg-black/60 text-white px-4 py-2 rounded-lg text-sm font-medium animate-pulse'>
+            👆 Pop the balloons!
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,25 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Wish } from '@/types';
-import { addWishToStorage } from './[id]/route';
+import { addWishToStorage, getAllWishes } from '@/lib/wishStorage';
 
 // GET /api/wishes - Get all wishes
 export async function GET() {
   try {
-    // TODO: Replace with actual Firebase call
-    const wishes: Wish[] = [
-      {
-        id: '1',
-        recipientName: 'John Doe',
-        occasion: 'birthday',
-        message: 'Happy Birthday!',
-        theme: 'purple',
-        animation: 'fade',
-        createdAt: new Date().toISOString(),
-        isPublic: true,
-        views: 10,
-        likes: 5,
-      },
-    ];
+    const wishes = getAllWishes();
 
     return NextResponse.json({
       success: true,

@@ -45,6 +45,7 @@ export function PresentationMode({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isOpen, autoPlay, wish]);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export function PresentationMode({
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isPlaying, stepElements.length]);
 
   const handleNext = () => {
@@ -204,6 +206,7 @@ export function PresentationMode({
                 { length: properties.numberOfBalloons || 5 },
                 (_, index) => properties[`balloonImage${index}`] || null
               )}
+              showHint={true} // Always show hints in presentation mode
             />
           </div>
         );

@@ -205,6 +205,7 @@ export function WishCanvas({
                 { length: properties.numberOfBalloons || 5 },
                 (_, index) => properties[`balloonImage${index}`] || null
               )}
+              showHint={isPreviewMode && properties.showHint !== false} // Show hints in preview mode if enabled
             />
           </div>
         );

@@ -1,61 +1,28 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { TemplateCard } from '@/features/templates';
+import { getAllTemplates, TEMPLATE_OCCASIONS } from '@/config/templates';
+import { Template } from '@/types/templates';
 
 export default function TemplatesPage() {
-  const templates = [
-    {
-      id: 'birthday',
-      name: 'Birthday Celebration',
-      description: 'Create a magical birthday wish with animations and music',
-      category: 'Birthday',
-      preview: '🎂',
-      color: 'from-pink-400 to-rose-500',
-    },
-    {
-      id: 'valentine',
-      name: "Valentine's Love",
-      description: "Express your love with an interactive Valentine's wish",
-      category: "Valentine's Day",
-      preview: '💕',
-      color: 'from-red-400 to-pink-500',
-    },
-    {
-      id: 'mothers-day',
-      name: "Mother's Day Tribute",
-      description: "Show your appreciation with a heartfelt Mother's Day wish",
-      category: "Mother's Day",
-      preview: '🌷',
-      color: 'from-purple-400 to-pink-500',
-    },
-    {
-      id: 'proposal',
-      name: 'Romantic Proposal',
-      description:
-        'Make your proposal unforgettable with this special template',
-      category: 'Proposal',
-      preview: '💍',
-      color: 'from-blue-400 to-purple-500',
-    },
-    {
-      id: 'anniversary',
-      name: 'Anniversary Celebration',
-      description: 'Celebrate your love story with this anniversary template',
-      category: 'Anniversary',
-      preview: '💑',
-      color: 'from-green-400 to-blue-500',
-    },
-    {
-      id: 'graduation',
-      name: 'Graduation Achievement',
-      description: 'Congratulate graduates with this achievement template',
-      category: 'Graduation',
-      preview: '🎓',
-      color: 'from-yellow-400 to-orange-500',
-    },
-  ];
+  const [selectedOccasion, setSelectedOccasion] = useState('all');
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load templates on component mount (client-side only)
+  useEffect(() => {
+    const loadTemplates = () => {
+      setTemplates(getAllTemplates());
+      setIsLoading(false);
+    };
+    loadTemplates();
+  }, []);
+
+  const filteredTemplates =
+    selectedOccasion === 'all'
+      ? templates
+      : templates.filter(template => template.occasion === selectedOccasion);
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50'>
@@ -71,12 +38,20 @@ export default function TemplatesPage() {
                 WishLuu
               </span>
             </div>
-            <Link
-              href='/'
-              className='text-gray-600 hover:text-purple-600 transition-colors'
-            >
-              ← Back to Home
-            </Link>
+            <div className='flex items-center space-x-4'>
+              <Link
+                href='/admin/templates'
+                className='text-gray-600 hover:text-purple-600 transition-colors'
+              >
+                Manage Templates
+              </Link>
+              <Link
+                href='/'
+                className='text-gray-600 hover:text-purple-600 transition-colors'
+              >
+                ← Back to Home
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -95,29 +70,65 @@ export default function TemplatesPage() {
           </p>
         </div>
 
-        {/* Templates Grid */}
-        <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
-          {templates.map(template => (
-            <Link key={template.id} href={`/wishes/create/${template.id}`}>
-              <div className='group cursor-pointer'>
-                <div
-                  className={`bg-gradient-to-r ${template.color} p-8 rounded-2xl text-white text-center transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl h-full flex flex-col justify-center`}
-                >
-                  <div className='text-6xl mb-4'>{template.preview}</div>
-                  <h3 className='text-xl font-semibold mb-2'>
-                    {template.name}
-                  </h3>
-                  <p className='text-purple-100 text-sm mb-4'>
-                    {template.description}
-                  </p>
-                  <div className='bg-white/20 rounded-full px-4 py-1 text-sm font-medium'>
-                    {template.category}
-                  </div>
-                </div>
-              </div>
-            </Link>
+        {/* Occasion Filter */}
+        <div className='flex flex-wrap justify-center gap-4 mb-8'>
+          {TEMPLATE_OCCASIONS.map(occasion => (
+            <button
+              key={occasion.id}
+              onClick={() => setSelectedOccasion(occasion.id)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                selectedOccasion === occasion.id
+                  ? 'bg-purple-500 text-white shadow-lg'
+                  : 'bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600'
+              }`}
+            >
+              <span className='mr-2'>{occasion.emoji}</span>
+              {occasion.name}
+            </button>
           ))}
         </div>
+
+        {/* Templates Grid */}
+        {isLoading ? (
+          <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
+            {[1, 2, 3].map(i => (
+              <div
+                key={i}
+                className='bg-white rounded-2xl shadow-lg p-8 animate-pulse'
+              >
+                <div className='bg-gray-200 rounded-lg h-24 mb-4'></div>
+                <div className='bg-gray-200 rounded h-6 mb-2'></div>
+                <div className='bg-gray-200 rounded h-4 mb-4'></div>
+                <div className='bg-gray-200 rounded-full h-6 w-24'></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
+            {filteredTemplates.map(template => (
+              <Link key={template.id} href={`/wishes/create/${template.id}`}>
+                <div className='group cursor-pointer'>
+                  <div
+                    className={`bg-gradient-to-r ${template.color} p-8 rounded-2xl text-white text-center transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl h-full flex flex-col justify-center`}
+                  >
+                    <div className='text-6xl mb-4'>{template.thumbnail}</div>
+                    <h3 className='text-xl font-semibold mb-2'>
+                      {template.name}
+                    </h3>
+                    <p className='text-purple-100 text-sm mb-4'>
+                      {template.description}
+                    </p>
+                    <div className='bg-white/20 rounded-full px-4 py-1 text-sm font-medium'>
+                      {template.occasion === 'custom'
+                        ? 'Custom'
+                        : template.occasion}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Custom Template Option */}
         <div className='mt-16 text-center'>

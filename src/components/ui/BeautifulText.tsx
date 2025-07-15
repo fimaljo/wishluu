@@ -237,6 +237,7 @@ export function BeautifulText({
         document.head.removeChild(styleElement);
       };
     }
+    return undefined;
   }, [gradient]);
 
   return (

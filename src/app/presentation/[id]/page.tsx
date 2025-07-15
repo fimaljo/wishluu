@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 export default function PresentationPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const features = [
     {
