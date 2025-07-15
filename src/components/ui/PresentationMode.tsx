@@ -45,6 +45,7 @@ export function PresentationMode({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isOpen, autoPlay, wish]);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export function PresentationMode({
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isPlaying, stepElements.length]);
 
   const handleNext = () => {

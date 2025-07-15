@@ -152,6 +152,7 @@ export function InteractiveBalloons({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [startAnimation, balloons.length, showHint, hintDismissed]);
 
   // Handle reset animation

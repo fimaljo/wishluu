@@ -70,6 +70,7 @@ export function ElementPropertiesPanel({
       }, 100);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [animationState]);
 
   const handleAnimationControl = (type: 'start' | 'reset') => {
