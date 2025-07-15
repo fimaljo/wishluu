@@ -259,12 +259,27 @@ const MobileNavigation = ({
           className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
             mobileView === 'steps'
               ? 'bg-purple-100 text-purple-700'
-              : 'text-gray-600'
+              : 'bg-orange-100 text-orange-700'
           }`}
           aria-label='Switch to steps management'
         >
           <span className='text-lg'>🎭</span>
           <span className='text-xs'>Steps</span>
+        </button>
+      )}
+
+      {currentStep === 'preview' && (
+        <button
+          onClick={() => setMobileView('canvas')}
+          className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+            mobileView === 'canvas'
+              ? 'bg-purple-100 text-purple-700'
+              : 'bg-blue-100 text-blue-700'
+          }`}
+          aria-label='Switch to preview view'
+        >
+          <span className='text-lg'>👁️</span>
+          <span className='text-xs'>Preview</span>
         </button>
       )}
     </div>
@@ -363,23 +378,51 @@ const SaveShareStep = ({
   onBackToPreview: () => void;
   onSave: () => void;
 }) => (
-  <div className='bg-white rounded-lg shadow-sm border p-6'>
+  <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-8 md:p-12'>
     <div className='text-center'>
-      <div className='text-6xl mb-4'>🎉</div>
-      <h2 className='text-2xl font-bold text-gray-800 mb-2'>
+      <div className='text-8xl mb-6'>🎉</div>
+      <h2 className='text-3xl md:text-4xl font-bold text-gray-800 mb-4'>
         Your Wish is Ready!
       </h2>
-      <p className='text-gray-600 mb-6'>
-        You've created a beautiful wish with {elements.length} element
-        {elements.length !== 1 ? 's' : ''}.
-        {stepSequence.length > 0 &&
-          ` It has ${stepSequence.length} step${stepSequence.length !== 1 ? 's' : ''} in the sequence.`}
+      <p className='text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed'>
+        You've created a beautiful wish with{' '}
+        <span className='font-semibold text-purple-600'>
+          {elements.length} element{elements.length !== 1 ? 's' : ''}
+        </span>
+        .
+        {stepSequence.length > 0 && (
+          <span>
+            {' '}
+            It has{' '}
+            <span className='font-semibold text-purple-600'>
+              {stepSequence.length} step{stepSequence.length !== 1 ? 's' : ''}
+            </span>{' '}
+            in the sequence.
+          </span>
+        )}
       </p>
-      <div className='flex flex-col space-y-2'>
+
+      {/* Stats Cards */}
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-md mx-auto'>
+        <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200'>
+          <div className='text-2xl font-bold text-purple-600'>
+            {elements.length}
+          </div>
+          <div className='text-sm text-gray-600'>Elements</div>
+        </div>
+        <div className='bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200'>
+          <div className='text-2xl font-bold text-green-600'>
+            {stepSequence.length}
+          </div>
+          <div className='text-sm text-gray-600'>Steps</div>
+        </div>
+      </div>
+
+      <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
         <Button
           variant='outline'
           onClick={onBackToPreview}
-          className='text-sm'
+          className='w-full sm:w-auto px-8 py-3 text-base font-medium'
           aria-label='Go back to preview'
         >
           ← Back to Preview
@@ -388,10 +431,10 @@ const SaveShareStep = ({
           variant='primary'
           onClick={onSave}
           disabled={elements.length === 0}
-          className='text-sm'
+          className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
           aria-label='Save and share wish'
         >
-          Save & Share
+          💾 Save & Share
         </Button>
       </div>
     </div>
@@ -660,6 +703,27 @@ export function CustomWishBuilder({
     stepSequence,
   });
 
+  // Enhanced navigation handlers that also manage mobile view
+  const handleNextStepWithMobileView = () => {
+    navigation.handleNextStep();
+    // Auto-switch mobile view based on next step
+    if (currentStep === 'create') {
+      setMobileView('steps');
+    } else if (currentStep === 'steps') {
+      setMobileView('canvas');
+    }
+  };
+
+  const handlePreviousStepWithMobileView = () => {
+    navigation.handlePreviousStep();
+    // Auto-switch mobile view based on previous step
+    if (currentStep === 'preview') {
+      setMobileView('steps');
+    } else if (currentStep === 'steps') {
+      setMobileView('canvas');
+    }
+  };
+
   // Additional handlers that need to be defined here
   const handleTemplateModeSelection = (elementId: string) => {
     const elementTypeExists = originalTemplateElements.some(
@@ -847,6 +911,20 @@ export function CustomWishBuilder({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Set mobile view to 'steps' when in steps step
+  useEffect(() => {
+    if (currentStep === 'steps' && mobileView === 'canvas') {
+      setMobileView('steps');
+    }
+  }, [currentStep, mobileView, setMobileView]);
+
+  // Set mobile view to 'canvas' when in preview step
+  useEffect(() => {
+    if (currentStep === 'preview' && mobileView !== 'canvas') {
+      setMobileView('canvas');
+    }
+  }, [currentStep, mobileView, setMobileView]);
+
   useEffect(() => {
     const loadPremiumStatus = async () => {
       try {
@@ -888,7 +966,7 @@ export function CustomWishBuilder({
         } else if (showPresentationMode) {
           setShowPresentationMode(false);
         } else if (currentStep !== 'create') {
-          navigation.handlePreviousStep();
+          handlePreviousStepWithMobileView();
         }
       }
 
@@ -983,7 +1061,7 @@ export function CustomWishBuilder({
               {currentStep !== 'create' && (
                 <Button
                   variant='outline'
-                  onClick={navigation.handlePreviousStep}
+                  onClick={handlePreviousStepWithMobileView}
                   className='text-xs md:text-sm px-2 md:px-3 py-1.5 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200'
                   aria-label='Go to previous step'
                   disabled={isLoading}
@@ -996,7 +1074,7 @@ export function CustomWishBuilder({
               {currentStep !== 'save' && (
                 <Button
                   variant='primary'
-                  onClick={navigation.handleNextStep}
+                  onClick={handleNextStepWithMobileView}
                   disabled={
                     isLoading ||
                     (currentStep === 'create' && elements.length === 0) ||
@@ -1134,12 +1212,36 @@ export function CustomWishBuilder({
 
           {/* Save & Share Step */}
           {currentStep === 'save' && (
-            <SaveShareStep
-              elements={elements}
-              stepSequence={stepSequence}
-              onBackToPreview={() => setCurrentStep('preview')}
-              onSave={actions.handleSaveWish}
-            />
+            <div className='col-span-12 flex items-center justify-center min-h-[600px] bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 relative overflow-hidden'>
+              {/* Floating decorative elements */}
+              <div className='absolute top-10 left-10 text-4xl opacity-20 animate-bounce'>
+                🎈
+              </div>
+              <div className='absolute top-20 right-20 text-3xl opacity-20 animate-pulse'>
+                ✨
+              </div>
+              <div
+                className='absolute bottom-20 left-20 text-3xl opacity-20 animate-bounce'
+                style={{ animationDelay: '1s' }}
+              >
+                🎉
+              </div>
+              <div
+                className='absolute bottom-10 right-10 text-4xl opacity-20 animate-pulse'
+                style={{ animationDelay: '0.5s' }}
+              >
+                💫
+              </div>
+
+              <div className='max-w-2xl w-full relative z-10'>
+                <SaveShareStep
+                  elements={elements}
+                  stepSequence={stepSequence}
+                  onBackToPreview={() => setCurrentStep('preview')}
+                  onSave={actions.handleSaveWish}
+                />
+              </div>
+            </div>
           )}
         </div>
 
@@ -1165,6 +1267,27 @@ export function CustomWishBuilder({
             />
           )}
 
+          {/* Fallback for steps step when not in steps view */}
+          {currentStep === 'steps' && mobileView !== 'steps' && (
+            <div className='h-full flex items-center justify-center'>
+              <div className='text-center p-6'>
+                <div className='text-4xl mb-4'>🎭</div>
+                <h3 className='text-lg font-semibold text-gray-800 mb-2'>
+                  Step Management
+                </h3>
+                <p className='text-gray-600 mb-4'>
+                  Use the "Steps" button below to manage your step sequence.
+                </p>
+                <button
+                  onClick={() => setMobileView('steps')}
+                  className='px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors'
+                >
+                  Open Steps Manager
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Element Palette */}
           {currentStep === 'create' && mobileView === 'palette' && (
             <div className='h-full'>
@@ -1182,6 +1305,44 @@ export function CustomWishBuilder({
               />
             </div>
           )}
+
+          {/* Fallback for create step when not in any specific view */}
+          {currentStep === 'create' &&
+            mobileView !== 'canvas' &&
+            mobileView !== 'palette' &&
+            mobileView !== 'properties' && (
+              <div className='h-full flex items-center justify-center'>
+                <div className='text-center p-6'>
+                  <div className='text-4xl mb-4'>🎨</div>
+                  <h3 className='text-lg font-semibold text-gray-800 mb-2'>
+                    Create Your Wish
+                  </h3>
+                  <p className='text-gray-600 mb-4'>
+                    Use the navigation buttons below to build your wish.
+                  </p>
+                  <div className='flex flex-col space-y-2'>
+                    <button
+                      onClick={() => setMobileView('canvas')}
+                      className='px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors'
+                    >
+                      Canvas
+                    </button>
+                    <button
+                      onClick={() => setMobileView('palette')}
+                      className='px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors'
+                    >
+                      Elements
+                    </button>
+                    <button
+                      onClick={() => setMobileView('properties')}
+                      className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
+                    >
+                      Settings
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
           {/* Canvas */}
           {(currentStep === 'create' || currentStep === 'preview') &&
@@ -1208,6 +1369,27 @@ export function CustomWishBuilder({
                 />
               </div>
             )}
+
+          {/* Fallback for preview step when not in canvas view */}
+          {currentStep === 'preview' && mobileView !== 'canvas' && (
+            <div className='h-full flex items-center justify-center'>
+              <div className='text-center p-6'>
+                <div className='text-4xl mb-4'>👁️</div>
+                <h3 className='text-lg font-semibold text-gray-800 mb-2'>
+                  Preview Mode
+                </h3>
+                <p className='text-gray-600 mb-4'>
+                  Switch to Canvas view to see your wish preview.
+                </p>
+                <button
+                  onClick={() => setMobileView('canvas')}
+                  className='px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors'
+                >
+                  Show Preview
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Properties Panel */}
           {currentStep === 'create' && mobileView === 'properties' && (
@@ -1236,12 +1418,14 @@ export function CustomWishBuilder({
 
           {/* Save & Share Step */}
           {currentStep === 'save' && (
-            <SaveShareStep
-              elements={elements}
-              stepSequence={stepSequence}
-              onBackToPreview={() => setCurrentStep('preview')}
-              onSave={actions.handleSaveWish}
-            />
+            <div className='h-full flex items-center justify-center'>
+              <SaveShareStep
+                elements={elements}
+                stepSequence={stepSequence}
+                onBackToPreview={() => setCurrentStep('preview')}
+                onSave={actions.handleSaveWish}
+              />
+            </div>
           )}
         </div>
       </div>
