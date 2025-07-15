@@ -1,28 +1,68 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { CustomWishBuilder } from '@/features/wish-builder/components/CustomWishBuilder';
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { WishElement } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
+import { Template, WishElement } from '@/types/templates';
+import { elementIdsToWishElements } from '@/config/elements';
 
-export default function AdminCreateTemplatePage() {
+export default function AdminEditTemplatePage() {
+  const params = useParams();
+  const templateId = params.templateId as string;
   const { user } = useAuth();
+
+  const [template, setTemplate] = useState<Template | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [templateMetadata, setTemplateMetadata] = useState({
     name: '',
     description: '',
     occasion: 'custom',
   });
   const [showMetadataForm, setShowMetadataForm] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+
+  // Load template data
+  useEffect(() => {
+    const loadTemplate = async () => {
+      if (!templateId) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result =
+          await FirebaseTemplateService.getTemplateById(templateId);
+        if (result.success && result.data) {
+          setTemplate(result.data);
+          setTemplateMetadata({
+            name: result.data.name,
+            description: result.data.description,
+            occasion: result.data.occasion,
+          });
+        } else {
+          setError(result.error || 'Failed to load template');
+        }
+      } catch (err) {
+        setError('An error occurred while loading the template');
+        console.error('Error loading template:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTemplate();
+  }, [templateId]);
 
   const handleSaveTemplate = async (
     elements: WishElement[],
     stepSequence: string[][]
   ) => {
-    if (!user) {
-      alert('You must be signed in to create templates');
+    if (!user || !template) {
+      alert('You must be signed in to update templates');
       return;
     }
 
@@ -42,15 +82,16 @@ export default function AdminCreateTemplatePage() {
         })
       );
 
-      const result = await FirebaseTemplateService.createTemplate(
+      const result = await FirebaseTemplateService.updateTemplate(
+        templateId,
         {
           name: templateMetadata.name,
           description: templateMetadata.description,
           occasion: templateMetadata.occasion,
-          thumbnail: '✨',
-          color: 'from-purple-400 to-pink-500',
+          thumbnail: template.thumbnail,
+          color: template.color,
           elements: elements.map(el => el.elementType),
-          difficulty: 'easy',
+          difficulty: template.difficulty,
           defaultElementIds: elements.map(el => el.elementType),
           stepSequence: convertedStepSequence,
         },
@@ -58,14 +99,14 @@ export default function AdminCreateTemplatePage() {
       );
 
       if (result.success) {
-        alert('Template created successfully!');
+        alert('Template updated successfully!');
         window.location.href = '/admin/templates';
       } else {
-        alert(`Failed to create template: ${result.error}`);
+        alert(`Failed to update template: ${result.error}`);
       }
     } catch (error) {
-      console.error('Error creating template:', error);
-      alert('An error occurred while creating the template.');
+      console.error('Error updating template:', error);
+      alert('An error occurred while updating the template.');
     } finally {
       setIsSaving(false);
     }
@@ -74,6 +115,65 @@ export default function AdminCreateTemplatePage() {
   const handleShowMetadataForm = () => {
     setShowMetadataForm(true);
   };
+
+  if (isLoading) {
+    return (
+      <AuthGuard requireAdmin={true}>
+        <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center'>
+          <div className='text-center'>
+            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4'></div>
+            <p className='text-gray-600'>Loading template...</p>
+          </div>
+        </div>
+      </AuthGuard>
+    );
+  }
+
+  if (error) {
+    return (
+      <AuthGuard requireAdmin={true}>
+        <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center'>
+          <div className='text-center'>
+            <div className='text-red-500 text-4xl mb-4'>⚠️</div>
+            <h2 className='text-2xl font-bold text-gray-800 mb-2'>
+              Error Loading Template
+            </h2>
+            <p className='text-gray-600 mb-4'>{error}</p>
+            <button
+              onClick={() => window.history.back()}
+              className='bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors'
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </AuthGuard>
+    );
+  }
+
+  if (!template) {
+    return (
+      <AuthGuard requireAdmin={true}>
+        <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center'>
+          <div className='text-center'>
+            <div className='text-gray-500 text-4xl mb-4'>📝</div>
+            <h2 className='text-2xl font-bold text-gray-800 mb-2'>
+              Template Not Found
+            </h2>
+            <p className='text-gray-600 mb-4'>
+              The template you're looking for doesn't exist.
+            </p>
+            <button
+              onClick={() => window.history.back()}
+              className='bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors'
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </AuthGuard>
+    );
+  }
 
   return (
     <AuthGuard requireAdmin={true}>
@@ -87,7 +187,7 @@ export default function AdminCreateTemplatePage() {
                   <span className='text-white font-bold text-lg'>W</span>
                 </div>
                 <span className='text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'>
-                  Create Template
+                  Edit Template
                 </span>
               </div>
               <div className='flex items-center space-x-4'>
@@ -217,6 +317,7 @@ export default function AdminCreateTemplatePage() {
         {/* Wish Builder */}
         <div className='w-full max-w-[1800px] mx-auto px-6 py-8'>
           <CustomWishBuilder
+            templateId={templateId}
             isTemplateMode={false}
             isAdminMode={true}
             onSaveTemplate={handleSaveTemplate}

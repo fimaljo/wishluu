@@ -1,11 +1,233 @@
 'use client';
 
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoginButton } from '@/components/auth/LoginButton';
+import { UserMenu } from '@/components/auth/UserMenu';
 
-export default function Home() {
+export default function HomePage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAdmin } = useAuth();
 
+  // If user is logged in, show dashboard
+  if (user) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50'>
+        {/* Navigation */}
+        <nav className='flex items-center justify-between p-6 w-full max-w-[1800px] mx-auto'>
+          <div className='flex items-center space-x-2'>
+            <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center'>
+              <span className='text-white font-bold text-lg'>W</span>
+            </div>
+            <span className='text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'>
+              WishLuu
+            </span>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className='hidden md:flex items-center space-x-8'>
+            <Link
+              href='/templates'
+              className='text-gray-600 hover:text-purple-600 transition-colors'
+            >
+              Templates
+            </Link>
+            <Link
+              href='/dashboard'
+              className='text-gray-600 hover:text-purple-600 transition-colors'
+            >
+              My Wishes
+            </Link>
+            {isAdmin && (
+              <Link
+                href='/admin/templates'
+                className='text-gray-600 hover:text-purple-600 transition-colors'
+              >
+                Admin
+              </Link>
+            )}
+            <Link
+              href='/templates'
+              className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300'
+            >
+              Create Wish
+            </Link>
+            <UserMenu />
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className='md:hidden'>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className='text-gray-600 hover:text-purple-600 transition-colors'
+            >
+              <svg
+                className='w-6 h-6'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M4 6h16M4 12h16M4 18h16'
+                />
+              </svg>
+            </button>
+          </div>
+        </nav>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className='md:hidden bg-white border-t border-gray-200'>
+            <div className='px-6 py-4 space-y-4'>
+              <Link
+                href='/templates'
+                className='block text-gray-600 hover:text-purple-600 transition-colors'
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Templates
+              </Link>
+              <Link
+                href='/dashboard'
+                className='block text-gray-600 hover:text-purple-600 transition-colors'
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                My Wishes
+              </Link>
+              {isAdmin && (
+                <Link
+                  href='/admin/templates'
+                  className='block text-gray-600 hover:text-purple-600 transition-colors'
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Admin
+                </Link>
+              )}
+              <Link
+                href='/templates'
+                className='block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300 text-center'
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Create Wish
+              </Link>
+              <div className='pt-2 border-t border-gray-200'>
+                <UserMenu />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dashboard for Logged-in Users */}
+        <div className='w-full max-w-[1800px] mx-auto px-6 py-12'>
+          {/* Welcome Section */}
+          <div className='text-center mb-12'>
+            <div className='flex items-center justify-center space-x-4 mb-6'>
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className='w-16 h-16 rounded-full border-4 border-white shadow-lg'
+                />
+              ) : (
+                <div className='w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-2xl border-4 border-white shadow-lg'>
+                  {user.displayName?.[0] || user.email?.[0] || 'U'}
+                </div>
+              )}
+              <div className='text-left'>
+                <h1 className='text-4xl font-bold text-gray-800'>
+                  Welcome back, {user.displayName || 'User'}! 👋
+                </h1>
+                <p className='text-gray-600 text-lg'>{user.email}</p>
+                {isAdmin && (
+                  <span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 mt-2'>
+                    🛡️ Admin
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12'>
+            <Link href='/templates'>
+              <div className='bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-center'>
+                <div className='text-4xl mb-4'>🎨</div>
+                <h3 className='text-xl font-bold text-gray-800 mb-2'>
+                  Browse Templates
+                </h3>
+                <p className='text-gray-600'>
+                  Choose from beautiful templates to create your wish
+                </p>
+              </div>
+            </Link>
+
+            <Link href='/wishes/create/custom-blank'>
+              <div className='bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-center'>
+                <div className='text-4xl mb-4'>✨</div>
+                <h3 className='text-xl font-bold text-gray-800 mb-2'>
+                  Create Custom Wish
+                </h3>
+                <p className='text-gray-600'>
+                  Start from scratch and build something unique
+                </p>
+              </div>
+            </Link>
+
+            <Link href='/dashboard'>
+              <div className='bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-center'>
+                <div className='text-4xl mb-4'>📝</div>
+                <h3 className='text-xl font-bold text-gray-800 mb-2'>
+                  My Wishes
+                </h3>
+                <p className='text-gray-600'>
+                  View and manage your created wishes
+                </p>
+              </div>
+            </Link>
+
+            {isAdmin && (
+              <Link href='/admin/templates'>
+                <div className='bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-center text-white'>
+                  <div className='text-4xl mb-4'>🛠️</div>
+                  <h3 className='text-xl font-bold mb-2'>Manage Templates</h3>
+                  <p className='text-purple-100'>
+                    Create and edit templates for users
+                  </p>
+                </div>
+              </Link>
+            )}
+          </div>
+
+          {/* Recent Activity or Stats */}
+          <div className='bg-white rounded-2xl p-8 shadow-lg border border-gray-200'>
+            <h2 className='text-2xl font-bold text-gray-800 mb-6'>
+              Quick Stats
+            </h2>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+              <div className='text-center'>
+                <div className='text-3xl font-bold text-purple-600 mb-2'>0</div>
+                <div className='text-gray-600'>Wishes Created</div>
+              </div>
+              <div className='text-center'>
+                <div className='text-3xl font-bold text-pink-600 mb-2'>0</div>
+                <div className='text-gray-600'>Wishes Shared</div>
+              </div>
+              <div className='text-center'>
+                <div className='text-3xl font-bold text-blue-600 mb-2'>0</div>
+                <div className='text-gray-600'>Templates Used</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // For non-logged-in users, show landing page
   return (
     <div className='min-h-screen'>
       {/* Navigation */}
@@ -39,18 +261,9 @@ export default function Home() {
           >
             Templates
           </Link>
-          <Link
-            href='/wishes'
-            className='text-gray-600 hover:text-purple-600 transition-colors'
-          >
-            My Wishes
-          </Link>
-          <Link
-            href='/templates'
-            className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300'
-          >
-            Create Wish
-          </Link>
+          <LoginButton variant='primary' size='sm'>
+            Sign In
+          </LoginButton>
         </div>
 
         {/* Mobile Menu Button */}
@@ -101,20 +314,11 @@ export default function Home() {
             >
               Templates
             </Link>
-            <Link
-              href='/wishes'
-              className='block text-gray-600 hover:text-purple-600 transition-colors'
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              My Wishes
-            </Link>
-            <Link
-              href='/templates'
-              className='block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300 text-center'
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Create Wish
-            </Link>
+            <div className='pt-2'>
+              <LoginButton variant='primary' size='sm' className='w-full'>
+                Sign In
+              </LoginButton>
+            </div>
           </div>
         </div>
       )}
@@ -133,12 +337,9 @@ export default function Home() {
           ones&apos; day special
         </p>
         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-          <Link
-            href='/templates'
-            className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105'
-          >
-            Start Creating
-          </Link>
+          <LoginButton size='lg' className='px-8 py-4 text-lg'>
+            Get Started with Google
+          </LoginButton>
           <Link
             href='/presentation/demo'
             className='border-2 border-purple-500 text-purple-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-purple-50 transition-all duration-300'
@@ -267,12 +468,13 @@ export default function Home() {
             Join thousands of people who are already creating magical moments
             with WishLuu.
           </p>
-          <Link
-            href='/templates'
-            className='bg-white text-purple-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-block'
+          <LoginButton
+            size='lg'
+            variant='outline'
+            className='px-8 py-4 text-lg'
           >
             Start Creating Now
-          </Link>
+          </LoginButton>
         </div>
       </section>
 

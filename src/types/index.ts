@@ -14,6 +14,10 @@ export interface Wish {
   likes?: number;
   elements?: any[]; // Canvas elements from the builder
   customBackgroundColor?: string; // Custom background color
+  shareId?: string; // Firebase share ID for public sharing
+  updatedAt?: string; // Firebase updated timestamp
+  createdBy?: string; // Firebase user ID who created the wish
+  stepSequence?: string[][]; // Step sequence for wish presentation
 }
 
 // Form Types

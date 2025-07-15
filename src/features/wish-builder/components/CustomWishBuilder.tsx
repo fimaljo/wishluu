@@ -9,8 +9,8 @@ import { ElementPropertiesPanel } from './ElementPropertiesPanel';
 import { SaveShareDialog } from '@/components/ui/SaveShareDialog';
 import { PresentationMode } from '@/components/ui/PresentationMode';
 import { getAllElements } from '@/config/elements';
-import { getTemplateById } from '@/config/templates';
 import { premiumService } from '@/lib/premiumService';
+import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
 import { Wish } from '@/types';
 import {
   useWishBuilderState,
@@ -482,6 +482,11 @@ const SaveShareStep = ({
   templateMetadata,
   onShowMetadataForm,
   adminIsSaving = false,
+  recipientName = '',
+  setRecipientName = () => {},
+  message = '',
+  setMessage = () => {},
+  theme = '',
 }: {
   elements: WishElement[];
   stepSequence: string[][];
@@ -498,120 +503,129 @@ const SaveShareStep = ({
     | undefined;
   onShowMetadataForm?: (() => void) | undefined;
   adminIsSaving?: boolean;
-}) => (
-  <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-8 md:p-12'>
-    <div className='text-center'>
-      <div className='text-8xl mb-6'>{isAdminMode ? '🎨' : '🎉'}</div>
-      <h2 className='text-3xl md:text-4xl font-bold text-gray-800 mb-4'>
-        {isAdminMode
-          ? 'Template Creation Complete!'
-          : isTemplateMode
-            ? 'Your Customized Template is Ready!'
-            : 'Your Wish is Ready!'}
-      </h2>
-      <p className='text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed'>
-        {isAdminMode ? (
-          <>
-            You've created a template with{' '}
-            <span className='font-semibold text-purple-600'>
-              {elements.length} element{elements.length !== 1 ? 's' : ''}
-            </span>
-            . Now add the template information to make it available for users.
-          </>
-        ) : (
-          <>
-            You've{' '}
-            {isTemplateMode
-              ? 'customized a template with'
-              : 'created a beautiful wish with'}{' '}
-            <span className='font-semibold text-purple-600'>
-              {elements.length} element{elements.length !== 1 ? 's' : ''}
-            </span>
-            {isTemplateMode ? ' and configured all settings.' : '.'}
-            {!isTemplateMode && stepSequence.length > 0 && (
-              <span>
-                {' '}
-                It has{' '}
-                <span className='font-semibold text-purple-600'>
-                  {stepSequence.length} step
-                  {stepSequence.length !== 1 ? 's' : ''}
-                </span>{' '}
-                in the sequence.
+  recipientName?: string;
+  setRecipientName?: (name: string) => void;
+  message?: string;
+  setMessage?: (message: string) => void;
+  theme?: string;
+}) => {
+  return (
+    <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-8 md:p-12'>
+      <div className='text-center'>
+        <div className='text-8xl mb-6'>{isAdminMode ? '🎨' : '🎉'}</div>
+        <h2 className='text-3xl md:text-4xl font-bold text-gray-800 mb-4'>
+          {isAdminMode
+            ? 'Template Creation Complete!'
+            : isTemplateMode
+              ? 'Your Customized Template is Ready!'
+              : 'Your Wish is Ready!'}
+        </h2>
+        <p className='text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed'>
+          {isAdminMode ? (
+            <>
+              You've created a template with{' '}
+              <span className='font-semibold text-purple-600'>
+                {elements.length} element{elements.length !== 1 ? 's' : ''}
               </span>
-            )}
-          </>
-        )}
-      </p>
+              . Now add the template information to make it available for users.
+            </>
+          ) : (
+            <>
+              You've{' '}
+              {isTemplateMode
+                ? 'customized a template with'
+                : 'created a beautiful wish with'}{' '}
+              <span className='font-semibold text-purple-600'>
+                {elements.length} element{elements.length !== 1 ? 's' : ''}
+              </span>
+              {isTemplateMode ? ' and configured all settings.' : '.'}
+              {!isTemplateMode && stepSequence.length > 0 && (
+                <span>
+                  {' '}
+                  It has{' '}
+                  <span className='font-semibold text-purple-600'>
+                    {stepSequence.length} step
+                    {stepSequence.length !== 1 ? 's' : ''}
+                  </span>{' '}
+                  in the sequence.
+                </span>
+              )}
+            </>
+          )}
+        </p>
 
-      {/* Stats Cards */}
-      <div
-        className={`grid gap-4 mb-8 max-w-md mx-auto ${isTemplateMode ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}
-      >
-        <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200'>
-          <div className='text-2xl font-bold text-purple-600'>
-            {elements.length}
-          </div>
-          <div className='text-sm text-gray-600'>Elements</div>
-        </div>
-        {!isTemplateMode && (
-          <div className='bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200'>
-            <div className='text-2xl font-bold text-green-600'>
-              {stepSequence.length}
-            </div>
-            <div className='text-sm text-gray-600'>Steps</div>
-          </div>
-        )}
-      </div>
-
-      <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
-        <Button
-          variant='outline'
-          onClick={onBackToPreview}
-          className='w-full sm:w-auto px-8 py-3 text-base font-medium'
-          aria-label='Go back to preview'
+        {/* Stats Cards */}
+        <div
+          className={`grid gap-4 mb-8 max-w-md mx-auto ${isTemplateMode ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}
         >
-          ← Back to Preview
-        </Button>
+          <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200'>
+            <div className='text-2xl font-bold text-purple-600'>
+              {elements.length}
+            </div>
+            <div className='text-sm text-gray-600'>Elements</div>
+          </div>
+          {!isTemplateMode && (
+            <div className='bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200'>
+              <div className='text-2xl font-bold text-green-600'>
+                {stepSequence.length}
+              </div>
+              <div className='text-sm text-gray-600'>Steps</div>
+            </div>
+          )}
+        </div>
 
-        {isAdminMode ? (
-          <>
-            <Button
-              variant='outline'
-              onClick={onShowMetadataForm}
-              className='w-full sm:w-auto px-8 py-3 text-base font-medium'
-              aria-label='Add template information'
-            >
-              📝 Add Template Info
-            </Button>
-            <Button
-              variant='primary'
-              onClick={onSave}
-              disabled={elements.length === 0 || adminIsSaving}
-              className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
-              aria-label='Save template'
-            >
-              {adminIsSaving ? '💾 Saving...' : '💾 Save Template'}
-            </Button>
-          </>
-        ) : (
+        <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
           <Button
-            variant='primary'
-            onClick={onSave}
-            disabled={elements.length === 0}
-            className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-            aria-label={
-              isTemplateMode
-                ? 'Save and share customized template'
-                : 'Save and share wish'
-            }
+            variant='outline'
+            onClick={onBackToPreview}
+            className='w-full sm:w-auto px-8 py-3 text-base font-medium'
+            aria-label='Go back to preview'
           >
-            💾 {isTemplateMode ? 'Save Template' : 'Save & Share'}
+            ← Back to Preview
           </Button>
-        )}
+
+          {isAdminMode ? (
+            <>
+              <Button
+                variant='outline'
+                onClick={onShowMetadataForm}
+                className='w-full sm:w-auto px-8 py-3 text-base font-medium'
+                aria-label='Add template information'
+              >
+                📝 Add Template Info
+              </Button>
+              <Button
+                variant='primary'
+                onClick={onSave}
+                disabled={elements.length === 0 || adminIsSaving}
+                className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+                aria-label='Save template'
+              >
+                {adminIsSaving ? '💾 Saving...' : '💾 Save Template'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant='primary'
+                onClick={onSave}
+                disabled={elements.length === 0}
+                className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+                aria-label={
+                  isTemplateMode
+                    ? 'Save and share customized template'
+                    : 'Save and share wish'
+                }
+              >
+                💾 {isTemplateMode ? 'Save Template' : 'Save & Share'}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Extracted Step Manager Panel Component
 const StepManagerPanel = ({
@@ -828,12 +842,48 @@ export function CustomWishBuilder({
     loadedTemplateRef,
   } = state;
 
+  // State for template loading
+  const [template, setTemplate] = React.useState<any>(null);
+  const [templateLoading, setTemplateLoading] = React.useState(false);
+
   // Computed values
   const availableElements = useMemo(() => getAllElements(), []);
-  const template = useMemo(
-    () => (templateId ? getTemplateById(templateId) : null),
-    [templateId]
-  );
+
+  // Load template from Firebase
+  React.useEffect(() => {
+    const loadTemplate = async () => {
+      if (!templateId) {
+        setTemplate(null);
+        return;
+      }
+
+      // Don't try to load template for custom-blank (custom wish creation)
+      if (templateId === 'custom-blank') {
+        setTemplate(null);
+        setTemplateLoading(false);
+        return;
+      }
+
+      setTemplateLoading(true);
+      try {
+        const result =
+          await FirebaseTemplateService.getTemplateById(templateId);
+        if (result.success && result.data) {
+          setTemplate(result.data);
+        } else {
+          console.error('Failed to load template:', result.error);
+          setTemplate(null);
+        }
+      } catch (error) {
+        console.error('Error loading template:', error);
+        setTemplate(null);
+      } finally {
+        setTemplateLoading(false);
+      }
+    };
+
+    loadTemplate();
+  }, [templateId]);
   const isRestrictedMode = useMemo(
     () => isTemplateMode && templateId !== 'custom-blank',
     [isTemplateMode, templateId]
@@ -1168,25 +1218,59 @@ export function CustomWishBuilder({
   }, []);
 
   useEffect(() => {
-    if (
-      template?.id &&
-      template?.defaultElements &&
-      loadedTemplateRef.current !== template.id
-    ) {
-      setElements(template.defaultElements as WishElement[]);
-      setOriginalTemplateElements(template.defaultElements as WishElement[]);
-      if (template.defaultElements.length > 0) {
-        setSelectedElement(
-          (template.defaultElements[0] as WishElement) || null
+    const loadTemplateElements = async () => {
+      if (
+        template?.id &&
+        template?.defaultElementIds &&
+        loadedTemplateRef.current !== template.id
+      ) {
+        // Convert element IDs to WishElements using the helper function
+        const { elementIdsToWishElements } = await import('@/config/elements');
+        const wishElements = elementIdsToWishElements(
+          template.defaultElementIds
         );
-        setSelectedElements(template.defaultElements as WishElement[]);
+
+        setElements(wishElements);
+        setOriginalTemplateElements(wishElements);
+        if (wishElements.length > 0) {
+          setSelectedElement(wishElements[0] || null);
+          setSelectedElements(wishElements);
+        }
+        // Load step sequence if available
+        if (template.stepSequence) {
+          // Convert step sequence from element type IDs to actual element IDs
+          const convertedStepSequence = template.stepSequence.map(
+            (step: string[]) =>
+              step.map((elementId: string) => {
+                // First try to find by exact ID (in case it's already a full ID)
+                let element = wishElements.find(el => el.id === elementId);
+
+                // If not found by ID, try by elementType (in case it's an element type ID)
+                if (!element) {
+                  element = wishElements.find(
+                    el => el.elementType === elementId
+                  );
+                }
+
+                // If still not found, try to match by elementType from the old ID
+                if (!element) {
+                  // Extract elementType from old ID (e.g., "balloons-interactive_1752587338014" -> "balloons-interactive")
+                  const elementType = elementId.split('_')[0];
+                  element = wishElements.find(
+                    el => el.elementType === elementType
+                  );
+                }
+
+                return element ? element.id : elementId;
+              })
+          );
+          setStepSequence(convertedStepSequence);
+        }
+        loadedTemplateRef.current = template.id;
       }
-      // Load step sequence if available
-      if (template.stepSequence) {
-        setStepSequence(template.stepSequence);
-      }
-      loadedTemplateRef.current = template.id;
-    }
+    };
+
+    loadTemplateElements();
   }, [template?.id]);
 
   useEffect(() => {
@@ -1207,7 +1291,22 @@ export function CustomWishBuilder({
       if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
         if (currentStep === 'save') {
-          actions.handleSaveWish();
+          if (isTemplateMode) {
+            const wishData = {
+              title: `Wish for ${recipientName || 'Recipient'}`,
+              recipientName: recipientName || '',
+              message: message || '',
+              theme,
+              elements: elements,
+              stepSequence: stepSequence,
+              customBackgroundColor,
+              isPublic: true,
+            };
+            setCurrentWish(wishData as any);
+            setShowSaveShareDialog(true);
+          } else {
+            actions.handleSaveWish();
+          }
         }
       }
     };
@@ -1220,6 +1319,15 @@ export function CustomWishBuilder({
     currentStep,
     navigation.handlePreviousStep,
     actions.handleSaveWish,
+    isTemplateMode,
+    recipientName,
+    message,
+    theme,
+    elements,
+    stepSequence,
+    customBackgroundColor,
+    setCurrentWish,
+    setShowSaveShareDialog,
   ]);
 
   return (
@@ -1244,11 +1352,13 @@ export function CustomWishBuilder({
       )}
 
       {/* Loading Overlay */}
-      {isLoading && (
+      {(isLoading || templateLoading) && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
           <div className='bg-white rounded-lg p-6 flex items-center space-x-3'>
             <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600'></div>
-            <span className='text-gray-700'>Processing...</span>
+            <span className='text-gray-700'>
+              {templateLoading ? 'Loading template...' : 'Processing...'}
+            </span>
           </div>
         </div>
       )}
@@ -1344,7 +1454,24 @@ export function CustomWishBuilder({
               {currentStep === 'save' && (
                 <Button
                   variant='primary'
-                  onClick={actions.handleSaveWish}
+                  onClick={() => {
+                    if (isTemplateMode) {
+                      const wishData = {
+                        title: `Wish for ${recipientName || 'Recipient'}`,
+                        recipientName: recipientName || '',
+                        message: message || '',
+                        theme,
+                        elements: elements,
+                        stepSequence: stepSequence,
+                        customBackgroundColor,
+                        isPublic: true,
+                      };
+                      setCurrentWish(wishData as any);
+                      setShowSaveShareDialog(true);
+                    } else {
+                      actions.handleSaveWish();
+                    }
+                  }}
                   disabled={isLoading || elements.length === 0}
                   className='text-xs md:text-sm px-2 md:px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
                   aria-label='Save and share wish'
@@ -1633,13 +1760,36 @@ export function CustomWishBuilder({
                   onSave={
                     isAdminMode
                       ? () => onSaveTemplate?.(elements, stepSequence)
-                      : actions.handleSaveWish
+                      : () => {
+                          // For template mode, create a wish object and open the dialog
+                          if (isTemplateMode) {
+                            const wishData = {
+                              title: `Wish for ${recipientName || 'Recipient'}`,
+                              recipientName: recipientName || '',
+                              message: message || '',
+                              theme,
+                              elements: elements,
+                              stepSequence: stepSequence,
+                              customBackgroundColor,
+                              isPublic: true,
+                            };
+                            setCurrentWish(wishData as any);
+                            setShowSaveShareDialog(true);
+                          } else {
+                            actions.handleSaveWish();
+                          }
+                        }
                   }
                   isTemplateMode={isTemplateMode}
                   isAdminMode={isAdminMode}
                   templateMetadata={templateMetadata}
                   onShowMetadataForm={onShowMetadataForm}
                   adminIsSaving={adminIsSaving}
+                  recipientName={recipientName}
+                  setRecipientName={setRecipientName}
+                  message={message}
+                  setMessage={setMessage}
+                  theme={theme}
                 />
               </div>
             </div>
@@ -2036,9 +2186,32 @@ export function CustomWishBuilder({
                 onSave={
                   isAdminMode
                     ? () => onSaveTemplate?.(elements, stepSequence)
-                    : actions.handleSaveWish
+                    : () => {
+                        // For template mode, create a wish object and open the dialog
+                        if (isTemplateMode) {
+                          const wishData = {
+                            title: `Wish for ${recipientName || 'Recipient'}`,
+                            recipientName: recipientName || '',
+                            message: message || '',
+                            theme,
+                            elements: elements,
+                            stepSequence: stepSequence,
+                            customBackgroundColor,
+                            isPublic: true,
+                          };
+                          setCurrentWish(wishData as any);
+                          setShowSaveShareDialog(true);
+                        } else {
+                          actions.handleSaveWish();
+                        }
+                      }
                 }
                 isTemplateMode={isTemplateMode}
+                recipientName={recipientName}
+                setRecipientName={setRecipientName}
+                message={message}
+                setMessage={setMessage}
+                theme={theme}
               />
             </div>
           )}

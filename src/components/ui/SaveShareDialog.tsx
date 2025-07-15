@@ -46,15 +46,15 @@ export function SaveShareDialog({
   }, [isOpen, wish]);
 
   const handleSave = async () => {
-    if (!recipientName.trim() || !message.trim()) {
-      alert('Please fill in recipient name and message before saving.');
+    if (!recipientName.trim()) {
+      alert('Please enter a recipient name before saving.');
       return;
     }
 
     const wishData = {
       ...wish,
       recipientName: recipientName.trim(),
-      message: message.trim(),
+      message: message.trim() || '',
       isPublic,
     };
 
@@ -64,6 +64,34 @@ export function SaveShareDialog({
       const url = await onShare(savedWish);
       setShareUrl(url);
       setActiveTab('share');
+    }
+  };
+
+  const handleSaveAndShare = async () => {
+    if (!recipientName.trim()) {
+      alert('Please enter a recipient name before saving.');
+      return;
+    }
+
+    const wishData = {
+      ...wish,
+      recipientName: recipientName.trim(),
+      message: message.trim() || '',
+      isPublic: true, // Force public for sharing
+    };
+
+    console.log('Saving wish data:', wishData);
+    const savedWish = await onSave(wishData);
+    console.log('Saved wish result:', savedWish);
+
+    if (savedWish) {
+      // Generate share URL
+      const url = await onShare(savedWish);
+      console.log('Generated share URL:', url);
+      setShareUrl(url);
+      setActiveTab('share');
+    } else {
+      console.error('Failed to save wish - no result returned');
     }
   };
 
@@ -228,71 +256,162 @@ export function SaveShareDialog({
         <div className='p-6 overflow-y-auto max-h-[calc(90vh-120px)]'>
           {activeTab === 'save' ? (
             <div className='space-y-6'>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
-                  Recipient Name *
-                </label>
-                <input
-                  type='text'
-                  value={recipientName}
-                  onChange={e => setRecipientName(e.target.value)}
-                  placeholder='Who is this wish for?'
-                  className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
-                />
+              {/* Recipient Name Section */}
+              <div className='bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6'>
+                <div className='flex items-center space-x-3 mb-4'>
+                  <div className='w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center'>
+                    <span className='text-white font-bold'>👤</span>
+                  </div>
+                  <div>
+                    <h3 className='text-lg font-semibold text-gray-800'>
+                      Recipient Information
+                    </h3>
+                    <p className='text-sm text-gray-600'>
+                      Who is this special wish for?
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                    Recipient Name <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='text'
+                    value={recipientName}
+                    onChange={e => setRecipientName(e.target.value)}
+                    placeholder='Enter the name of the person this wish is for...'
+                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg'
+                    autoFocus
+                  />
+                  {!recipientName.trim() && (
+                    <p className='text-sm text-red-600 mt-1'>
+                      ⚠️ Please enter a recipient name to continue
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
-                  Your Message *
-                </label>
-                <textarea
-                  value={message}
-                  onChange={e => setMessage(e.target.value)}
-                  placeholder='Write your heartfelt message...'
-                  rows={4}
-                  className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none'
-                />
-              </div>
+              {/* Message Section */}
+              <div className='bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-6'>
+                <div className='flex items-center space-x-3 mb-4'>
+                  <div className='w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center'>
+                    <span className='text-white font-bold'>💌</span>
+                  </div>
+                  <div>
+                    <h3 className='text-lg font-semibold text-gray-800'>
+                      Your Message
+                    </h3>
+                    <p className='text-sm text-gray-600'>
+                      Add a personal touch to your wish (optional)
+                    </p>
+                  </div>
+                </div>
 
-              <div className='flex items-center space-x-3'>
-                <input
-                  type='checkbox'
-                  id='isPublic'
-                  checked={isPublic}
-                  onChange={e => setIsPublic(e.target.checked)}
-                  className='w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded'
-                />
-                <label htmlFor='isPublic' className='text-sm text-gray-700'>
-                  Make this wish public (can be shared with anyone)
-                </label>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                    Personal Message
+                  </label>
+                  <textarea
+                    value={message}
+                    onChange={e => setMessage(e.target.value)}
+                    placeholder='Write a heartfelt message for your recipient...'
+                    rows={4}
+                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none'
+                  />
+                </div>
               </div>
 
               <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
                 <div className='flex items-start space-x-3'>
                   <div className='text-blue-500 text-xl'>💡</div>
                   <div>
-                    <h4 className='font-medium text-blue-900 mb-1'>Pro Tip</h4>
+                    <h4 className='font-medium text-blue-900 mb-1'>
+                      Save Options
+                    </h4>
                     <p className='text-sm text-blue-700'>
-                      {isPublic
-                        ? "Public wishes can be shared with anyone using the link. They'll also appear in our public gallery."
-                        : 'Private wishes are only accessible to people with the direct link.'}
+                      Choose how you want to save your wish. You can save it
+                      privately or make it public for sharing.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className='flex space-x-3'>
-                <Button
-                  variant='primary'
-                  onClick={handleSave}
-                  disabled={
-                    isSaving || !recipientName.trim() || !message.trim()
-                  }
-                  className='flex-1'
-                >
-                  {isSaving ? 'Saving...' : 'Save Wish'}
-                </Button>
-                <Button variant='outline' onClick={onClose} className='flex-1'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                {/* Private Save Option */}
+                <div className='border border-gray-200 rounded-lg p-4'>
+                  <div className='flex items-center space-x-3 mb-3'>
+                    <input
+                      type='radio'
+                      id='private'
+                      name='saveType'
+                      checked={!isPublic}
+                      onChange={() => setIsPublic(false)}
+                      className='w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300'
+                    />
+                    <label
+                      htmlFor='private'
+                      className='font-medium text-gray-800'
+                    >
+                      🔒 Private Save
+                    </label>
+                  </div>
+                  <p className='text-sm text-gray-600 mb-3'>
+                    Save your wish privately. Only you can access it from your
+                    dashboard.
+                  </p>
+                  <Button
+                    variant='outline'
+                    onClick={handleSave}
+                    disabled={isSaving || !recipientName.trim()}
+                    className='w-full'
+                  >
+                    {isSaving
+                      ? 'Saving...'
+                      : !recipientName.trim()
+                        ? 'Enter Recipient Name'
+                        : 'Save Privately'}
+                  </Button>
+                </div>
+
+                {/* Public Save & Share Option */}
+                <div className='border border-purple-200 rounded-lg p-4 bg-purple-50'>
+                  <div className='flex items-center space-x-3 mb-3'>
+                    <input
+                      type='radio'
+                      id='public'
+                      name='saveType'
+                      checked={isPublic}
+                      onChange={() => setIsPublic(true)}
+                      className='w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300'
+                    />
+                    <label
+                      htmlFor='public'
+                      className='font-medium text-gray-800'
+                    >
+                      🌐 Public & Share
+                    </label>
+                  </div>
+                  <p className='text-sm text-gray-600 mb-3'>
+                    Save and get a shareable link to send to your recipient.
+                  </p>
+                  <Button
+                    variant='primary'
+                    onClick={handleSaveAndShare}
+                    disabled={isSaving || !recipientName.trim()}
+                    className='w-full'
+                  >
+                    {isSaving
+                      ? 'Saving...'
+                      : !recipientName.trim()
+                        ? 'Enter Recipient Name'
+                        : 'Save & Share'}
+                  </Button>
+                </div>
+              </div>
+
+              <div className='flex justify-center'>
+                <Button variant='outline' onClick={onClose}>
                   Cancel
                 </Button>
               </div>

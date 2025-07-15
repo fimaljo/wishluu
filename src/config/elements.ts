@@ -1,4 +1,4 @@
-import { InteractiveElement } from '@/types/templates';
+import { InteractiveElement, WishElement } from '@/types/templates';
 
 // Centralized Elements Configuration
 // This is the single source of truth for all elements in the application
@@ -349,6 +349,30 @@ export const cloneElement = (
   };
 };
 
+/**
+ * Convert element IDs to WishElements with default properties
+ */
+export const elementIdsToWishElements = (
+  elementIds: string[]
+): WishElement[] => {
+  return elementIds
+    .map((elementId, index) => {
+      const element = getElementById(elementId);
+      if (!element) {
+        console.warn(`Element with ID ${elementId} not found`);
+        return null;
+      }
+
+      return {
+        id: `${elementId}_${Date.now()}_${index}`,
+        elementType: elementId,
+        properties: { ...element.properties },
+        order: index,
+      };
+    })
+    .filter(Boolean) as WishElement[];
+};
+
 // ===== ELEMENT METADATA =====
 
 export const ELEMENT_CATEGORIES = [
@@ -404,6 +428,7 @@ export default {
   validateElementProperties,
   getDefaultProperties,
   cloneElement,
+  elementIdsToWishElements,
   ELEMENT_CATEGORIES,
   ELEMENT_TYPES,
 };

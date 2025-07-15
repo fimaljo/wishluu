@@ -9,8 +9,14 @@ export interface Template {
   elements: string[];
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   preview?: string;
-  defaultElements?: WishElement[]; // Default elements configuration for the template
+  defaultElementIds?: string[]; // Element IDs instead of full elements
   stepSequence?: string[][]; // Step sequence for presentation mode
+  // Firebase-specific properties
+  createdAt?: any; // Firestore timestamp
+  updatedAt?: any; // Firestore timestamp
+  createdBy?: string; // User ID who created the template
+  isPublic?: boolean; // Whether template is publicly available
+  version?: string; // Template version for migration
 }
 
 // Premium Property Types

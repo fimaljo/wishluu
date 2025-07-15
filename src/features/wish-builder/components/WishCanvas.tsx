@@ -80,9 +80,21 @@ export function WishCanvas({
       if (stepSequence && stepSequence.length > 0) {
         if (currentStep < stepSequence.length) {
           const currentStepElements = stepSequence[currentStep];
-          return elements.filter(
-            element => currentStepElements?.includes(element.id) || false
-          );
+
+          // Try to match elements by ID first, then by elementType if no match
+          const visibleElements = elements.filter(element => {
+            // First try exact ID match
+            if (currentStepElements?.includes(element.id)) {
+              return true;
+            }
+            // If no exact match, try matching by elementType
+            if (currentStepElements?.includes(element.elementType)) {
+              return true;
+            }
+            return false;
+          });
+
+          return visibleElements;
         }
         return [];
       } else {

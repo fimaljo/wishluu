@@ -3,6 +3,8 @@ import { WishElement, ElementProperties } from '@/types/templates';
 import { Wish } from '@/types';
 import { useWishManagement } from '@/features/wishes/hooks/useWishManagement';
 import { premiumService } from '@/lib/premiumService';
+import { useFirebaseWishes } from '@/hooks/useFirebaseWishes';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DEMO_USER_ID = 'demo-user-123';
 const MAX_STEPS = 10;
@@ -60,6 +62,10 @@ export function useWishBuilderActions({
   customBackgroundColor,
 }: UseWishBuilderActionsProps) {
   const { createWish, shareWish } = useWishManagement();
+  const { createWish: createFirebaseWish } = useFirebaseWishes({
+    autoLoad: false,
+  });
+  const { user } = useAuth();
 
   // Error handling
   const handleError = useCallback(
@@ -230,31 +236,64 @@ export function useWishBuilderActions({
       return;
     }
 
+    if (!user?.uid) {
+      setError('Please sign in to save your wish.');
+      return;
+    }
+
+    if (!recipientName?.trim()) {
+      setError('Please enter a recipient name before saving.');
+      return;
+    }
+
     await withLoading(async () => {
       const wishData = {
-        recipientName,
-        message,
+        title: `Wish for ${recipientName.trim()}`,
+        recipientName: recipientName.trim(),
+        message: message?.trim() || '',
         theme,
-        occasion: templateId || 'custom',
-        animation: 'fade',
         elements: elements,
+        stepSequence: stepSequence,
         customBackgroundColor,
+        isPublic: true,
       };
 
-      const createdWish = await createWish(wishData);
-      if (createdWish) {
+      const result = await createFirebaseWish(wishData);
+      if (result.success && result.data) {
+        // Create a wish object compatible with the existing system
+        const createdWish: Wish = {
+          id: result.data.id,
+          recipientName: result.data.recipientName,
+          message: result.data.message,
+          theme: result.data.theme,
+          occasion: templateId || 'custom',
+          animation: 'fade',
+          elements: result.data.elements,
+          ...(result.data.customBackgroundColor && {
+            customBackgroundColor: result.data.customBackgroundColor,
+          }),
+          shareId: result.data.shareId,
+          createdAt: result.data.createdAt,
+          updatedAt: result.data.updatedAt,
+          isPublic: result.data.isPublic,
+        };
+
         setCurrentWish(createdWish);
         setShowSaveShareDialog(true);
+      } else {
+        setError(result.error || 'Failed to save wish');
       }
     }, 'saving wish');
   }, [
     elements,
+    stepSequence,
     recipientName,
     message,
     theme,
     templateId,
     customBackgroundColor,
-    createWish,
+    createFirebaseWish,
+    user?.uid,
     withLoading,
     setError,
     setCurrentWish,
@@ -264,33 +303,71 @@ export function useWishBuilderActions({
   const handleSaveFromDialog = useCallback(
     async (wishData: any): Promise<Wish | null> => {
       try {
-        const createdWish = await createWish(wishData);
-        if (createdWish) {
+        console.log('handleSaveFromDialog called with:', wishData);
+
+        if (!user?.uid) {
+          alert('Please sign in to save your wish.');
+          return null;
+        }
+
+        const result = await createFirebaseWish(wishData);
+        console.log('Firebase save result:', result);
+
+        if (result.success && result.data) {
+          // Create a wish object compatible with the existing system
+          const createdWish: Wish = {
+            id: result.data.id,
+            recipientName: result.data.recipientName,
+            message: result.data.message,
+            theme: result.data.theme,
+            occasion: templateId || 'custom',
+            animation: 'fade',
+            elements: result.data.elements,
+            ...(result.data.customBackgroundColor && {
+              customBackgroundColor: result.data.customBackgroundColor,
+            }),
+            shareId: result.data.shareId,
+            createdAt: result.data.createdAt,
+            updatedAt: result.data.updatedAt,
+            isPublic: result.data.isPublic,
+          };
+
+          console.log('Created wish object:', createdWish);
           setCurrentWish(createdWish);
           return createdWish;
+        } else {
+          console.error('Firebase save failed:', result.error);
+          alert(result.error || 'Failed to save wish');
+          return null;
         }
-        return null;
       } catch (error) {
         console.error('Error saving wish from dialog:', error);
         alert('Error saving wish. Please try again.');
         return null;
       }
     },
-    [createWish, setCurrentWish]
+    [createFirebaseWish, user?.uid, templateId, setCurrentWish]
   );
 
   const handleShareFromDialog = useCallback(
     async (wish: Wish): Promise<string> => {
       try {
-        const shareUrl = await shareWish(wish);
-        return shareUrl;
+        // Generate Firebase share URL
+        if (wish.shareId) {
+          const baseUrl = window.location.origin;
+          return `${baseUrl}/wish/${wish.shareId}`;
+        } else {
+          // Fallback: generate a temporary share URL
+          const baseUrl = window.location.origin;
+          return `${baseUrl}/wish/${wish.id}`;
+        }
       } catch (error) {
         console.error('Error sharing wish:', error);
         alert('Error sharing wish. Please try again.');
         return '';
       }
     },
-    [shareWish]
+    []
   );
 
   // Premium features
