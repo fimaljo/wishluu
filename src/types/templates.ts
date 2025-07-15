@@ -10,6 +10,7 @@ export interface Template {
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   preview?: string;
   defaultElements?: WishElement[]; // Default elements configuration for the template
+  stepSequence?: string[][]; // Step sequence for presentation mode
 }
 
 // Premium Property Types

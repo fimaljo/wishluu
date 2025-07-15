@@ -35,6 +35,17 @@ interface CustomWishBuilderProps {
   templateId?: string;
   isUserPremium?: boolean;
   isTemplateMode?: boolean;
+  isAdminMode?: boolean;
+  onSaveTemplate?: (elements: WishElement[], stepSequence: string[][]) => void;
+  templateMetadata?:
+    | {
+        name: string;
+        description: string;
+        occasion: string;
+      }
+    | undefined;
+  onShowMetadataForm?: (() => void) | undefined;
+  adminIsSaving?: boolean;
 }
 
 type CreationStep = (typeof CREATION_STEPS)[number];
@@ -467,39 +478,68 @@ const SaveShareStep = ({
   onBackToPreview,
   onSave,
   isTemplateMode,
+  isAdminMode = false,
+  templateMetadata,
+  onShowMetadataForm,
+  adminIsSaving = false,
 }: {
   elements: WishElement[];
   stepSequence: string[][];
   onBackToPreview: () => void;
   onSave: () => void;
   isTemplateMode: boolean;
+  isAdminMode?: boolean;
+  templateMetadata?:
+    | {
+        name: string;
+        description: string;
+        occasion: string;
+      }
+    | undefined;
+  onShowMetadataForm?: (() => void) | undefined;
+  adminIsSaving?: boolean;
 }) => (
   <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-8 md:p-12'>
     <div className='text-center'>
-      <div className='text-8xl mb-6'>🎉</div>
+      <div className='text-8xl mb-6'>{isAdminMode ? '🎨' : '🎉'}</div>
       <h2 className='text-3xl md:text-4xl font-bold text-gray-800 mb-4'>
-        {isTemplateMode
-          ? 'Your Customized Template is Ready!'
-          : 'Your Wish is Ready!'}
+        {isAdminMode
+          ? 'Template Creation Complete!'
+          : isTemplateMode
+            ? 'Your Customized Template is Ready!'
+            : 'Your Wish is Ready!'}
       </h2>
       <p className='text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed'>
-        You've{' '}
-        {isTemplateMode
-          ? 'customized a template with'
-          : 'created a beautiful wish with'}{' '}
-        <span className='font-semibold text-purple-600'>
-          {elements.length} element{elements.length !== 1 ? 's' : ''}
-        </span>
-        {isTemplateMode ? ' and configured all settings.' : '.'}
-        {!isTemplateMode && stepSequence.length > 0 && (
-          <span>
-            {' '}
-            It has{' '}
+        {isAdminMode ? (
+          <>
+            You've created a template with{' '}
             <span className='font-semibold text-purple-600'>
-              {stepSequence.length} step{stepSequence.length !== 1 ? 's' : ''}
-            </span>{' '}
-            in the sequence.
-          </span>
+              {elements.length} element{elements.length !== 1 ? 's' : ''}
+            </span>
+            . Now add the template information to make it available for users.
+          </>
+        ) : (
+          <>
+            You've{' '}
+            {isTemplateMode
+              ? 'customized a template with'
+              : 'created a beautiful wish with'}{' '}
+            <span className='font-semibold text-purple-600'>
+              {elements.length} element{elements.length !== 1 ? 's' : ''}
+            </span>
+            {isTemplateMode ? ' and configured all settings.' : '.'}
+            {!isTemplateMode && stepSequence.length > 0 && (
+              <span>
+                {' '}
+                It has{' '}
+                <span className='font-semibold text-purple-600'>
+                  {stepSequence.length} step
+                  {stepSequence.length !== 1 ? 's' : ''}
+                </span>{' '}
+                in the sequence.
+              </span>
+            )}
+          </>
         )}
       </p>
 
@@ -532,19 +572,42 @@ const SaveShareStep = ({
         >
           ← Back to Preview
         </Button>
-        <Button
-          variant='primary'
-          onClick={onSave}
-          disabled={elements.length === 0}
-          className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-          aria-label={
-            isTemplateMode
-              ? 'Save and share customized template'
-              : 'Save and share wish'
-          }
-        >
-          💾 {isTemplateMode ? 'Save Template' : 'Save & Share'}
-        </Button>
+
+        {isAdminMode ? (
+          <>
+            <Button
+              variant='outline'
+              onClick={onShowMetadataForm}
+              className='w-full sm:w-auto px-8 py-3 text-base font-medium'
+              aria-label='Add template information'
+            >
+              📝 Add Template Info
+            </Button>
+            <Button
+              variant='primary'
+              onClick={onSave}
+              disabled={elements.length === 0 || adminIsSaving}
+              className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+              aria-label='Save template'
+            >
+              {adminIsSaving ? '💾 Saving...' : '💾 Save Template'}
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant='primary'
+            onClick={onSave}
+            disabled={elements.length === 0}
+            className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+            aria-label={
+              isTemplateMode
+                ? 'Save and share customized template'
+                : 'Save and share wish'
+            }
+          >
+            💾 {isTemplateMode ? 'Save Template' : 'Save & Share'}
+          </Button>
+        )}
       </div>
     </div>
   </div>
@@ -709,6 +772,11 @@ export function CustomWishBuilder({
   templateId,
   isUserPremium: propIsUserPremium,
   isTemplateMode = false,
+  isAdminMode = false,
+  onSaveTemplate,
+  templateMetadata,
+  onShowMetadataForm,
+  adminIsSaving = false,
 }: CustomWishBuilderProps) {
   // Use custom hooks for state management
   const state = useWishBuilderState();
@@ -1112,6 +1180,10 @@ export function CustomWishBuilder({
           (template.defaultElements[0] as WishElement) || null
         );
         setSelectedElements(template.defaultElements as WishElement[]);
+      }
+      // Load step sequence if available
+      if (template.stepSequence) {
+        setStepSequence(template.stepSequence);
       }
       loadedTemplateRef.current = template.id;
     }
@@ -1558,8 +1630,16 @@ export function CustomWishBuilder({
                   elements={elements}
                   stepSequence={stepSequence}
                   onBackToPreview={() => setCurrentStep('preview')}
-                  onSave={actions.handleSaveWish}
+                  onSave={
+                    isAdminMode
+                      ? () => onSaveTemplate?.(elements, stepSequence)
+                      : actions.handleSaveWish
+                  }
                   isTemplateMode={isTemplateMode}
+                  isAdminMode={isAdminMode}
+                  templateMetadata={templateMetadata}
+                  onShowMetadataForm={onShowMetadataForm}
+                  adminIsSaving={adminIsSaving}
                 />
               </div>
             </div>
@@ -1953,7 +2033,11 @@ export function CustomWishBuilder({
                 elements={elements}
                 stepSequence={stepSequence}
                 onBackToPreview={() => setCurrentStep('preview')}
-                onSave={actions.handleSaveWish}
+                onSave={
+                  isAdminMode
+                    ? () => onSaveTemplate?.(elements, stepSequence)
+                    : actions.handleSaveWish
+                }
                 isTemplateMode={isTemplateMode}
               />
             </div>

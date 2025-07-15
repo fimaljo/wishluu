@@ -218,7 +218,7 @@ export default function AdminTemplatesPage() {
             </Button>
             <Button
               variant='primary'
-              onClick={handleCreateTemplate}
+              onClick={() => (window.location.href = '/admin/templates/create')}
               className='text-lg px-6 py-3'
             >
               + Create Template
@@ -321,9 +321,18 @@ export default function AdminTemplatesPage() {
             <div className='text-center py-12 text-gray-500'>
               <div className='text-4xl mb-4'>📝</div>
               <p className='text-lg'>No templates created yet</p>
-              <p className='text-sm'>
+              <p className='text-sm mb-4'>
                 Create your first template to get started
               </p>
+              <Button
+                variant='primary'
+                onClick={() =>
+                  (window.location.href = '/admin/templates/create')
+                }
+                className='px-6 py-2'
+              >
+                + Create Your First Template
+              </Button>
             </div>
           )}
         </div>
