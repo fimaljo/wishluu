@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { CustomWishBuilder } from '@/features/templates/components/CustomWishBuilder';
+import { CustomWishBuilder } from '@/features/wish-builder/components/CustomWishBuilder';
 
 export default function TemplateBuilderPage() {
   const params = useParams();

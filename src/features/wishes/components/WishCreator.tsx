@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { TemplateCard } from '@/features/templates/components/TemplateCard';
-import { CustomWishBuilder } from '@/features/templates/components/CustomWishBuilder';
+import { TemplateCard } from '@/features/wish-builder/components/TemplateCard';
+import { CustomWishBuilder } from '@/features/wish-builder/components/CustomWishBuilder';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
 import { Template } from '@/types/templates';

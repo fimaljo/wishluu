@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CustomWishBuilder } from '@/features/templates/components/CustomWishBuilder';
+import { CustomWishBuilder } from '@/features/wish-builder/components/CustomWishBuilder';
 
 export default function PremiumDemoPage() {
   const [isUserPremium, setIsUserPremium] = useState(false);
