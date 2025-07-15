@@ -4,6 +4,7 @@ import { UserPremiumStatus } from '@/lib/premiumService';
 import { Wish } from '@/types';
 
 type CreationStep = 'create' | 'steps' | 'preview' | 'save';
+type TemplateStep = 'canvas-settings' | 'element-settings' | 'preview' | 'save';
 type MobileView = 'canvas' | 'palette' | 'properties' | 'steps';
 
 export function useWishBuilderState() {
@@ -25,7 +26,9 @@ export function useWishBuilderState() {
 
   // UI State
   const [showCanvasSettings, setShowCanvasSettings] = useState(true);
-  const [currentStep, setCurrentStep] = useState<CreationStep>('create');
+  const [currentStep, setCurrentStep] = useState<CreationStep | TemplateStep>(
+    'create'
+  );
   const [mobileView, setMobileView] = useState<MobileView>('canvas');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
