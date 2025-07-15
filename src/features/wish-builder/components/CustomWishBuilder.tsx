@@ -1,17 +1,7 @@
 'use client';
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from 'react';
-import {
-  InteractiveElement,
-  WishElement,
-  ElementProperties,
-} from '@/types/templates';
+import React, { useEffect, useMemo } from 'react';
+import { WishElement } from '@/types/templates';
 import { Button } from '@/components/ui/Button';
 import { ElementPalette } from './ElementPalette';
 import { WishCanvas } from './WishCanvas';
@@ -19,14 +9,14 @@ import { ElementPropertiesPanel } from './ElementPropertiesPanel';
 import { SaveShareDialog } from '@/components/ui/SaveShareDialog';
 import { PresentationMode } from '@/components/ui/PresentationMode';
 import { getAllElements } from '@/config/elements';
-import {
-  getTemplateById,
-  getTemplateDefaultElements,
-} from '@/config/templates';
-import { TemplateService } from '@/lib/templateService';
-import { premiumService, UserPremiumStatus } from '@/lib/premiumService';
-import { useWishManagement } from '@/features/wishes/hooks/useWishManagement';
+import { getTemplateById } from '@/config/templates';
+import { premiumService } from '@/lib/premiumService';
 import { Wish } from '@/types';
+import {
+  useWishBuilderState,
+  useWishBuilderActions,
+  useWishBuilderNavigation,
+} from '../hooks';
 
 // Constants
 const CREATION_STEPS = ['create', 'steps', 'preview', 'save'] as const;
@@ -568,46 +558,57 @@ export function CustomWishBuilder({
   isUserPremium: propIsUserPremium,
   isTemplateMode = false,
 }: CustomWishBuilderProps) {
-  // ALL HOOKS MUST BE DECLARED AT THE TOP LEVEL IN A CONSISTENT ORDER
+  // Use custom hooks for state management
+  const state = useWishBuilderState();
+  const {
+    selectedElement,
+    setSelectedElement,
+    elements,
+    setElements,
+    selectedElements,
+    setSelectedElements,
+    originalTemplateElements,
+    setOriginalTemplateElements,
+    recipientName,
+    setRecipientName,
+    message,
+    setMessage,
+    theme,
+    setTheme,
+    customBackgroundColor,
+    setCustomBackgroundColor,
+    showCanvasSettings,
+    setShowCanvasSettings,
+    currentStep,
+    setCurrentStep,
+    mobileView,
+    setMobileView,
+    showMobileMenu,
+    setShowMobileMenu,
+    stepSequence,
+    setStepSequence,
+    isSaving,
+    setIsSaving,
+    isLoading,
+    setIsLoading,
+    error,
+    setError,
+    userPremiumStatus,
+    setUserPremiumStatus,
+    isLoadingPremium,
+    setIsLoadingPremium,
+    showSaveShareDialog,
+    setShowSaveShareDialog,
+    currentWish,
+    setCurrentWish,
+    showPresentationMode,
+    setShowPresentationMode,
+    shareUrl,
+    setShareUrl,
+    loadedTemplateRef,
+  } = state;
 
-  // 1. All useState hooks first
-  const [selectedElement, setSelectedElement] = useState<WishElement | null>(
-    null
-  );
-  const [elements, setElements] = useState<WishElement[]>([]);
-  const [selectedElements, setSelectedElements] = useState<WishElement[]>([]);
-  const [originalTemplateElements, setOriginalTemplateElements] = useState<
-    WishElement[]
-  >([]);
-  const [recipientName, setRecipientName] = useState('');
-  const [message, setMessage] = useState('');
-  const [theme, setTheme] = useState('purple');
-  const [customBackgroundColor, setCustomBackgroundColor] = useState('#ffffff');
-  const [showCanvasSettings, setShowCanvasSettings] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState<CreationStep>('create');
-  const [mobileView, setMobileView] = useState<
-    'canvas' | 'palette' | 'properties' | 'steps'
-  >('canvas');
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [userPremiumStatus, setUserPremiumStatus] =
-    useState<UserPremiumStatus | null>(null);
-  const [isLoadingPremium, setIsLoadingPremium] = useState(true);
-  const [showSaveShareDialog, setShowSaveShareDialog] = useState(false);
-  const [currentWish, setCurrentWish] = useState<Wish | null>(null);
-  const [showPresentationMode, setShowPresentationMode] = useState(false);
-  const [stepSequence, setStepSequence] = useState<string[][]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 2. All useRef hooks
-  const loadedTemplateRef = useRef<string | null>(null);
-
-  // 3. All custom hooks
-  const { createWish, shareWish, error: wishError } = useWishManagement();
-
-  // 4. All useMemo hooks
+  // Computed values
   const availableElements = useMemo(() => getAllElements(), []);
   const template = useMemo(
     () => (templateId ? getTemplateById(templateId) : null),
@@ -626,256 +627,173 @@ export function CustomWishBuilder({
   );
   const stepInfo = useMemo(() => StepInfo({ currentStep }), [currentStep]);
 
-  // 5. All useCallback hooks
-  const handleError = useCallback((error: any, context: string) => {
-    console.error(`Error in ${context}:`, error);
-    setError(`An error occurred while ${context}. Please try again.`);
-    setTimeout(() => setError(null), 5000);
-  }, []);
+  // Use custom hooks for actions and navigation
+  const actions = useWishBuilderActions({
+    setElements,
+    setSelectedElement,
+    setSelectedElements,
+    setStepSequence,
+    setError,
+    setIsLoading,
+    setCurrentWish,
+    setShowSaveShareDialog,
+    setUserPremiumStatus,
+    elements,
+    selectedElement,
+    selectedElements,
+    stepSequence,
+    originalTemplateElements,
+    availableElements: availableElements as any,
+    isRestrictedMode,
+    recipientName,
+    message,
+    theme,
+    templateId,
+    customBackgroundColor,
+  });
 
-  const withLoading = useCallback(
-    async (operation: () => Promise<void>, context: string) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        await operation();
-      } catch (error) {
-        handleError(error, context);
-      } finally {
-        setIsLoading(false);
+  const navigation = useWishBuilderNavigation({
+    currentStep,
+    setCurrentStep,
+    setError,
+    elements,
+    stepSequence,
+  });
+
+  // Additional handlers that need to be defined here
+  const handleTemplateModeSelection = (elementId: string) => {
+    const elementTypeExists = originalTemplateElements.some(
+      el => el.elementType === elementId
+    );
+    if (!elementTypeExists) return;
+
+    const canvasElementExists = elements.some(
+      el => el.elementType === elementId
+    );
+    if (canvasElementExists) {
+      const existingElement = elements.find(el => el.elementType === elementId);
+      if (existingElement) {
+        setSelectedElement(existingElement);
+        setSelectedElements([existingElement]);
+        setShowCanvasSettings(false);
       }
-    },
-    [handleError]
-  );
+      return;
+    }
 
-  const getAvailableElementsForSteps = useCallback(() => {
-    const usedElementIds = new Set();
-    stepSequence.forEach(step => step.forEach(id => usedElementIds.add(id)));
-    return elements.filter(el => !usedElementIds.has(el.id));
-  }, [stepSequence, elements]);
+    const templateElement = originalTemplateElements.find(
+      el => el.elementType === elementId
+    );
+    if (templateElement) {
+      const newElement: WishElement = {
+        id: `${elementId}_${Date.now()}`,
+        elementType: elementId,
+        properties: { ...templateElement.properties },
+        order: elements.length,
+      };
+      setElements(prev => [...prev, newElement]);
+      setSelectedElement(newElement);
+      setShowCanvasSettings(false);
+    }
+  };
 
-  const canCombine = useCallback(
-    (step: string[], newElementId: string) => {
-      if (step.length >= 2) return false;
-      if (step.includes(newElementId)) return false;
+  const handleNormalModeSelection = (elementId: string) => {
+    const element = availableElements.find(el => el.id === elementId);
+    if (element) {
+      const selectedElement: WishElement = {
+        id: elementId,
+        elementType: elementId,
+        properties: { ...element.properties, isSelected: true },
+        order: selectedElements.length,
+      };
+      setSelectedElements(prev => [...prev, selectedElement]);
 
-      const existingElements = step
-        .map(id => elements.find(el => el.id === id))
-        .filter(Boolean);
-      const newElement = elements.find(el => el.id === newElementId);
-      if (!newElement) return false;
+      const canvasElement: WishElement = {
+        id: `${elementId}_${Date.now()}`,
+        elementType: elementId,
+        properties: { ...element.properties },
+        order: elements.length,
+      };
+      setElements(prev => [...prev, canvasElement]);
+      setSelectedElement(canvasElement);
+      setShowCanvasSettings(false);
+    }
+  };
 
-      const existingTypes = existingElements.map(el => el?.elementType);
-      return !existingTypes.includes(newElement.elementType);
-    },
-    [elements]
-  );
+  const handleSelectElement = (elementId: string) => {
+    if (isRestrictedMode) {
+      handleTemplateModeSelection(elementId);
+    } else {
+      handleNormalModeSelection(elementId);
+    }
+  };
 
-  const canAddMoreSteps = useCallback(() => {
+  const handleUnselectElement = (elementId: string) => {
+    setSelectedElements(prev => prev.filter(el => el.id !== elementId));
+
+    if (isRestrictedMode) {
+      setElements(prev => prev.filter(el => el.id !== elementId));
+    } else {
+      setElements(prev =>
+        prev.filter(
+          el =>
+            !(el.elementType === elementId && el.id.startsWith(elementId + '_'))
+        )
+      );
+    }
+
+    if (selectedElement?.id === elementId) {
+      setSelectedElement(null);
+    }
+  };
+
+  const handleAddElement = (elementType: string) => {
+    if (isRestrictedMode) return;
+
+    const element = availableElements.find(e => e.id === elementType);
+    if (element) {
+      const newElement: WishElement = {
+        id: `${elementType}_${Date.now()}`,
+        elementType: elementType,
+        properties: { ...element.properties },
+        order: elements.length,
+      };
+      setElements(prev => [...prev, newElement]);
+      setSelectedElement(newElement);
+    }
+  };
+
+  const handleCanvasElementSelect = (element: WishElement | null) => {
+    if (element === null) {
+      setSelectedElements(elements);
+      setSelectedElement(null);
+      setShowCanvasSettings(false);
+    } else {
+      setSelectedElement(element);
+      setSelectedElements([element]);
+      setShowCanvasSettings(false);
+    }
+  };
+
+  const handleSwitchToElement = (elementId: string) => {
+    const element = elements.find(el => el.id === elementId);
+    if (element) {
+      setSelectedElement(element);
+      setSelectedElements([element]);
+      setShowCanvasSettings(false);
+    }
+  };
+
+  const canAddMoreSteps = () => {
     const usedElementIds = new Set();
     stepSequence.forEach(step => step.forEach(id => usedElementIds.add(id)));
     const availableElements = elements.filter(el => !usedElementIds.has(el.id));
     return availableElements.length > 0 && stepSequence.length < MAX_STEPS;
-  }, [stepSequence, elements]);
+  };
 
-  const handleAddToCanvas = useCallback(
-    (elementId: string) => {
-      const element = availableElements.find(e => e.id === elementId);
-      if (element) {
-        const newElement: WishElement = {
-          id: `${elementId}_${Date.now()}`,
-          elementType: elementId,
-          properties: { ...element.properties },
-          order: elements.length,
-        };
-        setElements(prev => [...prev, newElement]);
-        setSelectedElement(newElement);
-      }
-    },
-    [availableElements, elements.length]
-  );
-
-  const handleTemplateModeSelection = useCallback(
-    (elementId: string) => {
-      const elementTypeExists = originalTemplateElements.some(
-        el => el.elementType === elementId
-      );
-      if (!elementTypeExists) return;
-
-      const canvasElementExists = elements.some(
-        el => el.elementType === elementId
-      );
-      if (canvasElementExists) {
-        const existingElement = elements.find(
-          el => el.elementType === elementId
-        );
-        if (existingElement) {
-          setSelectedElement(existingElement);
-          setSelectedElements([existingElement]);
-          setShowCanvasSettings(false);
-        }
-        return;
-      }
-
-      const templateElement = originalTemplateElements.find(
-        el => el.elementType === elementId
-      );
-      if (templateElement) {
-        const newElement: WishElement = {
-          id: `${elementId}_${Date.now()}`,
-          elementType: elementId,
-          properties: { ...templateElement.properties },
-          order: elements.length,
-        };
-        setElements(prev => [...prev, newElement]);
-        setSelectedElement(newElement);
-        setShowCanvasSettings(false);
-      }
-    },
-    [originalTemplateElements, elements]
-  );
-
-  const handleNormalModeSelection = useCallback(
-    (elementId: string) => {
-      const element = availableElements.find(el => el.id === elementId);
-      if (element) {
-        const selectedElement: WishElement = {
-          id: elementId,
-          elementType: elementId,
-          properties: { ...element.properties, isSelected: true },
-          order: selectedElements.length,
-        };
-        setSelectedElements(prev => [...prev, selectedElement]);
-
-        const canvasElement: WishElement = {
-          id: `${elementId}_${Date.now()}`,
-          elementType: elementId,
-          properties: { ...element.properties },
-          order: elements.length,
-        };
-        setElements(prev => [...prev, canvasElement]);
-        setSelectedElement(canvasElement);
-        setShowCanvasSettings(false);
-      }
-    },
-    [availableElements, selectedElements.length, elements.length]
-  );
-
-  const handleSelectElement = useCallback(
-    (elementId: string) => {
-      if (isRestrictedMode) {
-        handleTemplateModeSelection(elementId);
-      } else {
-        handleNormalModeSelection(elementId);
-      }
-    },
-    [isRestrictedMode, handleTemplateModeSelection, handleNormalModeSelection]
-  );
-
-  const handleUnselectElement = useCallback(
-    (elementId: string) => {
-      setSelectedElements(prev => prev.filter(el => el.id !== elementId));
-
-      if (isRestrictedMode) {
-        setElements(prev => prev.filter(el => el.id !== elementId));
-      } else {
-        setElements(prev =>
-          prev.filter(
-            el =>
-              !(
-                el.elementType === elementId &&
-                el.id.startsWith(elementId + '_')
-              )
-          )
-        );
-      }
-
-      if (selectedElement?.id === elementId) {
-        setSelectedElement(null);
-      }
-    },
-    [isRestrictedMode, selectedElement?.id]
-  );
-
-  const handleAddElement = useCallback(
-    (elementType: string) => {
-      if (isRestrictedMode) return;
-
-      const element = availableElements.find(e => e.id === elementType);
-      if (element) {
-        const newElement: WishElement = {
-          id: `${elementType}_${Date.now()}`,
-          elementType: elementType,
-          properties: { ...element.properties },
-          order: elements.length,
-        };
-        setElements(prev => [...prev, newElement]);
-        setSelectedElement(newElement);
-      }
-    },
-    [isRestrictedMode, availableElements, elements.length]
-  );
-
-  const handleUpdateElement = useCallback(
-    (elementId: string, properties: ElementProperties) => {
-      setElements(prev =>
-        prev.map(el => (el.id === elementId ? { ...el, properties } : el))
-      );
-
-      if (selectedElement?.id === elementId) {
-        setSelectedElement(prev => (prev ? { ...prev, properties } : null));
-      }
-    },
-    [selectedElement?.id]
-  );
-
-  const handleDeleteElement = useCallback(
-    (elementId: string) => {
-      setElements(prev => prev.filter(el => el.id !== elementId));
-      setSelectedElements(prev => prev.filter(el => el.id !== elementId));
-      if (selectedElement?.id === elementId) {
-        setSelectedElement(null);
-      }
-      setStepSequence(prev =>
-        prev
-          .map(step => step.filter(id => id !== elementId))
-          .filter(step => step.length > 0)
-      );
-    },
-    [selectedElement?.id]
-  );
-
-  const handleCanvasElementSelect = useCallback(
-    (element: WishElement | null) => {
-      if (element === null) {
-        setSelectedElements(elements);
-        setSelectedElement(null);
-        setShowCanvasSettings(false);
-      } else {
-        setSelectedElement(element);
-        setSelectedElements([element]);
-        setShowCanvasSettings(false);
-      }
-    },
-    [elements]
-  );
-
-  const handleSwitchToElement = useCallback(
-    (elementId: string) => {
-      const element = elements.find(el => el.id === elementId);
-      if (element) {
-        setSelectedElement(element);
-        setSelectedElements([element]);
-        setShowCanvasSettings(false);
-      }
-    },
-    [elements]
-  );
-
-  const handleAddNextStep = useCallback(() => {
+  const handleAddNextStep = () => {
     if (!canAddMoreSteps()) return;
 
-    const availableElements = getAvailableElementsForSteps();
+    const availableElements = actions.getAvailableElementsForSteps();
     if (availableElements.length === 0) return;
 
     const firstElement = availableElements[0];
@@ -883,167 +801,9 @@ export function CustomWishBuilder({
 
     const newStep = [firstElement.id];
     setStepSequence(prev => [...prev, newStep]);
-  }, [canAddMoreSteps, getAvailableElementsForSteps]);
+  };
 
-  const handleAddToStepSequence = useCallback(
-    (elementId: string) => {
-      if (stepSequence.length > 0) {
-        const lastStep = stepSequence[stepSequence.length - 1];
-        if (lastStep && canCombine(lastStep, elementId)) {
-          setStepSequence(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1] = [...lastStep, elementId];
-            return updated;
-          });
-          return;
-        }
-      }
-
-      setStepSequence(prev => [...prev, [elementId]]);
-    },
-    [stepSequence, canCombine]
-  );
-
-  const handleRemoveFromStepSequence = useCallback((elementId: string) => {
-    setStepSequence(prev =>
-      prev
-        .map(step => step.filter(id => id !== elementId))
-        .filter(step => step.length > 0)
-    );
-  }, []);
-
-  const handleReorderSteps = useCallback(
-    (fromIndex: number, toIndex: number) => {
-      setStepSequence(prev => {
-        const newSequence = [...prev];
-        const [movedStep] = newSequence.splice(fromIndex, 1);
-        if (movedStep) {
-          newSequence.splice(toIndex, 0, movedStep);
-        }
-        return newSequence;
-      });
-    },
-    []
-  );
-
-  const handleClearStepSequence = useCallback(() => {
-    setStepSequence([]);
-  }, []);
-
-  const handleAutoGenerateSequence = useCallback(() => {
-    const interactiveElements = elements.filter(
-      el =>
-        el.elementType === 'balloons-interactive' ||
-        el.elementType === 'beautiful-text' ||
-        el.elementType === 'confetti' ||
-        el.elementType === 'music-player'
-    );
-    const newSequence = interactiveElements.map(el => [el.id]);
-    setStepSequence(newSequence);
-  }, [elements]);
-
-  const handlePreviousStep = useCallback(() => {
-    switch (currentStep) {
-      case 'steps':
-        setCurrentStep('create');
-        break;
-      case 'preview':
-        setCurrentStep('steps');
-        break;
-      case 'save':
-        setCurrentStep('preview');
-        break;
-    }
-  }, [currentStep]);
-
-  const handleNextStep = useCallback(() => {
-    setError(null);
-
-    switch (currentStep) {
-      case 'create':
-        if (elements.length === 0) {
-          setError('Please add at least one element before proceeding.');
-          return;
-        }
-        setCurrentStep('steps');
-        break;
-      case 'steps':
-        setCurrentStep('preview');
-        break;
-      case 'preview':
-        setCurrentStep('save');
-        break;
-    }
-  }, [currentStep, elements.length]);
-
-  const handleSaveWish = useCallback(async () => {
-    if (elements.length === 0) {
-      setError('Please add at least one element to your wish before saving.');
-      return;
-    }
-
-    await withLoading(async () => {
-      const wishData = {
-        recipientName,
-        message,
-        theme,
-        occasion: templateId || 'custom',
-        animation: 'fade',
-        elements: elements,
-        customBackgroundColor,
-      };
-
-      const createdWish = await createWish(wishData);
-      if (createdWish) {
-        setCurrentWish(createdWish);
-        setShowSaveShareDialog(true);
-      }
-    }, 'saving wish');
-  }, [
-    elements,
-    recipientName,
-    message,
-    theme,
-    templateId,
-    customBackgroundColor,
-    createWish,
-    withLoading,
-  ]);
-
-  const handleSaveFromDialog = useCallback(
-    async (wishData: any): Promise<Wish | null> => {
-      try {
-        const createdWish = await createWish(wishData);
-        if (createdWish) {
-          setCurrentWish(createdWish);
-          return createdWish;
-        }
-        return null;
-      } catch (error) {
-        console.error('Error saving wish from dialog:', error);
-        alert('Error saving wish. Please try again.');
-        return null;
-      }
-    },
-    [createWish]
-  );
-
-  const handleShareFromDialog = useCallback(
-    async (wish: Wish): Promise<string> => {
-      try {
-        const shareUrl = await shareWish(wish);
-        setShareUrl(shareUrl);
-        return shareUrl;
-      } catch (error) {
-        console.error('Error sharing wish:', error);
-        alert('Error sharing wish. Please try again.');
-        return '';
-      }
-    },
-    [shareWish]
-  );
-
-  const handleOpenPresentationMode = useCallback(() => {
+  const handleOpenPresentationMode = () => {
     if (elements.length === 0) {
       setError(
         'Please add at least one element to your wish before entering presentation mode.'
@@ -1068,26 +828,11 @@ export function CustomWishBuilder({
 
     setCurrentWish(tempWish);
     setShowPresentationMode(true);
-  }, [
-    elements,
-    recipientName,
-    message,
-    theme,
-    templateId,
-    customBackgroundColor,
-  ]);
+  };
 
-  const handleUpgradeClick = useCallback(async () => {
-    await withLoading(async () => {
-      await premiumService.upgradeUser(DEMO_USER_ID, 'pro');
-      const newStatus = await premiumService.getUserPremiumStatus(DEMO_USER_ID);
-      setUserPremiumStatus(newStatus);
-    }, 'upgrading user');
-  }, [withLoading]);
-
-  const getSelectedElementsForDisplay = useCallback(() => {
+  const getSelectedElementsForDisplay = () => {
     return selectedElements.length > 0 ? selectedElements : elements;
-  }, [selectedElements, elements]);
+  };
 
   // 6. All useEffect hooks
   useEffect(() => {
@@ -1123,11 +868,13 @@ export function CustomWishBuilder({
       template?.defaultElements &&
       loadedTemplateRef.current !== template.id
     ) {
-      setElements(template.defaultElements);
-      setOriginalTemplateElements(template.defaultElements);
+      setElements(template.defaultElements as WishElement[]);
+      setOriginalTemplateElements(template.defaultElements as WishElement[]);
       if (template.defaultElements.length > 0) {
-        setSelectedElement(template.defaultElements[0] || null);
-        setSelectedElements(template.defaultElements);
+        setSelectedElement(
+          (template.defaultElements[0] as WishElement) || null
+        );
+        setSelectedElements(template.defaultElements as WishElement[]);
       }
       loadedTemplateRef.current = template.id;
     }
@@ -1141,14 +888,14 @@ export function CustomWishBuilder({
         } else if (showPresentationMode) {
           setShowPresentationMode(false);
         } else if (currentStep !== 'create') {
-          handlePreviousStep();
+          navigation.handlePreviousStep();
         }
       }
 
       if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
         if (currentStep === 'save') {
-          handleSaveWish();
+          actions.handleSaveWish();
         }
       }
     };
@@ -1159,8 +906,8 @@ export function CustomWishBuilder({
     showSaveShareDialog,
     showPresentationMode,
     currentStep,
-    handlePreviousStep,
-    handleSaveWish,
+    navigation.handlePreviousStep,
+    actions.handleSaveWish,
   ]);
 
   return (
@@ -1236,7 +983,7 @@ export function CustomWishBuilder({
               {currentStep !== 'create' && (
                 <Button
                   variant='outline'
-                  onClick={handlePreviousStep}
+                  onClick={navigation.handlePreviousStep}
                   className='text-xs md:text-sm px-2 md:px-3 py-1.5 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200'
                   aria-label='Go to previous step'
                   disabled={isLoading}
@@ -1249,7 +996,7 @@ export function CustomWishBuilder({
               {currentStep !== 'save' && (
                 <Button
                   variant='primary'
-                  onClick={handleNextStep}
+                  onClick={navigation.handleNextStep}
                   disabled={
                     isLoading ||
                     (currentStep === 'create' && elements.length === 0) ||
@@ -1274,7 +1021,7 @@ export function CustomWishBuilder({
               {currentStep === 'save' && (
                 <Button
                   variant='primary'
-                  onClick={handleSaveWish}
+                  onClick={actions.handleSaveWish}
                   disabled={isLoading || elements.length === 0}
                   className='text-xs md:text-sm px-2 md:px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
                   aria-label='Save and share wish'
@@ -1300,13 +1047,17 @@ export function CustomWishBuilder({
             <StepManagerPanel
               stepSequence={stepSequence}
               elements={elements}
-              getAvailableElementsForSteps={getAvailableElementsForSteps}
+              getAvailableElementsForSteps={
+                actions.getAvailableElementsForSteps
+              }
               handleAddNextStep={handleAddNextStep}
-              handleAddToStepSequence={handleAddToStepSequence}
-              handleReorderSteps={handleReorderSteps}
-              handleRemoveFromStepSequence={handleRemoveFromStepSequence}
-              handleAutoGenerateSequence={handleAutoGenerateSequence}
-              handleClearStepSequence={handleClearStepSequence}
+              handleAddToStepSequence={actions.handleAddToStepSequence}
+              handleReorderSteps={actions.handleReorderSteps}
+              handleRemoveFromStepSequence={
+                actions.handleRemoveFromStepSequence
+              }
+              handleAutoGenerateSequence={actions.handleAutoGenerateSequence}
+              handleClearStepSequence={actions.handleClearStepSequence}
               setStepSequence={setStepSequence}
             />
           )}
@@ -1344,7 +1095,7 @@ export function CustomWishBuilder({
                     ? () => {}
                     : handleCanvasElementSelect
                 }
-                onUpdateElement={handleUpdateElement}
+                onUpdateElement={actions.handleUpdateElement}
                 recipientName={recipientName}
                 message={message}
                 theme={theme}
@@ -1361,8 +1112,8 @@ export function CustomWishBuilder({
             <div className='col-span-3 overflow-hidden'>
               <ElementPropertiesPanel
                 element={selectedElement}
-                onUpdateElement={handleUpdateElement}
-                onDeleteElement={handleDeleteElement}
+                onUpdateElement={actions.handleUpdateElement}
+                onDeleteElement={actions.handleDeleteElement}
                 recipientName={recipientName}
                 message={message}
                 theme={theme}
@@ -1373,7 +1124,7 @@ export function CustomWishBuilder({
                 onUpdateCustomBackgroundColor={setCustomBackgroundColor}
                 showCanvasSettings={showCanvasSettings}
                 isUserPremium={isUserPremium}
-                onUpgradeClick={handleUpgradeClick}
+                onUpgradeClick={actions.handleUpgradeClick}
                 selectedElements={getSelectedElementsForDisplay()}
                 elements={elements}
                 onSwitchToElement={handleSwitchToElement}
@@ -1387,7 +1138,7 @@ export function CustomWishBuilder({
               elements={elements}
               stepSequence={stepSequence}
               onBackToPreview={() => setCurrentStep('preview')}
-              onSave={handleSaveWish}
+              onSave={actions.handleSaveWish}
             />
           )}
         </div>
@@ -1399,13 +1150,17 @@ export function CustomWishBuilder({
             <StepManagerPanel
               stepSequence={stepSequence}
               elements={elements}
-              getAvailableElementsForSteps={getAvailableElementsForSteps}
+              getAvailableElementsForSteps={
+                actions.getAvailableElementsForSteps
+              }
               handleAddNextStep={handleAddNextStep}
-              handleAddToStepSequence={handleAddToStepSequence}
-              handleReorderSteps={handleReorderSteps}
-              handleRemoveFromStepSequence={handleRemoveFromStepSequence}
-              handleAutoGenerateSequence={handleAutoGenerateSequence}
-              handleClearStepSequence={handleClearStepSequence}
+              handleAddToStepSequence={actions.handleAddToStepSequence}
+              handleReorderSteps={actions.handleReorderSteps}
+              handleRemoveFromStepSequence={
+                actions.handleRemoveFromStepSequence
+              }
+              handleAutoGenerateSequence={actions.handleAutoGenerateSequence}
+              handleClearStepSequence={actions.handleClearStepSequence}
               setStepSequence={setStepSequence}
             />
           )}
@@ -1442,7 +1197,7 @@ export function CustomWishBuilder({
                       ? () => {}
                       : handleCanvasElementSelect
                   }
-                  onUpdateElement={handleUpdateElement}
+                  onUpdateElement={actions.handleUpdateElement}
                   recipientName={recipientName}
                   message={message}
                   theme={theme}
@@ -1459,8 +1214,8 @@ export function CustomWishBuilder({
             <div className='h-full'>
               <ElementPropertiesPanel
                 element={selectedElement}
-                onUpdateElement={handleUpdateElement}
-                onDeleteElement={handleDeleteElement}
+                onUpdateElement={actions.handleUpdateElement}
+                onDeleteElement={actions.handleDeleteElement}
                 recipientName={recipientName}
                 message={message}
                 theme={theme}
@@ -1471,7 +1226,7 @@ export function CustomWishBuilder({
                 onUpdateCustomBackgroundColor={setCustomBackgroundColor}
                 showCanvasSettings={showCanvasSettings}
                 isUserPremium={isUserPremium}
-                onUpgradeClick={handleUpgradeClick}
+                onUpgradeClick={actions.handleUpgradeClick}
                 selectedElements={getSelectedElementsForDisplay()}
                 elements={elements}
                 onSwitchToElement={handleSwitchToElement}
@@ -1485,7 +1240,7 @@ export function CustomWishBuilder({
               elements={elements}
               stepSequence={stepSequence}
               onBackToPreview={() => setCurrentStep('preview')}
-              onSave={handleSaveWish}
+              onSave={actions.handleSaveWish}
             />
           )}
         </div>
@@ -1503,8 +1258,8 @@ export function CustomWishBuilder({
         isOpen={showSaveShareDialog}
         onClose={() => setShowSaveShareDialog(false)}
         wish={currentWish}
-        onSave={handleSaveFromDialog}
-        onShare={handleShareFromDialog}
+        onSave={actions.handleSaveFromDialog}
+        onShare={actions.handleShareFromDialog}
         isSaving={isSaving}
       />
 
