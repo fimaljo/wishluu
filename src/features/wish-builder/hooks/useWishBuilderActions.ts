@@ -310,7 +310,25 @@ export function useWishBuilderActions({
           return null;
         }
 
-        const result = await createFirebaseWish(wishData);
+        // If the wish already has an ID, it means it was already saved
+        if (wishData.id) {
+          console.log('Wish already has ID, returning existing wish');
+          return wishData;
+        }
+
+        // Prepare the wish data for Firebase
+        const firebaseWishData = {
+          title: wishData.title || `Wish for ${wishData.recipientName}`,
+          recipientName: wishData.recipientName,
+          message: wishData.message || '',
+          theme: wishData.theme,
+          elements: wishData.elements,
+          stepSequence: wishData.stepSequence,
+          customBackgroundColor: wishData.customBackgroundColor,
+          isPublic: wishData.isPublic !== false,
+        };
+
+        const result = await createFirebaseWish(firebaseWishData);
         console.log('Firebase save result:', result);
 
         if (result.success && result.data) {
@@ -356,10 +374,13 @@ export function useWishBuilderActions({
         if (wish.shareId) {
           const baseUrl = window.location.origin;
           return `${baseUrl}/wish/${wish.shareId}`;
-        } else {
+        } else if (wish.id) {
           // Fallback: generate a temporary share URL
           const baseUrl = window.location.origin;
           return `${baseUrl}/wish/${wish.id}`;
+        } else {
+          // If no ID, this is an unsaved wish
+          throw new Error('Wish must be saved before sharing');
         }
       } catch (error) {
         console.error('Error sharing wish:', error);

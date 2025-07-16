@@ -1295,22 +1295,19 @@ export function CustomWishBuilder({
       if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
         if (currentStep === 'save') {
-          if (isTemplateMode) {
-            const wishData = {
-              title: `Wish for ${recipientName || 'Recipient'}`,
-              recipientName: recipientName || '',
-              message: message || '',
-              theme,
-              elements: elements,
-              stepSequence: stepSequence,
-              customBackgroundColor,
-              isPublic: true,
-            };
-            setCurrentWish(wishData as any);
-            setShowSaveShareDialog(true);
-          } else {
-            actions.handleSaveWish();
-          }
+          // For both template mode and custom wish creation, create a wish object and open the dialog
+          const wishData = {
+            title: `Wish for ${recipientName || 'Recipient'}`,
+            recipientName: recipientName || '',
+            message: message || '',
+            theme,
+            elements: elements,
+            stepSequence: stepSequence,
+            customBackgroundColor,
+            isPublic: true,
+          };
+          setCurrentWish(wishData as any);
+          setShowSaveShareDialog(true);
         }
       }
     };
@@ -1322,8 +1319,6 @@ export function CustomWishBuilder({
     showPresentationMode,
     currentStep,
     navigation.handlePreviousStep,
-    actions.handleSaveWish,
-    isTemplateMode,
     recipientName,
     message,
     theme,
@@ -1459,22 +1454,19 @@ export function CustomWishBuilder({
                 <Button
                   variant='primary'
                   onClick={() => {
-                    if (isTemplateMode) {
-                      const wishData = {
-                        title: `Wish for ${recipientName || 'Recipient'}`,
-                        recipientName: recipientName || '',
-                        message: message || '',
-                        theme,
-                        elements: elements,
-                        stepSequence: stepSequence,
-                        customBackgroundColor,
-                        isPublic: true,
-                      };
-                      setCurrentWish(wishData as any);
-                      setShowSaveShareDialog(true);
-                    } else {
-                      actions.handleSaveWish();
-                    }
+                    // For both template mode and custom wish creation, create a wish object and open the dialog
+                    const wishData = {
+                      title: `Wish for ${recipientName || 'Recipient'}`,
+                      recipientName: recipientName || '',
+                      message: message || '',
+                      theme,
+                      elements: elements,
+                      stepSequence: stepSequence,
+                      customBackgroundColor,
+                      isPublic: true,
+                    };
+                    setCurrentWish(wishData as any);
+                    setShowSaveShareDialog(true);
                   }}
                   disabled={isLoading || elements.length === 0}
                   className='text-xs md:text-sm px-2 md:px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -1662,24 +1654,20 @@ export function CustomWishBuilder({
                     isAdminMode
                       ? () => onSaveTemplate?.(elements, stepSequence)
                       : () => {
-                          // For template mode, create a wish object and open the dialog
-                          if (isTemplateMode) {
-                            const wishData = {
-                              title: `Wish for ${recipientName || 'Recipient'}`,
-                              recipientName: recipientName || '',
-                              message: message || '',
-                              theme,
-                              elements: elements,
-                              stepSequence: stepSequence,
-                              customBackgroundColor,
-                              music,
-                              isPublic: true,
-                            };
-                            setCurrentWish(wishData as any);
-                            setShowSaveShareDialog(true);
-                          } else {
-                            actions.handleSaveWish();
-                          }
+                          // For both template mode and custom wish creation, create a wish object and open the dialog
+                          const wishData = {
+                            title: `Wish for ${recipientName || 'Recipient'}`,
+                            recipientName: recipientName || '',
+                            message: message || '',
+                            theme,
+                            elements: elements,
+                            stepSequence: stepSequence,
+                            customBackgroundColor,
+                            music,
+                            isPublic: true,
+                          };
+                          setCurrentWish(wishData as any);
+                          setShowSaveShareDialog(true);
                         }
                   }
                   isTemplateMode={isTemplateMode}
@@ -1986,24 +1974,20 @@ export function CustomWishBuilder({
                   isAdminMode
                     ? () => onSaveTemplate?.(elements, stepSequence)
                     : () => {
-                        // For template mode, create a wish object and open the dialog
-                        if (isTemplateMode) {
-                          const wishData = {
-                            title: `Wish for ${recipientName || 'Recipient'}`,
-                            recipientName: recipientName || '',
-                            message: message || '',
-                            theme,
-                            elements: elements,
-                            stepSequence: stepSequence,
-                            customBackgroundColor,
-                            music,
-                            isPublic: true,
-                          };
-                          setCurrentWish(wishData as any);
-                          setShowSaveShareDialog(true);
-                        } else {
-                          actions.handleSaveWish();
-                        }
+                        // For both template mode and custom wish creation, create a wish object and open the dialog
+                        const wishData = {
+                          title: `Wish for ${recipientName || 'Recipient'}`,
+                          recipientName: recipientName || '',
+                          message: message || '',
+                          theme,
+                          elements: elements,
+                          stepSequence: stepSequence,
+                          customBackgroundColor,
+                          music,
+                          isPublic: true,
+                        };
+                        setCurrentWish(wishData as any);
+                        setShowSaveShareDialog(true);
                       }
                 }
                 isTemplateMode={isTemplateMode}
