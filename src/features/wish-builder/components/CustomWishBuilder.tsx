@@ -5,7 +5,10 @@ import { WishElement } from '@/types/templates';
 import { Button } from '@/components/ui/Button';
 import { ElementPalette } from './ElementPalette';
 import { WishCanvas } from './WishCanvas';
-import { ElementPropertiesPanel } from './ElementPropertiesPanel';
+import {
+  ElementPropertiesPanel,
+  CanvasSettingsPanel,
+} from './ElementPropertiesPanel';
 import { SaveShareDialog } from '@/components/ui/SaveShareDialog';
 import { PresentationMode } from '@/components/ui/PresentationMode';
 import { getAllElements } from '@/config/elements';
@@ -845,6 +848,7 @@ export function CustomWishBuilder({
   // State for template loading
   const [template, setTemplate] = React.useState<any>(null);
   const [templateLoading, setTemplateLoading] = React.useState(false);
+  const [music, setMusic] = React.useState('');
 
   // Computed values
   const availableElements = useMemo(() => getAllElements(), []);
@@ -1612,120 +1616,14 @@ export function CustomWishBuilder({
           {/* Canvas Settings Panel - Show in canvas-settings step (template mode) */}
           {currentStep === 'canvas-settings' && isTemplateMode && (
             <div className='col-span-4 lg:col-span-4 xl:col-span-4 overflow-hidden'>
-              <div className='bg-white rounded-lg shadow-sm border h-full flex flex-col'>
-                <div className='p-4 border-b flex-shrink-0'>
-                  <h3 className='text-lg font-semibold text-gray-800 mb-3'>
-                    Canvas Settings
-                  </h3>
-                  <p className='text-sm text-gray-600'>
-                    Configure background, music, and overall template settings
-                  </p>
-                </div>
-                <div className='flex-1 p-4 overflow-y-auto'>
-                  <div className='space-y-6'>
-                    {/* Background Settings */}
-                    <div>
-                      <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                        Background
-                      </h4>
-                      <div className='space-y-3'>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Background Color
-                          </label>
-                          <input
-                            type='color'
-                            value={customBackgroundColor}
-                            onChange={e =>
-                              setCustomBackgroundColor(e.target.value)
-                            }
-                            className='w-full h-10 rounded border border-gray-300'
-                          />
-                        </div>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Theme
-                          </label>
-                          <select
-                            value={theme}
-                            onChange={e => setTheme(e.target.value)}
-                            className='w-full p-2 border border-gray-300 rounded text-sm'
-                          >
-                            <option value='purple'>Purple</option>
-                            <option value='blue'>Blue</option>
-                            <option value='green'>Green</option>
-                            <option value='pink'>Pink</option>
-                            <option value='orange'>Orange</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Music Settings */}
-                    <div>
-                      <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                        Music
-                      </h4>
-                      <div className='space-y-3'>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Background Music
-                          </label>
-                          <select className='w-full p-2 border border-gray-300 rounded text-sm'>
-                            <option value='none'>No Music</option>
-                            <option value='happy'>Happy Birthday</option>
-                            <option value='romantic'>Romantic</option>
-                            <option value='celebratory'>Celebratory</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Volume
-                          </label>
-                          <input
-                            type='range'
-                            min='0'
-                            max='100'
-                            defaultValue='50'
-                            className='w-full'
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Animation Settings */}
-                    <div>
-                      <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                        Animation
-                      </h4>
-                      <div className='space-y-3'>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Animation Speed
-                          </label>
-                          <select className='w-full p-2 border border-gray-300 rounded text-sm'>
-                            <option value='slow'>Slow</option>
-                            <option value='normal'>Normal</option>
-                            <option value='fast'>Fast</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className='flex items-center'>
-                            <input
-                              type='checkbox'
-                              className='mr-2'
-                              defaultChecked
-                            />
-                            <span className='text-sm text-gray-600'>
-                              Enable particle effects
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <CanvasSettingsPanel
+                theme={theme}
+                onUpdateTheme={setTheme}
+                music={music}
+                onUpdateMusic={setMusic}
+                showCanvasSettings={true}
+                isUserPremium={isUserPremium}
+              />
             </div>
           )}
 
@@ -2059,120 +1957,14 @@ export function CustomWishBuilder({
             mobileView === 'properties' &&
             isTemplateMode && (
               <div className='h-full'>
-                <div className='bg-white rounded-lg shadow-sm border h-full flex flex-col'>
-                  <div className='p-4 border-b flex-shrink-0'>
-                    <h3 className='text-lg font-semibold text-gray-800 mb-3'>
-                      Canvas Settings
-                    </h3>
-                    <p className='text-sm text-gray-600'>
-                      Configure background, music, and overall template settings
-                    </p>
-                  </div>
-                  <div className='flex-1 p-4 overflow-y-auto'>
-                    <div className='space-y-6'>
-                      {/* Background Settings */}
-                      <div>
-                        <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                          Background
-                        </h4>
-                        <div className='space-y-3'>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Background Color
-                            </label>
-                            <input
-                              type='color'
-                              value={customBackgroundColor}
-                              onChange={e =>
-                                setCustomBackgroundColor(e.target.value)
-                              }
-                              className='w-full h-10 rounded border border-gray-300'
-                            />
-                          </div>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Theme
-                            </label>
-                            <select
-                              value={theme}
-                              onChange={e => setTheme(e.target.value)}
-                              className='w-full p-2 border border-gray-300 rounded text-sm'
-                            >
-                              <option value='purple'>Purple</option>
-                              <option value='blue'>Blue</option>
-                              <option value='green'>Green</option>
-                              <option value='pink'>Pink</option>
-                              <option value='orange'>Orange</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Music Settings */}
-                      <div>
-                        <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                          Music
-                        </h4>
-                        <div className='space-y-3'>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Background Music
-                            </label>
-                            <select className='w-full p-2 border border-gray-300 rounded text-sm'>
-                              <option value='none'>No Music</option>
-                              <option value='happy'>Happy Birthday</option>
-                              <option value='romantic'>Romantic</option>
-                              <option value='celebratory'>Celebratory</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Volume
-                            </label>
-                            <input
-                              type='range'
-                              min='0'
-                              max='100'
-                              defaultValue='50'
-                              className='w-full'
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Animation Settings */}
-                      <div>
-                        <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                          Animation
-                        </h4>
-                        <div className='space-y-3'>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Animation Speed
-                            </label>
-                            <select className='w-full p-2 border border-gray-300 rounded text-sm'>
-                              <option value='slow'>Slow</option>
-                              <option value='normal'>Normal</option>
-                              <option value='fast'>Fast</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className='flex items-center'>
-                              <input
-                                type='checkbox'
-                                className='mr-2'
-                                defaultChecked
-                              />
-                              <span className='text-sm text-gray-600'>
-                                Enable particle effects
-                              </span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <CanvasSettingsPanel
+                  theme={theme}
+                  onUpdateTheme={setTheme}
+                  music={music}
+                  onUpdateMusic={setMusic}
+                  showCanvasSettings={true}
+                  isUserPremium={isUserPremium}
+                />
               </div>
             )}
 

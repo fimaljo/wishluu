@@ -93,6 +93,12 @@ export function ElementPropertiesPanel({
 
   const themes = [
     {
+      value: 'white',
+      name: 'Pure White',
+      gradient: 'from-white to-gray-50',
+      preview: 'bg-gradient-to-br from-white to-gray-50 border border-gray-200',
+    },
+    {
       value: 'purple',
       name: 'Purple Dream',
       gradient: 'from-purple-400 to-pink-400',
@@ -303,8 +309,8 @@ export function ElementPropertiesPanel({
                 </div>
               </div>
 
-              {/* Custom Background Color */}
-              <div className='mb-6'>
+              {/* Custom Background Color - Commented out */}
+              {/* <div className='mb-6'>
                 <label className='block text-sm font-medium text-gray-700 mb-2'>
                   Custom Background Color
                 </label>
@@ -332,7 +338,7 @@ export function ElementPropertiesPanel({
                 <p className='text-xs text-gray-500 mt-1'>
                   Choose a custom color or use the theme above
                 </p>
-              </div>
+              </div> */}
 
               {/* Music Selection */}
               <div>
@@ -704,4 +710,150 @@ export function ElementPropertiesPanel({
         );
     }
   }
+}
+
+export function CanvasSettingsPanel({
+  theme,
+  onUpdateTheme,
+  music,
+  onUpdateMusic,
+  showCanvasSettings = true,
+  isUserPremium = false,
+}: {
+  theme: string;
+  onUpdateTheme: (theme: string) => void;
+  music?: string;
+  onUpdateMusic?: (music: string) => void;
+  showCanvasSettings?: boolean;
+  isUserPremium?: boolean;
+}) {
+  const themes = [
+    {
+      value: 'white',
+      name: 'Pure White',
+      gradient: 'from-white to-gray-50',
+      preview: 'bg-gradient-to-br from-white to-gray-50 border border-gray-200',
+    },
+    {
+      value: 'purple',
+      name: 'Purple Dream',
+      gradient: 'from-purple-400 to-pink-400',
+      preview: 'bg-gradient-to-br from-purple-400 to-pink-400',
+    },
+    {
+      value: 'ocean',
+      name: 'Ocean Blue',
+      gradient: 'from-blue-400 to-cyan-400',
+      preview: 'bg-gradient-to-br from-blue-400 to-cyan-400',
+    },
+    {
+      value: 'sunset',
+      name: 'Sunset',
+      gradient: 'from-orange-400 to-pink-400',
+      preview: 'bg-gradient-to-br from-orange-400 to-pink-400',
+    },
+    {
+      value: 'forest',
+      name: 'Forest Green',
+      gradient: 'from-green-400 to-emerald-400',
+      preview: 'bg-gradient-to-br from-green-400 to-emerald-400',
+    },
+    {
+      value: 'royal',
+      name: 'Royal Gold',
+      gradient: 'from-yellow-400 to-orange-400',
+      preview: 'bg-gradient-to-br from-yellow-400 to-orange-400',
+    },
+    {
+      value: 'midnight',
+      name: 'Midnight',
+      gradient: 'from-indigo-900 to-purple-900',
+      preview: 'bg-gradient-to-br from-indigo-900 to-purple-900',
+    },
+    {
+      value: 'cotton-candy',
+      name: 'Cotton Candy',
+      gradient: 'from-pink-300 to-purple-300',
+      preview: 'bg-gradient-to-br from-pink-300 to-purple-300',
+    },
+    {
+      value: 'aurora',
+      name: 'Aurora',
+      gradient: 'from-teal-400 to-blue-500',
+      preview: 'bg-gradient-to-br from-teal-400 to-blue-500',
+    },
+  ];
+
+  const musicLibrary = [
+    { value: '', label: 'No Music' },
+    { value: 'birthday-song', label: 'Happy Birthday' },
+    { value: 'romantic-piano', label: 'Romantic Piano' },
+    { value: 'celebration', label: 'Celebration' },
+    { value: 'peaceful', label: 'Peaceful Melody' },
+    { value: 'upbeat', label: 'Upbeat Joy' },
+  ];
+
+  if (!showCanvasSettings) return null;
+
+  return (
+    <div className='bg-white rounded-lg shadow-sm border h-full flex flex-col'>
+      <div className='p-4 border-b flex-shrink-0'>
+        <h3 className='text-lg font-semibold text-gray-800 mb-3'>
+          Canvas Settings
+        </h3>
+        <p className='text-sm text-gray-600'>
+          Choose a background theme for your wish
+        </p>
+      </div>
+      <div className='flex-1 p-4 overflow-y-auto'>
+        <div className='mb-4 md:mb-6'>
+          <label className='block text-sm font-medium text-gray-700 mb-2 md:mb-3'>
+            Background Theme
+          </label>
+          <div className='grid grid-cols-2 md:grid-cols-2 gap-2'>
+            {themes.map(themeOption => (
+              <button
+                key={themeOption.value}
+                onClick={() => {
+                  onUpdateTheme(themeOption.value);
+                }}
+                className={`p-2 md:p-3 rounded-lg border-2 transition-all text-left ${
+                  theme === themeOption.value
+                    ? 'border-purple-500 ring-2 ring-purple-200'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div
+                  className={`w-full h-6 md:h-8 rounded mb-1 md:mb-2 ${themeOption.preview}`}
+                ></div>
+                <div className='text-xs font-medium text-gray-800'>
+                  {themeOption.name}
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className='text-xs text-gray-500 mt-2'>
+            Current theme: {theme}
+          </div>
+        </div>
+        {/* Background Music Section */}
+        <div className='mb-4 md:mb-6'>
+          <label className='block text-sm font-medium text-gray-700 mb-2 md:mb-3'>
+            Background Music
+          </label>
+          <select
+            value={music || ''}
+            onChange={e => onUpdateMusic && onUpdateMusic(e.target.value)}
+            className='w-full p-2 border border-gray-300 rounded text-sm'
+          >
+            {musicLibrary.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
 }

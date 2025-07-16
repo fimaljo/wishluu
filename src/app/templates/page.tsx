@@ -112,53 +112,65 @@ export default function TemplatesPage() {
       </header>
 
       {/* Main Content */}
-      <div className='w-full max-w-[1800px] mx-auto px-6 py-8'>
-        <div className='text-center mb-8'>
-          <h1 className='text-3xl md:text-4xl font-bold mb-3'>
-            <span className='bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent'>
-              Choose Your Template
-            </span>
-          </h1>
-          <p className='text-gray-600 max-w-2xl mx-auto'>
+      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        {/* Welcome Section */}
+        <div className='text-center mb-12'>
+          <h2 className='text-4xl md:text-5xl font-bold text-gray-800 mb-4'>
+            Choose Your Template ✨
+          </h2>
+          <p className='text-xl text-gray-600 max-w-3xl mx-auto'>
             Select from our beautiful collection of templates to create your
-            perfect interactive wish.
+            perfect interactive wish, or start from scratch with our custom
+            builder.
           </p>
         </div>
 
         {/* Occasion Filter */}
-        <div className='flex flex-wrap justify-center gap-2 mb-8'>
-          {TEMPLATE_OCCASIONS.map(occasion => (
-            <button
-              key={occasion.id}
-              onClick={() => setSelectedOccasion(occasion.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
-                selectedOccasion === occasion.id
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
-                  : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-purple-600 shadow-md hover:shadow-lg border border-purple-100'
-              }`}
-            >
-              <span className='mr-1.5'>{occasion.emoji}</span>
-              {occasion.name}
-            </button>
-          ))}
+        <div className='mb-12'>
+          <div className='text-center mb-6'>
+            <h3 className='text-2xl font-bold text-gray-800 mb-2'>
+              Filter by Occasion
+            </h3>
+            <p className='text-gray-600'>
+              Find the perfect template for your special moment
+            </p>
+          </div>
+          <div className='flex flex-wrap justify-center gap-3'>
+            {TEMPLATE_OCCASIONS.map(occasion => (
+              <button
+                key={occasion.id}
+                onClick={() => setSelectedOccasion(occasion.id)}
+                className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
+                  selectedOccasion === occasion.id
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-105'
+                    : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-blue-600 shadow-md hover:shadow-lg border border-white/20'
+                }`}
+              >
+                <span className='mr-2'>{occasion.emoji}</span>
+                {occasion.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Error State */}
         {error && (
           <div className='text-center py-16'>
-            <div className='inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6'>
-              <span className='text-3xl'>⚠️</span>
+            <div className='inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6'>
+              <span className='text-4xl'>⚠️</span>
             </div>
             <h3 className='text-2xl font-bold text-gray-800 mb-3'>
               Error Loading Templates
             </h3>
             <p className='text-gray-600 mb-6 max-w-md mx-auto'>{error}</p>
-            <button
+            <Button
               onClick={refreshTemplates}
-              className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 font-semibold'
+              variant='primary'
+              size='lg'
+              className='px-8 py-3'
             >
               Try Again
-            </button>
+            </Button>
           </div>
         )}
 
@@ -168,9 +180,9 @@ export default function TemplatesPage() {
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div
                 key={i}
-                className='bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 animate-pulse border border-purple-100'
+                className='bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 animate-pulse border border-white/20'
               >
-                <div className='bg-gradient-to-r from-purple-200 to-pink-200 rounded-2xl h-32 mb-6'></div>
+                <div className='bg-gradient-to-r from-blue-200 to-purple-200 rounded-xl h-32 mb-6'></div>
                 <div className='bg-gray-200 rounded-lg h-6 mb-3'></div>
                 <div className='bg-gray-200 rounded h-4 mb-6'></div>
                 <div className='bg-gray-200 rounded-full h-8 w-24'></div>
@@ -181,13 +193,47 @@ export default function TemplatesPage() {
 
         {/* Templates Grid */}
         {!isLoading && !error && (
-          <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
-            {filteredTemplates.length > 0 ? (
-              filteredTemplates.map(template => (
+          <div className='mb-12'>
+            <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
+              {/* Custom Wish Card - only show when there are templates */}
+              {filteredTemplates.length > 0 && (
+                <Link href='/wishes/create/custom-blank'>
+                  <div className='group cursor-pointer'>
+                    <div className='bg-gradient-to-r from-blue-500 to-purple-600 p-8 rounded-2xl text-white text-center transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl h-full flex flex-col justify-center relative overflow-hidden border border-white/20 shadow-lg'>
+                      {/* Background Pattern */}
+                      <div className='absolute inset-0 opacity-10'>
+                        <div className='absolute top-4 right-4 w-16 h-16 rounded-full bg-white/20'></div>
+                        <div className='absolute bottom-4 left-4 w-8 h-8 rounded-full bg-white/20'></div>
+                        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/10'></div>
+                      </div>
+
+                      <div className='relative z-10'>
+                        <div className='text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-300'>
+                          ✨
+                        </div>
+                        <h3 className='text-xl font-bold mb-3 text-shadow-lg'>
+                          Create Your Own Custom Wish
+                        </h3>
+                        <p className='text-white/90 text-sm mb-6 leading-relaxed'>
+                          Start from scratch and build something unique.
+                        </p>
+                        <div className='bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
+                          Custom
+                        </div>
+                      </div>
+
+                      {/* Hover Effect */}
+                      <div className='absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                    </div>
+                  </div>
+                </Link>
+              )}
+              {/* Actual template cards */}
+              {filteredTemplates.map(template => (
                 <Link key={template.id} href={`/wishes/create/${template.id}`}>
                   <div className='group cursor-pointer'>
                     <div
-                      className={`bg-gradient-to-r ${template.color} p-8 rounded-3xl text-white text-center transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl h-full flex flex-col justify-center relative overflow-hidden border border-white/20`}
+                      className={`bg-gradient-to-r ${template.color} p-8 rounded-2xl text-white text-center transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl h-full flex flex-col justify-center relative overflow-hidden border border-white/20 shadow-lg`}
                     >
                       {/* Background Pattern */}
                       <div className='absolute inset-0 opacity-10'>
@@ -197,16 +243,16 @@ export default function TemplatesPage() {
                       </div>
 
                       <div className='relative z-10'>
-                        <div className='text-7xl mb-6 transform group-hover:scale-110 transition-transform duration-300'>
+                        <div className='text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-300'>
                           {template.thumbnail}
                         </div>
-                        <h3 className='text-2xl font-bold mb-3 text-shadow-lg'>
+                        <h3 className='text-xl font-bold mb-3 text-shadow-lg'>
                           {template.name}
                         </h3>
-                        <p className='text-purple-100 text-base mb-6 leading-relaxed'>
+                        <p className='text-white/90 text-sm mb-6 leading-relaxed'>
                           {template.description}
                         </p>
-                        <div className='bg-white/25 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
+                        <div className='bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
                           {template.occasion === 'custom'
                             ? 'Custom'
                             : template.occasion}
@@ -218,63 +264,40 @@ export default function TemplatesPage() {
                     </div>
                   </div>
                 </Link>
-              ))
-            ) : (
-              <div className='col-span-full text-center py-20'>
-                <div className='inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full mb-6'>
-                  <span className='text-5xl'>📝</span>
+              ))}
+
+              {/* No templates message - only show when no actual templates exist */}
+              {filteredTemplates.length === 0 && (
+                <div className='col-span-full text-center py-20'>
+                  <div className='inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full mb-6'>
+                    <span className='text-5xl'>📝</span>
+                  </div>
+                  <h3 className='text-2xl font-bold text-gray-800 mb-3'>
+                    No Templates Found
+                  </h3>
+                  <p className='text-gray-600 text-lg max-w-md mx-auto mb-8'>
+                    {selectedOccasion === 'all'
+                      ? 'No templates are available yet. Check back soon for beautiful new templates!'
+                      : `No templates found for ${selectedOccasion} occasion. Try selecting a different category.`}
+                  </p>
+                  <Link href='/wishes/create/custom-blank'>
+                    <Button
+                      variant='primary'
+                      size='lg'
+                      className='px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300'
+                    >
+                      Create Your Own Custom Wish ✨
+                    </Button>
+                  </Link>
                 </div>
-                <h3 className='text-2xl font-bold text-gray-800 mb-3'>
-                  No Templates Found
-                </h3>
-                <p className='text-gray-600 text-lg max-w-md mx-auto'>
-                  {selectedOccasion === 'all'
-                    ? 'No templates are available yet. Check back soon for beautiful new templates!'
-                    : `No templates found for ${selectedOccasion} occasion. Try selecting a different category.`}
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
         {/* Custom Template Option */}
-        <div className='mt-12 text-center'>
-          <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl shadow-xl p-6 max-w-4xl mx-auto border border-purple-100'>
-            <div className='flex items-center justify-center mb-4'>
-              <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3'>
-                <span className='text-2xl'>✨</span>
-              </div>
-              <h2 className='text-2xl font-bold text-gray-800'>
-                Create Your Own Custom Wish
-              </h2>
-            </div>
-            <p className='text-gray-600 mb-6 max-w-2xl mx-auto'>
-              Start from scratch and build a completely unique interactive wish
-              with our powerful builder.
-            </p>
-            <div className='flex flex-wrap justify-center gap-4 mb-4 text-sm text-gray-500'>
-              <span className='flex items-center'>
-                <span className='mr-1'>✨</span>
-                Preview in real-time
-              </span>
-              <span className='flex items-center'>
-                <span className='mr-1'>🎨</span>
-                Customize every element
-              </span>
-              <span className='flex items-center'>
-                <span className='mr-1'>📤</span>
-                Share with one click
-              </span>
-            </div>
-            <Link
-              href='/wishes/create/custom-blank'
-              className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-full text-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 inline-block'
-            >
-              Start Building Now
-            </Link>
-          </div>
-        </div>
-      </div>
+        {/* Removed bottom section as per new design */}
+      </main>
     </div>
   );
 }

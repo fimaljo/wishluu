@@ -39,6 +39,7 @@ export function WishCanvas({
   ); // Track completed elements
 
   const themeGradients = {
+    white: 'from-white to-gray-50',
     purple: 'from-purple-400 to-pink-400',
     ocean: 'from-blue-400 to-cyan-400',
     sunset: 'from-orange-400 to-pink-400',
@@ -324,14 +325,15 @@ export function WishCanvas({
         className={`relative bg-gradient-to-br from-purple-50 to-pink-50 overflow-hidden ${isPreviewMode ? 'h-full' : 'flex-1'}`}
       >
         {/* Background */}
-        {customBackgroundColor ? (
+        {/* Always show theme gradient as base */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${themeGradients[theme as keyof typeof themeGradients] || themeGradients.purple} opacity-60`}
+        />
+        {/* Show custom background color as overlay if provided */}
+        {customBackgroundColor && customBackgroundColor !== '#ffffff' && (
           <div
-            className='absolute inset-0 opacity-60'
+            className='absolute inset-0 opacity-40'
             style={{ backgroundColor: customBackgroundColor }}
-          />
-        ) : (
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${themeGradients[theme as keyof typeof themeGradients] || themeGradients.purple} opacity-60`}
           />
         )}
 

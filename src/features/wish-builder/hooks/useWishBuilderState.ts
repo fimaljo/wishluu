@@ -21,7 +21,7 @@ export function useWishBuilderState() {
   // Wish Content
   const [recipientName, setRecipientName] = useState('');
   const [message, setMessage] = useState('');
-  const [theme, setTheme] = useState('purple');
+  const [theme, setTheme] = useState('white');
   const [customBackgroundColor, setCustomBackgroundColor] = useState('#ffffff');
 
   // UI State
