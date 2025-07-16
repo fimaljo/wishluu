@@ -47,7 +47,7 @@ export default function AdminTemplatesPage() {
 
   return (
     <AuthGuard requireAdmin={true}>
-      <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50'>
+      <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
         {/* Header */}
         <div className='bg-white shadow-sm'>
           <div className='w-full max-w-[1800px] mx-auto px-6 py-4'>
@@ -66,6 +66,12 @@ export default function AdminTemplatesPage() {
                   className='text-gray-600 hover:text-purple-600 transition-colors'
                 >
                   View Templates
+                </Link>
+                <Link
+                  href='/admin/cleanup'
+                  className='text-gray-600 hover:text-purple-600 transition-colors'
+                >
+                  Cleanup
                 </Link>
                 <Link
                   href='/'

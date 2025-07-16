@@ -18,6 +18,7 @@ export interface Wish {
   updatedAt?: string; // Firebase updated timestamp
   createdBy?: string; // Firebase user ID who created the wish
   stepSequence?: string[][]; // Step sequence for wish presentation
+  expiresAt?: any; // Firebase timestamp for expiration (7 days from creation)
 }
 
 // Form Types

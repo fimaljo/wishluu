@@ -14,6 +14,7 @@ import {
   serverTimestamp,
   DocumentData,
   QueryDocumentSnapshot,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { WishElement } from '@/types/templates';
@@ -39,6 +40,7 @@ export interface WishDocument {
   createdBy: string; // User ID who created the wish
   viewCount: number;
   likeCount: number;
+  expiresAt: any; // Firestore timestamp for expiration (7 days from creation)
 }
 
 // User document interface for Firestore
@@ -92,6 +94,15 @@ export class FirebaseWishService {
   }
 
   /**
+   * Calculate expiration date (7 days from now)
+   */
+  private static calculateExpirationDate(): Date {
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 7); // 7 days from now
+    return expirationDate;
+  }
+
+  /**
    * Convert Firestore document to Wish
    */
   private static documentToWish(doc: QueryDocumentSnapshot<DocumentData>): any {
@@ -112,6 +123,7 @@ export class FirebaseWishService {
       createdBy: data.createdBy,
       viewCount: data.viewCount || 0,
       likeCount: data.likeCount || 0,
+      expiresAt: data.expiresAt,
     };
   }
 
@@ -137,6 +149,7 @@ export class FirebaseWishService {
       createdBy: userId,
       viewCount: 0,
       likeCount: 0,
+      expiresAt: this.calculateExpirationDate(),
     };
   }
 
@@ -245,7 +258,7 @@ export class FirebaseWishService {
       }
 
       const wishDoc = this.wishToDocument(wish, userId);
-      const docRef = await addDoc(this.wishesCollectionRef, {
+      const docRef = await addDoc(collection(db, WISHES_COLLECTION), {
         ...wishDoc,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -277,11 +290,69 @@ export class FirebaseWishService {
   }
 
   /**
+   * Create a test wish with short expiration (for testing)
+   */
+  static async createTestWish(
+    wish: WishData,
+    userId: string,
+    expirationMinutes: number = 1
+  ): Promise<ServiceResponse<any>> {
+    try {
+      // Validate required fields
+      if (!wish.title || !wish.recipientName) {
+        return {
+          success: false,
+          error: 'Title and recipient name are required',
+        };
+      }
+
+      const wishDoc = this.wishToDocument(wish, userId);
+
+      // Override expiration for testing
+      const testExpirationDate = new Date();
+      testExpirationDate.setMinutes(
+        testExpirationDate.getMinutes() + expirationMinutes
+      );
+
+      const docRef = await addDoc(collection(db, WISHES_COLLECTION), {
+        ...wishDoc,
+        expiresAt: testExpirationDate,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      const newWish = {
+        id: docRef.id,
+        ...wish,
+        shareId: wishDoc.shareId,
+        isPublic: wishDoc.isPublic,
+        createdBy: userId,
+        viewCount: 0,
+        likeCount: 0,
+        expiresAt: testExpirationDate,
+      };
+
+      return {
+        success: true,
+        data: newWish,
+        message: `Test wish created successfully (expires in ${expirationMinutes} minutes)`,
+      };
+    } catch (error) {
+      console.error('Error creating test wish:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
    * Get wish by ID
    */
   static async getWishById(wishId: string): Promise<ServiceResponse<any>> {
     try {
-      const docRef = doc(this.wishesCollectionRef, wishId);
+      const docRef = doc(collection(db, WISHES_COLLECTION), wishId);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
@@ -317,7 +388,7 @@ export class FirebaseWishService {
       console.log('Firebase: Getting wish by shareId:', shareId);
 
       const q = query(
-        this.wishesCollectionRef,
+        collection(db, WISHES_COLLECTION),
         where('shareId', '==', shareId),
         where('isPublic', '==', true)
       );
@@ -373,25 +444,72 @@ export class FirebaseWishService {
   }
 
   /**
-   * Get wishes by user ID
+   * Check if a wish is expired
+   */
+  static isWishExpired(wish: any): boolean {
+    if (!wish.expiresAt) return false;
+
+    const expirationDate = wish.expiresAt.toDate
+      ? wish.expiresAt.toDate()
+      : new Date(wish.expiresAt);
+    const now = new Date();
+
+    return now > expirationDate;
+  }
+
+  /**
+   * Get days until expiration
+   */
+  static getDaysUntilExpiration(wish: any): number {
+    if (!wish.expiresAt) return -1; // No expiration set
+
+    const expirationDate = wish.expiresAt.toDate
+      ? wish.expiresAt.toDate()
+      : new Date(wish.expiresAt);
+    const now = new Date();
+
+    const diffTime = expirationDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return Math.max(0, diffDays);
+  }
+
+  /**
+   * Get wishes by user ID (excluding expired ones)
    */
   static async getWishesByUserId(
     userId: string
   ): Promise<ServiceResponse<any[]>> {
     try {
+      // Temporary fix: Remove orderBy to avoid index requirement
+      // TODO: Add composite index for createdBy + createdAt
       const q = query(
-        this.wishesCollectionRef,
-        where('createdBy', '==', userId),
-        orderBy('createdAt', 'desc')
+        collection(db, WISHES_COLLECTION),
+        where('createdBy', '==', userId)
+        // orderBy('createdAt', 'desc') // Temporarily removed until index is created
       );
       const querySnapshot = await getDocs(q);
 
       const wishes = querySnapshot.docs.map(doc => this.documentToWish(doc));
 
+      // Filter out expired wishes
+      const nonExpiredWishes = wishes.filter(wish => !this.isWishExpired(wish));
+
+      // Sort client-side as temporary workaround
+      nonExpiredWishes.sort((a, b) => {
+        const dateA = a.createdAt?.toDate
+          ? a.createdAt.toDate()
+          : new Date(a.createdAt);
+        const dateB = b.createdAt?.toDate
+          ? b.createdAt.toDate()
+          : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime(); // Descending order
+      });
+
       return {
         success: true,
-        data: wishes,
-        message: `Retrieved ${wishes.length} wishes`,
+        data: nonExpiredWishes,
+        message: `Retrieved ${nonExpiredWishes.length} active wishes`,
       };
     } catch (error) {
       console.error('Error fetching user wishes:', error);
@@ -412,7 +530,7 @@ export class FirebaseWishService {
     userId: string
   ): Promise<ServiceResponse<any>> {
     try {
-      const docRef = doc(this.wishesCollectionRef, wishId);
+      const docRef = doc(collection(db, WISHES_COLLECTION), wishId);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
@@ -489,7 +607,7 @@ export class FirebaseWishService {
     userId: string
   ): Promise<ServiceResponse<boolean>> {
     try {
-      const docRef = doc(this.wishesCollectionRef, wishId);
+      const docRef = doc(collection(db, WISHES_COLLECTION), wishId);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
@@ -534,7 +652,7 @@ export class FirebaseWishService {
     userId: string
   ): Promise<ServiceResponse<boolean>> {
     try {
-      const docRef = doc(this.wishesCollectionRef, wishId);
+      const docRef = doc(collection(db, WISHES_COLLECTION), wishId);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
@@ -568,26 +686,85 @@ export class FirebaseWishService {
   }
 
   /**
-   * Get public wishes (for discovery)
+   * Clean up expired wishes (admin function)
+   */
+  static async cleanupExpiredWishes(): Promise<ServiceResponse<number>> {
+    try {
+      const q = query(collection(db, WISHES_COLLECTION));
+      const querySnapshot = await getDocs(q);
+
+      const expiredWishes: string[] = [];
+
+      querySnapshot.docs.forEach(doc => {
+        const wish = FirebaseWishService.documentToWish(doc);
+        if (FirebaseWishService.isWishExpired(wish)) {
+          expiredWishes.push(doc.id);
+        }
+      });
+
+      // Delete expired wishes in batches
+      const batch = writeBatch(db);
+      expiredWishes.forEach(wishId => {
+        const docRef = doc(collection(db, WISHES_COLLECTION), wishId);
+        batch.delete(docRef);
+      });
+
+      if (expiredWishes.length > 0) {
+        await batch.commit();
+      }
+
+      return {
+        success: true,
+        data: expiredWishes.length,
+        message: `Cleaned up ${expiredWishes.length} expired wishes`,
+      };
+    } catch (error) {
+      console.error('Error cleaning up expired wishes:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
+   * Get public wishes (for discovery) - excluding expired ones
    */
   static async getPublicWishes(
     limitCount: number = 20
   ): Promise<ServiceResponse<any[]>> {
     try {
+      // Temporary fix: Remove orderBy to avoid index requirement
+      // TODO: Add composite index for isPublic + createdAt
       const q = query(
-        this.wishesCollectionRef,
+        collection(db, WISHES_COLLECTION),
         where('isPublic', '==', true),
-        orderBy('createdAt', 'desc'),
+        // orderBy('createdAt', 'desc'), // Temporarily removed until index is created
         limit(limitCount)
       );
       const querySnapshot = await getDocs(q);
 
       const wishes = querySnapshot.docs.map(doc => this.documentToWish(doc));
 
+      // Filter out expired wishes
+      const nonExpiredWishes = wishes.filter(wish => !this.isWishExpired(wish));
+
+      // Sort client-side as temporary workaround
+      nonExpiredWishes.sort((a, b) => {
+        const dateA = a.createdAt?.toDate
+          ? a.createdAt.toDate()
+          : new Date(a.createdAt);
+        const dateB = b.createdAt?.toDate
+          ? b.createdAt.toDate()
+          : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime(); // Descending order
+      });
+
       return {
         success: true,
-        data: wishes,
-        message: `Retrieved ${wishes.length} public wishes`,
+        data: nonExpiredWishes,
+        message: `Retrieved ${nonExpiredWishes.length} active public wishes`,
       };
     } catch (error) {
       console.error('Error fetching public wishes:', error);

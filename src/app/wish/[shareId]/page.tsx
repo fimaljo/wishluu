@@ -61,7 +61,7 @@ export default function SharedWishPage() {
 
   if (isLoading) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center'>
+      <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center'>
         <div className='text-center'>
           <Loading />
           <p className='mt-4 text-gray-600'>Loading your special wish...</p>
@@ -72,7 +72,7 @@ export default function SharedWishPage() {
 
   if (error || !wish) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4'>
+      <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4'>
         <div className='bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto text-center'>
           <div className='text-6xl mb-4'>💔</div>
           <h1 className='text-2xl font-bold text-gray-800 mb-2'>
@@ -92,7 +92,7 @@ export default function SharedWishPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50'>
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
       {/* Header */}
       <div className='bg-white shadow-sm sticky top-0 z-50'>
         <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>

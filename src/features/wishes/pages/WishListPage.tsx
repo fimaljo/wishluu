@@ -4,22 +4,57 @@ import React, { useState } from 'react';
 import { WishCard } from '../components/WishCard';
 import { WishCreator } from '../components/WishCreator';
 import { useWishManagement } from '../hooks/useWishManagement';
-import { useWishContext } from '@/contexts/WishContext';
+import {
+  useFirebaseWishes,
+  Wish as FirebaseWish,
+} from '@/hooks/useFirebaseWishes';
+import { useAuth } from '@/contexts/AuthContext';
 import { Wish } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
+import Link from 'next/link';
 
 export function WishListPage() {
-  const { state } = useWishContext();
-  const { wishes, loading } = state;
-  const { removeWish, duplicateWish, shareWish, likeWish, error } =
+  const { user, isAdmin } = useAuth();
+  const { wishes, isLoading, error, loadUserWishes } = useFirebaseWishes();
+  const { removeWish, duplicateWish, shareWish, likeWish } =
     useWishManagement();
-  const [selectedWish, setSelectedWish] = useState<Wish | null>(null);
+  const [selectedWish, setSelectedWish] = useState<FirebaseWish | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [showCreator, setShowCreator] = useState(false);
 
+  // Convert Firebase wishes to the format expected by WishCard
+  const convertedWishes: Wish[] = wishes.map((wish: FirebaseWish) => {
+    console.log('Converting wish:', wish.id, 'expiresAt:', wish.expiresAt);
+    return {
+      id: wish.id,
+      recipientName: wish.recipientName,
+      occasion: 'birthday', // Default occasion since Firebase doesn't store this
+      message: wish.message,
+      theme: wish.theme,
+      animation: 'fade', // Default animation
+      createdAt: wish.createdAt?.toDate
+        ? wish.createdAt.toDate().toISOString()
+        : new Date().toISOString(),
+      isPublic: wish.isPublic,
+      views: wish.viewCount,
+      likes: wish.likeCount,
+      elements: wish.elements || [],
+      ...(wish.customBackgroundColor && {
+        customBackgroundColor: wish.customBackgroundColor,
+      }),
+      ...(wish.shareId && { shareId: wish.shareId }),
+      ...(wish.updatedAt?.toDate && {
+        updatedAt: wish.updatedAt.toDate().toISOString(),
+      }),
+      ...(wish.createdBy && { createdBy: wish.createdBy }),
+      stepSequence: wish.stepSequence || [],
+      ...(wish.expiresAt && { expiresAt: wish.expiresAt }),
+    };
+  });
+
   // Filter wishes based on occasion
-  const filteredWishes = wishes.filter((wish: Wish) => {
+  const filteredWishes = convertedWishes.filter((wish: Wish) => {
     if (filter === 'all') return true;
     return wish.occasion === filter;
   });
@@ -27,6 +62,8 @@ export function WishListPage() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this wish?')) {
       await removeWish(id);
+      // Refresh the wishes list after deletion
+      loadUserWishes();
     }
   };
 
@@ -34,6 +71,8 @@ export function WishListPage() {
     const duplicated = await duplicateWish(wish);
     if (duplicated) {
       alert('Wish duplicated successfully!');
+      // Refresh the wishes list after duplication
+      loadUserWishes();
     }
   };
 
@@ -51,9 +90,13 @@ export function WishListPage() {
   };
 
   const handleWishCreated = (wish: any) => {
-    // TODO: Add the new wish to the list
-    // console.log('New wish created:', wish);
+    // Refresh the wishes list after creation
+    loadUserWishes();
     setShowCreator(false);
+  };
+
+  const handleRefresh = () => {
+    loadUserWishes();
   };
 
   if (showCreator) {
@@ -65,7 +108,7 @@ export function WishListPage() {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <Loading variant='spinner' size='lg' text='Loading wishes...' />
@@ -74,7 +117,53 @@ export function WishListPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-8'>
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8'>
+      {/* Navigation Header */}
+      <div className='bg-white shadow-sm mb-8'>
+        <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-2'>
+              <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center'>
+                <span className='text-white font-bold text-lg'>W</span>
+              </div>
+              <span className='text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'>
+                WishLuu
+              </span>
+            </div>
+            <div className='flex items-center space-x-6'>
+              <Link
+                href='/templates'
+                className='text-gray-600 hover:text-purple-600 transition-colors'
+              >
+                Templates
+              </Link>
+              <Link
+                href='/'
+                className='text-gray-600 hover:text-purple-600 transition-colors'
+              >
+                Home
+              </Link>
+              {isAdmin && (
+                <div className='flex items-center space-x-4'>
+                  <Link
+                    href='/admin/templates'
+                    className='text-gray-600 hover:text-purple-600 transition-colors'
+                  >
+                    Admin
+                  </Link>
+                  <Link
+                    href='/admin/cleanup'
+                    className='text-gray-600 hover:text-purple-600 transition-colors'
+                  >
+                    Cleanup
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         {/* Header */}
         <div className='text-center mb-12'>
@@ -88,6 +177,9 @@ export function WishListPage() {
         {error && (
           <div className='bg-red-50 border border-red-200 rounded-lg p-4 mb-6'>
             <p className='text-red-700'>{error}</p>
+            <Button onClick={handleRefresh} variant='outline' className='mt-2'>
+              Try Again
+            </Button>
           </div>
         )}
 
@@ -99,7 +191,7 @@ export function WishListPage() {
               onClick={() => setFilter('all')}
               className='px-4 py-2'
             >
-              All Wishes ({wishes.length})
+              All Wishes ({convertedWishes.length})
             </Button>
             <Button
               variant={filter === 'birthday' ? 'primary' : 'outline'}
@@ -150,7 +242,7 @@ export function WishListPage() {
                 key={wish.id}
                 wish={wish}
                 onView={id => (window.location.href = `/wish/${id}`)}
-                onEdit={wish => setSelectedWish(wish)}
+                onEdit={wish => setSelectedWish(wish as any)}
                 onDelete={handleDelete}
               />
             ))}

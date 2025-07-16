@@ -38,12 +38,20 @@ export function Header() {
               My Wishes
             </Link>
             {isAdmin && (
-              <Link
-                href='/admin/templates'
-                className='text-gray-600 hover:text-purple-600 transition-colors'
-              >
-                Admin
-              </Link>
+              <div className='flex items-center space-x-4'>
+                <Link
+                  href='/admin/templates'
+                  className='text-gray-600 hover:text-purple-600 transition-colors'
+                >
+                  Admin
+                </Link>
+                <Link
+                  href='/admin/cleanup'
+                  className='text-gray-600 hover:text-purple-600 transition-colors'
+                >
+                  Cleanup
+                </Link>
+              </div>
             )}
           </nav>
 

@@ -6,12 +6,12 @@ import { TEMPLATE_OCCASIONS } from '@/config/templates';
 import { Template } from '@/types/templates';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginButton } from '@/components/auth/LoginButton';
-import { UserMenu } from '@/components/auth/UserMenu';
+import { Button } from '@/components/ui/Button';
 import { useFirebaseTemplates } from '@/hooks/useFirebaseTemplates';
 
 export default function TemplatesPage() {
   const [selectedOccasion, setSelectedOccasion] = useState('all');
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
 
   // Use Firebase templates hook
   const {
@@ -30,60 +30,86 @@ export default function TemplatesPage() {
     return templates.filter(template => template.occasion === selectedOccasion);
   }, [templates, selectedOccasion]);
 
-  return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50'>
-      {/* Navigation */}
-      <nav className='bg-white/80 backdrop-blur-md border-b border-purple-100 sticky top-0 z-50'>
-        <div className='flex items-center justify-between p-6 w-full max-w-[1800px] mx-auto'>
-          <div className='flex items-center space-x-2'>
-            <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg'>
-              <span className='text-white font-bold text-lg'>W</span>
-            </div>
-            <span className='text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'>
-              WishLuu
-            </span>
-          </div>
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // Redirect to home page after sign out
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
-          {/* Desktop Navigation */}
-          <div className='hidden md:flex items-center space-x-8'>
-            <Link
-              href='/'
-              className='text-gray-600 hover:text-purple-600 transition-colors font-medium'
-            >
-              Home
-            </Link>
-            {user && (
-              <Link
-                href='/wishes'
-                className='text-gray-600 hover:text-purple-600 transition-colors font-medium'
-              >
-                My Wishes
-              </Link>
-            )}
-            {isAdmin && (
-              <Link
-                href='/admin/templates'
-                className='text-gray-600 hover:text-purple-600 transition-colors font-medium'
-              >
-                Manage Templates
-              </Link>
-            )}
-            <Link
-              href='/'
-              className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg hover:scale-105 transition-all duration-300 font-medium'
-            >
-              Create Wish
-            </Link>
-            {user ? (
-              <UserMenu />
-            ) : (
-              <LoginButton variant='outline' size='sm'>
-                Sign In
-              </LoginButton>
-            )}
+  return (
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
+      {/* Header */}
+      <header className='bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className='flex items-center justify-between h-16'>
+            <div className='flex items-center space-x-4'>
+              <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg'>
+                <span className='text-white font-bold text-lg'>W</span>
+              </div>
+              <div>
+                <h1 className='text-xl font-bold text-gray-800'>WishLuu</h1>
+                <p className='text-sm text-gray-500'>Create & Share Wishes</p>
+              </div>
+            </div>
+            <div className='flex items-center space-x-4'>
+              <div className='hidden md:flex items-center space-x-2 text-sm text-gray-600'>
+                <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse'></div>
+                <span>
+                  Welcome back,{' '}
+                  {user?.displayName || user?.email?.split('@')[0]}! 👋
+                </span>
+              </div>
+              {isAdmin && (
+                <div className='flex items-center space-x-3'>
+                  <Link
+                    href='/admin/templates'
+                    className='text-sm text-gray-600 hover:text-blue-600 transition-colors font-medium'
+                  >
+                    ⚙️ Admin
+                  </Link>
+                  <Link
+                    href='/admin/cleanup'
+                    className='text-sm text-gray-600 hover:text-blue-600 transition-colors font-medium'
+                  >
+                    🧹 Cleanup
+                  </Link>
+                </div>
+              )}
+              {user ? (
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handleSignOut}
+                  className='text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-300'
+                >
+                  <svg
+                    className='w-4 h-4 mr-2'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'
+                    />
+                  </svg>
+                  Sign Out
+                </Button>
+              ) : (
+                <LoginButton variant='outline' size='sm'>
+                  Sign In
+                </LoginButton>
+              )}
+            </div>
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* Main Content */}
       <div className='w-full max-w-[1800px] mx-auto px-6 py-8'>

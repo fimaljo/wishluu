@@ -22,6 +22,7 @@ export interface Wish {
   createdBy: string;
   viewCount: number;
   likeCount: number;
+  expiresAt: any; // New expiration field
 }
 
 interface UseFirebaseWishesOptions {
@@ -279,5 +280,11 @@ export function useFirebaseWishes(options: UseFirebaseWishesOptions = {}) {
     upsertUser,
     loadUserWishes,
     refreshWishes: () => loadUserWishes(userId),
+    // New expiration methods
+    isWishExpired: FirebaseWishService.isWishExpired,
+    getDaysUntilExpiration: FirebaseWishService.getDaysUntilExpiration,
+    cleanupExpiredWishes: FirebaseWishService.cleanupExpiredWishes,
+    // Test method
+    createTestWish: FirebaseWishService.createTestWish,
   };
 }

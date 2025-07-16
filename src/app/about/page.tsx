@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function AboutPage() {
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50'>
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
       {/* Navigation */}
       <nav className='flex items-center justify-between p-6 max-w-[1400px] mx-auto'>
         <Link href='/' className='flex items-center space-x-2'>

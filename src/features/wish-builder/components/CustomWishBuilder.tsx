@@ -1331,7 +1331,7 @@ export function CustomWishBuilder({
   ]);
 
   return (
-    <div className='h-screen bg-gray-50 flex flex-col'>
+    <div className='h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col'>
       {/* Error Toast */}
       {error && (
         <div className='fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg max-w-md'>
@@ -1364,7 +1364,7 @@ export function CustomWishBuilder({
       )}
 
       {/* Header */}
-      <div className='bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 border-b border-purple-100 flex-shrink-0'>
+      <div className='bg-white/80 backdrop-blur-sm border-b border-white/20 flex-shrink-0'>
         <div className='w-full max-w-[1800px] mx-auto px-4 md:px-6 py-3'>
           {/* Main Header Row */}
           <div className='flex items-center justify-between relative'>
