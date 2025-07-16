@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { InteractiveBalloons } from './InteractiveBalloons';
 import { BeautifulText } from './BeautifulText';
+import { MusicPlayer } from './MusicPlayer';
 import { Wish } from '@/types';
 
 interface PresentationModeProps {
@@ -466,6 +467,17 @@ export function PresentationMode({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Background Music Player */}
+      {wish.music && (
+        <MusicPlayer
+          musicId={wish.music}
+          isVisible={true}
+          onMusicEnd={() => {
+            console.log('Music ended in presentation mode');
+          }}
+        />
       )}
     </div>
   );

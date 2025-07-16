@@ -1,0 +1,6 @@
+# Placeholder for peaceful.mp3
+# Duration: 1:30 (90 seconds)
+# Frequency: 330Hz
+# This is a placeholder file. Replace with actual audio content.
+# For testing, you can use any MP3 file and rename it to peaceful.mp3
+# All music files should be exactly 1:30 duration for consistent looping 

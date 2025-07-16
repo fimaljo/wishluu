@@ -34,6 +34,8 @@ interface ElementPropertiesPanelProps {
   selectedElements?: WishElement[];
   elements?: WishElement[];
   onSwitchToElement?: (elementId: string) => void;
+  music?: string;
+  onUpdateMusic?: (music: string) => void;
 }
 
 export function ElementPropertiesPanel({
@@ -54,6 +56,8 @@ export function ElementPropertiesPanel({
   selectedElements,
   elements = [],
   onSwitchToElement,
+  music,
+  onUpdateMusic,
 }: ElementPropertiesPanelProps) {
   const [localCustomBackgroundColor, setLocalCustomBackgroundColor] =
     React.useState(customBackgroundColor);
@@ -345,7 +349,11 @@ export function ElementPropertiesPanel({
                 <label className='block text-sm font-medium text-gray-700 mb-2'>
                   Background Music
                 </label>
-                <select className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'>
+                <select
+                  value={music || ''}
+                  onChange={e => onUpdateMusic && onUpdateMusic(e.target.value)}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                >
                   <option value=''>No music</option>
                   {musicLibrary.map(track => (
                     <option key={track.id} value={track.id}>

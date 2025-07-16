@@ -1571,6 +1571,7 @@ export function CustomWishBuilder({
                 onCanvasSettingsToggle={setShowCanvasSettings}
                 isPreviewMode={currentStep === 'preview'}
                 stepSequence={stepSequence}
+                music={music}
               />
             </div>
           )}
@@ -1609,6 +1610,8 @@ export function CustomWishBuilder({
                 selectedElements={getSelectedElementsForDisplay()}
                 elements={elements}
                 onSwitchToElement={handleSwitchToElement}
+                music={music}
+                onUpdateMusic={setMusic}
               />
             </div>
           ) : null}
@@ -1669,6 +1672,7 @@ export function CustomWishBuilder({
                               elements: elements,
                               stepSequence: stepSequence,
                               customBackgroundColor,
+                              music,
                               isPublic: true,
                             };
                             setCurrentWish(wishData as any);
@@ -1892,6 +1896,7 @@ export function CustomWishBuilder({
                   onCanvasSettingsToggle={setShowCanvasSettings}
                   isPreviewMode={currentStep === 'preview'}
                   stepSequence={stepSequence}
+                  music={music}
                 />
               </div>
             )}
@@ -1948,6 +1953,8 @@ export function CustomWishBuilder({
                 selectedElements={getSelectedElementsForDisplay()}
                 elements={elements}
                 onSwitchToElement={handleSwitchToElement}
+                music={music}
+                onUpdateMusic={setMusic}
               />
             </div>
           ) : null}
@@ -1989,6 +1996,7 @@ export function CustomWishBuilder({
                             elements: elements,
                             stepSequence: stepSequence,
                             customBackgroundColor,
+                            music,
                             isPublic: true,
                           };
                           setCurrentWish(wishData as any);

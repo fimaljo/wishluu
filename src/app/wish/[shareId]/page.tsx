@@ -39,6 +39,7 @@ export default function SharedWishPage() {
           : [],
       };
       console.log('Processed wish data:', processedWish);
+      console.log('Music data:', (processedWish as any).music);
       setWish(processedWish);
     } else {
       console.error('Failed to load wish:', result.error);
@@ -133,6 +134,7 @@ export default function SharedWishPage() {
           onUpdateElement={() => {}}
           recipientName={wish.recipientName || ''}
           message={wish.message || ''}
+          music={(wish as any).music || 'birthday-song'}
         />
       </div>
 

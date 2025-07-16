@@ -19,6 +19,7 @@ export interface Wish {
   createdBy?: string; // Firebase user ID who created the wish
   stepSequence?: string[][]; // Step sequence for wish presentation
   expiresAt?: any; // Firebase timestamp for expiration (7 days from creation)
+  music?: string; // Background music ID
 }
 
 // Form Types
@@ -32,6 +33,7 @@ export interface WishFormData {
   senderEmail?: string;
   elements?: any[]; // Canvas elements from the builder
   customBackgroundColor?: string; // Custom background color
+  music?: string; // Background music ID
 }
 
 export interface FormErrors {

@@ -4,6 +4,7 @@ import React from 'react';
 import { WishElement, ElementProperties } from '@/types/templates';
 import { InteractiveBalloons } from '@/components/ui/InteractiveBalloons';
 import { BeautifulText } from '@/components/ui/BeautifulText';
+import { MusicPlayer } from '@/components/ui/MusicPlayer';
 
 interface WishCanvasProps {
   elements: WishElement[];
@@ -17,6 +18,7 @@ interface WishCanvasProps {
   onCanvasSettingsToggle?: (show: boolean) => void;
   isPreviewMode?: boolean;
   stepSequence?: string[][]; // Custom step sequence from user
+  music?: string; // Background music ID
 }
 
 export function WishCanvas({
@@ -31,6 +33,7 @@ export function WishCanvas({
   onCanvasSettingsToggle,
   isPreviewMode = false,
   stepSequence,
+  music,
 }: WishCanvasProps) {
   const [showCanvasSettings, setShowCanvasSettings] = React.useState(false);
   const [currentStep, setCurrentStep] = React.useState(0); // Track current step in sequence
@@ -64,6 +67,12 @@ export function WishCanvas({
 
   // Add fade transition for step changes
   const [isTransitioning, setIsTransitioning] = React.useState(false);
+
+  // Debug music prop
+  React.useEffect(() => {
+    console.log('WishCanvas - Music prop:', music);
+    console.log('WishCanvas - isPreviewMode:', isPreviewMode);
+  }, [music, isPreviewMode]);
 
   const handleElementComplete = (elementId: string) => {
     setIsTransitioning(true);
@@ -342,7 +351,7 @@ export function WishCanvas({
           {/* Progress Indicator - Only show in preview mode */}
           {isPreviewMode && (
             <div className='absolute top-4 right-4 z-20'>
-              <div className='bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-medium text-gray-700 shadow-lg'>
+              <div className='bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs sm:text-sm font-medium text-gray-700 shadow-lg'>
                 Step {currentStep + 1} of{' '}
                 {stepSequence && stepSequence.length > 0
                   ? stepSequence.length
@@ -379,7 +388,7 @@ export function WishCanvas({
               const hasMoreSteps = currentStep < sequenceToUse.length - 1;
 
               return hasMoreSteps ? (
-                <div className='absolute bottom-4 right-4 z-20'>
+                <div className='absolute bottom-32 right-4 z-20 sm:bottom-4'>
                   <button
                     onClick={() => {
                       const currentElement = getVisibleElements()[0];
@@ -387,7 +396,7 @@ export function WishCanvas({
                         handleElementComplete(currentElement.id);
                       }
                     }}
-                    className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300'
+                    className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300'
                   >
                     Next →
                   </button>
@@ -416,13 +425,6 @@ export function WishCanvas({
           >
             {getVisibleElements().map(renderElement)}
           </div>
-
-          {/* Click to add element hint */}
-          {elements.length === 0 && (
-            <div className='absolute bottom-4 right-4 text-xs text-gray-400'>
-              Click elements in the palette to add them
-            </div>
-          )}
         </div>
 
         {/* Canvas Grid Overlay (for positioning) - Hidden on mobile */}
@@ -437,6 +439,25 @@ export function WishCanvas({
           />
         </div>
       </div>
+
+      {/* Click to add element hint - Positioned outside constrained container */}
+      {elements.length === 0 && (
+        <div className='fixed top-4 left-4 text-xs text-gray-600 z-50 bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg border border-gray-200'>
+          Click elements in the palette to add them
+        </div>
+      )}
+
+      {/* Background Music Player - Only show in preview mode when music is selected */}
+      {isPreviewMode && music && (
+        <MusicPlayer
+          musicId={music}
+          isVisible={true}
+          onMusicEnd={() => {
+            // Optionally restart the music or handle end
+            console.log('Music ended');
+          }}
+        />
+      )}
     </div>
   );
 }
