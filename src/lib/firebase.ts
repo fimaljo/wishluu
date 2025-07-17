@@ -74,12 +74,14 @@ export const isUserAdmin = (user: User | null): boolean => {
     return false;
   }
 
-  // Debug logging (remove in production)
-  console.log('Admin check:', {
-    userEmail,
-    adminEmails,
-    isAdmin: adminEmails.includes(userEmail),
-  });
+  // Admin check logging (production-safe)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Admin check:', {
+      userEmail,
+      adminEmails,
+      isAdmin: adminEmails.includes(userEmail),
+    });
+  }
 
   return adminEmails.includes(userEmail);
 };

@@ -13,6 +13,7 @@ import { Wish } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
 import Link from 'next/link';
+import { useNotification } from '@/components/ui/Notification';
 
 export function WishListPage() {
   const { user, isAdmin } = useAuth();
@@ -22,6 +23,7 @@ export function WishListPage() {
   const [selectedWish, setSelectedWish] = useState<FirebaseWish | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [showCreator, setShowCreator] = useState(false);
+  const { notification, showSuccess, showError } = useNotification();
 
   // Convert Firebase wishes to the format expected by WishCard
   const convertedWishes: Wish[] = wishes.map((wish: FirebaseWish) => {
@@ -70,7 +72,7 @@ export function WishListPage() {
   const handleDuplicate = async (wish: Wish) => {
     const duplicated = await duplicateWish(wish);
     if (duplicated) {
-      alert('Wish duplicated successfully!');
+      showSuccess('Wish duplicated successfully!');
       // Refresh the wishes list after duplication
       loadUserWishes();
     }
@@ -79,9 +81,9 @@ export function WishListPage() {
   const handleShare = async (wish: Wish) => {
     try {
       const shareUrl = await shareWish(wish);
-      alert(`Share URL copied to clipboard: ${shareUrl}`);
+      showSuccess(`Share URL copied to clipboard: ${shareUrl}`);
     } catch (err) {
-      alert('Failed to share wish');
+      showError('Failed to share wish');
     }
   };
 
@@ -118,6 +120,45 @@ export function WishListPage() {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8'>
+      {/* Notification */}
+      {notification && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300 ${
+            notification.type === 'success'
+              ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+              : notification.type === 'error'
+                ? 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+          }`}
+        >
+          <div className='flex items-center space-x-2'>
+            <div className='text-2xl'>
+              {notification.type === 'success'
+                ? '🎉'
+                : notification.type === 'error'
+                  ? '❌'
+                  : '💡'}
+            </div>
+            <div>
+              <div className='font-semibold'>
+                {notification.type === 'success'
+                  ? 'Success!'
+                  : notification.type === 'error'
+                    ? 'Error'
+                    : 'Info'}
+              </div>
+              <div className='text-sm opacity-90'>{notification.message}</div>
+            </div>
+            <button
+              onClick={() => notification.onClose?.()}
+              className='ml-4 text-white hover:text-gray-200 transition-colors'
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Navigation Header */}
       <div className='bg-white shadow-sm mb-8'>
         <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>

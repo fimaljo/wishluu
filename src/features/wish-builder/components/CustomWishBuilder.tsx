@@ -11,10 +11,12 @@ import {
 } from './ElementPropertiesPanel';
 import { SaveShareDialog } from '@/components/ui/SaveShareDialog';
 import { PresentationMode } from '@/components/ui/PresentationMode';
+import { PremiumUpgradeModal } from '@/components/ui/PremiumUpgradeModal';
 import { getAllElements } from '@/config/elements';
 import { premiumService } from '@/lib/premiumService';
 import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
 import { Wish } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   useWishBuilderState,
   useWishBuilderActions,
@@ -31,7 +33,6 @@ const TEMPLATE_STEPS = [
 ] as const;
 const MAX_STEPS = 10;
 const MOBILE_BREAKPOINT = 768;
-const DEMO_USER_ID = 'demo-user-123';
 
 interface CustomWishBuilderProps {
   onBack: () => void;
@@ -786,6 +787,7 @@ export function CustomWishBuilder({
 }: CustomWishBuilderProps) {
   // Use custom hooks for state management
   const state = useWishBuilderState();
+  const { user } = useAuth();
   const {
     selectedElement,
     setSelectedElement,
@@ -838,6 +840,8 @@ export function CustomWishBuilder({
   const [template, setTemplate] = React.useState<any>(null);
   const [templateLoading, setTemplateLoading] = React.useState(false);
   const [music, setMusic] = React.useState('');
+  const [showPremiumUpgradeModal, setShowPremiumUpgradeModal] =
+    React.useState(false);
 
   // Computed values
   const availableElements = useMemo(() => getAllElements(), []);
@@ -904,6 +908,7 @@ export function CustomWishBuilder({
     setCurrentWish,
     setShowSaveShareDialog,
     setUserPremiumStatus,
+    setShowPremiumUpgradeModal,
     elements,
     selectedElement,
     selectedElements,
@@ -1198,8 +1203,11 @@ export function CustomWishBuilder({
   useEffect(() => {
     const loadPremiumStatus = async () => {
       try {
-        const status = await premiumService.getUserPremiumStatus(DEMO_USER_ID);
-        setUserPremiumStatus(status);
+        // Only load premium status if user is authenticated
+        if (user?.uid) {
+          const status = await premiumService.getUserPremiumStatus(user.uid);
+          setUserPremiumStatus(status);
+        }
       } catch (error) {
         console.error('Error loading premium status:', error);
       } finally {
@@ -1208,7 +1216,7 @@ export function CustomWishBuilder({
     };
 
     loadPremiumStatus();
-  }, []);
+  }, [user?.uid]);
 
   useEffect(() => {
     const loadTemplateElements = async () => {
@@ -2014,6 +2022,13 @@ export function CustomWishBuilder({
         isOpen={showPresentationMode}
         onClose={() => setShowPresentationMode(false)}
         wish={currentWish!}
+      />
+
+      {/* Premium Upgrade Modal */}
+      <PremiumUpgradeModal
+        isOpen={showPremiumUpgradeModal}
+        onClose={() => setShowPremiumUpgradeModal(false)}
+        trigger='wish-limit'
       />
     </div>
   );

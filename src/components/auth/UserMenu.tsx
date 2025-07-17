@@ -13,12 +13,14 @@ export function UserMenu({ className = '' }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // Debug logging for admin status
-  console.log('UserMenu - Admin status:', {
-    userEmail: user?.email,
-    isAdmin,
-    hasAdminEmails: !!process.env.NEXT_PUBLIC_ADMIN_EMAILS,
-  });
+  // Debug logging for admin status (development only)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('UserMenu - Admin status:', {
+      userEmail: user?.email,
+      isAdmin,
+      hasAdminEmails: !!process.env.NEXT_PUBLIC_ADMIN_EMAILS,
+    });
+  }
 
   const handleSignOut = async () => {
     setIsSigningOut(true);

@@ -8,14 +8,27 @@ import { useFirebaseWishes } from '@/hooks/useFirebaseWishes';
 import { useAuth } from '@/contexts/AuthContext';
 import { Wish } from '@/hooks/useFirebaseWishes';
 import { ExpirationBadge } from '@/components/ui/ExpirationBadge';
+import { usePremiumManagement } from '@/hooks/usePremiumManagement';
+import { PremiumUpgradeModal } from '@/components/ui/PremiumUpgradeModal';
+import { useNotification } from '@/components/ui/Notification';
 
 export default function DashboardPage() {
   const { user, isAdmin, signOut } = useAuth();
   const { wishes, isLoading, error, deleteWish, refreshWishes } =
     useFirebaseWishes();
+  const {
+    user: premiumUser,
+    usage,
+    limits,
+    isLoading: premiumLoading,
+    error: premiumError,
+    claimMonthlyLoginBonus,
+  } = usePremiumManagement();
   const [selectedWish, setSelectedWish] = useState<Wish | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copiedWishId, setCopiedWishId] = useState<string | null>(null);
+  const [showPremiumUpgradeModal, setShowPremiumUpgradeModal] = useState(false);
+  const { notification, showInfo, showError } = useNotification();
 
   // Calculate dashboard statistics
   const stats = {
@@ -45,7 +58,7 @@ export default function DashboardPage() {
       setShowDeleteConfirm(false);
       setSelectedWish(null);
     } else {
-      alert(`Failed to delete wish: ${result.error}`);
+      showError(`Failed to delete wish: ${result.error}`);
     }
   };
 
@@ -56,7 +69,7 @@ export default function DashboardPage() {
       setCopiedWishId(wish.id);
       setTimeout(() => setCopiedWishId(null), 2000);
     } catch (err) {
-      alert('Failed to copy link. Please copy manually: ' + shareUrl);
+      showError('Failed to copy link. Please copy manually: ' + shareUrl);
     }
   };
 
@@ -112,6 +125,45 @@ export default function DashboardPage() {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
+      {/* Notification */}
+      {notification && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300 ${
+            notification.type === 'success'
+              ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+              : notification.type === 'error'
+                ? 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+          }`}
+        >
+          <div className='flex items-center space-x-2'>
+            <div className='text-2xl'>
+              {notification.type === 'success'
+                ? '🎉'
+                : notification.type === 'error'
+                  ? '❌'
+                  : '💡'}
+            </div>
+            <div>
+              <div className='font-semibold'>
+                {notification.type === 'success'
+                  ? 'Success!'
+                  : notification.type === 'error'
+                    ? 'Error'
+                    : 'Info'}
+              </div>
+              <div className='text-sm opacity-90'>{notification.message}</div>
+            </div>
+            <button
+              onClick={() => notification.onClose?.()}
+              className='ml-4 text-white hover:text-gray-200 transition-colors'
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className='bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -187,6 +239,143 @@ export default function DashboardPage() {
             started.
           </p>
         </div>
+
+        {/* Credit Display */}
+        {premiumLoading ? (
+          <div className='bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 mb-8'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center space-x-4'>
+                <div className='w-12 h-12 bg-gray-200 rounded-xl animate-pulse'></div>
+                <div>
+                  <div className='h-5 bg-gray-200 rounded w-24 animate-pulse mb-2'></div>
+                  <div className='h-4 bg-gray-200 rounded w-32 animate-pulse'></div>
+                </div>
+              </div>
+              <div className='flex items-center space-x-4'>
+                <div className='w-32 h-3 bg-gray-200 rounded-full animate-pulse'></div>
+                <div className='w-20 h-8 bg-gray-200 rounded animate-pulse'></div>
+              </div>
+            </div>
+          </div>
+        ) : premiumUser ? (
+          <div className='bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 mb-8'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center space-x-4'>
+                <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center'>
+                  <span className='text-2xl'>💎</span>
+                </div>
+                <div>
+                  <h3 className='text-lg font-semibold text-gray-800'>
+                    Credit Balance
+                    {premiumUser?.isPremium && ' ✨'}
+                  </h3>
+                  <p className='text-sm text-gray-600'>
+                    {premiumUser.credits || 0} credits available
+                  </p>
+                </div>
+              </div>
+
+              <div className='flex items-center space-x-4'>
+                <div className='flex items-center space-x-2'>
+                  <div className='text-right'>
+                    <p className='text-sm text-gray-600'>Total purchased</p>
+                    <p className='text-lg font-semibold text-gray-800'>
+                      {premiumUser.totalCreditsPurchased || 0} credits
+                    </p>
+                  </div>
+                </div>
+
+                <div className='flex items-center space-x-2'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='border-green-500 text-green-600 hover:bg-green-50 hover:border-green-600'
+                    onClick={async () => {
+                      try {
+                        const result = await claimMonthlyLoginBonus();
+                        if (result.claimed) {
+                          // Show success message - the automatic popup will handle this
+                          console.log(
+                            'Monthly login bonus claimed successfully!'
+                          );
+                        } else {
+                          // Show info message for already claimed
+                          showInfo(
+                            `${result.message} You can claim your next bonus on the 1st of next month.`
+                          );
+                        }
+                      } catch (error) {
+                        showError(
+                          'Failed to claim monthly login bonus. Please try again.'
+                        );
+                      }
+                    }}
+                  >
+                    🎁 Claim Monthly Bonus
+                  </Button>
+
+                  <Button
+                    variant='primary'
+                    size='sm'
+                    className='bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
+                    onClick={() => setShowPremiumUpgradeModal(true)}
+                  >
+                    Buy Credits
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Premium System Test (Admin Only) */}
+        {isAdmin && process.env.NODE_ENV === 'development' && (
+          <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8'>
+            <h3 className='text-lg font-semibold text-yellow-800 mb-4'>
+              🔧 Premium System Debug (Development Only)
+            </h3>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
+              <div>
+                <p>
+                  <strong>Premium User:</strong>{' '}
+                  {premiumUser ? 'Loaded' : 'Not loaded'}
+                </p>
+                <p>
+                  <strong>Plan:</strong> {premiumUser?.planType || 'Loading...'}
+                </p>
+                <p>
+                  <strong>Premium:</strong>{' '}
+                  {premiumUser?.isPremium ? 'Yes' : 'No'}
+                </p>
+                <p>
+                  <strong>Loading:</strong> {premiumLoading ? 'Yes' : 'No'}
+                </p>
+              </div>
+              <div>
+                <p>
+                  <strong>Usage:</strong> {usage ? 'Loaded' : 'Not loaded'}
+                </p>
+                <p>
+                  <strong>Limits:</strong> {limits ? 'Loaded' : 'Not loaded'}
+                </p>
+                <p>
+                  <strong>Error:</strong> {premiumError || 'None'}
+                </p>
+                <p>
+                  <strong>Wishes Created:</strong> {usage?.wishesCreated || 0}
+                </p>
+              </div>
+            </div>
+            <div className='mt-4 flex space-x-2'>
+              <Link
+                href='/test-credits'
+                className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm'
+              >
+                🧪 Test Credit System
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className='grid grid-cols-1 md:grid-cols-3 gap-8 mb-12'>
@@ -490,6 +679,13 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Premium Upgrade Modal */}
+      <PremiumUpgradeModal
+        isOpen={showPremiumUpgradeModal}
+        onClose={() => setShowPremiumUpgradeModal(false)}
+        trigger='wish-limit'
+      />
     </div>
   );
 }

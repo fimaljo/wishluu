@@ -5,8 +5,8 @@ import { useWishManagement } from '@/features/wishes/hooks/useWishManagement';
 import { premiumService } from '@/lib/premiumService';
 import { useFirebaseWishes } from '@/hooks/useFirebaseWishes';
 import { useAuth } from '@/contexts/AuthContext';
-
-const DEMO_USER_ID = 'demo-user-123';
+import { usePremiumManagement } from '@/hooks/usePremiumManagement';
+import { premiumApi } from '@/lib/api';
 const MAX_STEPS = 10;
 
 interface UseWishBuilderActionsProps {
@@ -20,6 +20,7 @@ interface UseWishBuilderActionsProps {
   setCurrentWish: React.Dispatch<React.SetStateAction<Wish | null>>;
   setShowSaveShareDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setUserPremiumStatus: React.Dispatch<React.SetStateAction<any>>;
+  setShowPremiumUpgradeModal: React.Dispatch<React.SetStateAction<boolean>>;
 
   // State values
   elements: WishElement[];
@@ -48,6 +49,7 @@ export function useWishBuilderActions({
   setCurrentWish,
   setShowSaveShareDialog,
   setUserPremiumStatus,
+  setShowPremiumUpgradeModal,
   elements,
   selectedElement,
   selectedElements,
@@ -246,6 +248,19 @@ export function useWishBuilderActions({
       return;
     }
 
+    // Check if user has enough credits for a premium wish
+    try {
+      const creditCheck = (await premiumApi.getStatus()) as any;
+      if (!creditCheck.success || creditCheck.data.credits < 2) {
+        setShowPremiumUpgradeModal(true);
+        return;
+      }
+    } catch (error) {
+      console.error('Failed to check credits:', error);
+      setShowPremiumUpgradeModal(true);
+      return;
+    }
+
     await withLoading(async () => {
       const wishData = {
         title: `Wish for ${recipientName.trim()}`,
@@ -260,6 +275,21 @@ export function useWishBuilderActions({
 
       const result = await createFirebaseWish(wishData);
       if (result.success && result.data) {
+        // Use credits for premium wish creation
+        try {
+          const creditResult = (await premiumApi.useCredits(
+            'premium_wish',
+            `Created premium wish: ${wishData.title}`,
+            result.data.id
+          )) as any;
+
+          if (!creditResult.success) {
+            console.error('Failed to deduct credits:', creditResult.error);
+          }
+        } catch (error) {
+          console.error('Failed to use credits:', error);
+        }
+
         // Create a wish object compatible with the existing system
         const createdWish: Wish = {
           id: result.data.id,
@@ -298,6 +328,7 @@ export function useWishBuilderActions({
     setError,
     setCurrentWish,
     setShowSaveShareDialog,
+    setShowPremiumUpgradeModal,
   ]);
 
   const handleSaveFromDialog = useCallback(
@@ -316,6 +347,19 @@ export function useWishBuilderActions({
           return wishData;
         }
 
+        // Check if user has enough credits for a premium wish
+        try {
+          const creditCheck = (await premiumApi.getStatus()) as any;
+          if (!creditCheck.success || creditCheck.data.credits < 2) {
+            setShowPremiumUpgradeModal(true);
+            return null;
+          }
+        } catch (error) {
+          console.error('Failed to check credits:', error);
+          setShowPremiumUpgradeModal(true);
+          return null;
+        }
+
         // Prepare the wish data for Firebase
         const firebaseWishData = {
           title: wishData.title || `Wish for ${wishData.recipientName}`,
@@ -329,9 +373,23 @@ export function useWishBuilderActions({
         };
 
         const result = await createFirebaseWish(firebaseWishData);
-        console.log('Firebase save result:', result);
 
         if (result.success && result.data) {
+          // Use credits for premium wish creation
+          try {
+            const creditResult = (await premiumApi.useCredits(
+              'premium_wish',
+              `Created premium wish: ${firebaseWishData.title}`,
+              result.data.id
+            )) as any;
+
+            if (!creditResult.success) {
+              console.error('Failed to deduct credits:', creditResult.error);
+            }
+          } catch (error) {
+            console.error('Failed to use credits:', error);
+          }
+
           // Create a wish object compatible with the existing system
           const createdWish: Wish = {
             id: result.data.id,
@@ -350,7 +408,6 @@ export function useWishBuilderActions({
             isPublic: result.data.isPublic,
           };
 
-          console.log('Created wish object:', createdWish);
           setCurrentWish(createdWish);
           return createdWish;
         } else {
@@ -364,7 +421,13 @@ export function useWishBuilderActions({
         return null;
       }
     },
-    [createFirebaseWish, user?.uid, templateId, setCurrentWish]
+    [
+      createFirebaseWish,
+      user?.uid,
+      templateId,
+      setCurrentWish,
+      setShowPremiumUpgradeModal,
+    ]
   );
 
   const handleShareFromDialog = useCallback(
@@ -393,12 +456,17 @@ export function useWishBuilderActions({
 
   // Premium features
   const handleUpgradeClick = useCallback(async () => {
+    if (!user?.uid) {
+      setError('Please sign in to upgrade your account');
+      return;
+    }
+
     await withLoading(async () => {
-      await premiumService.upgradeUser(DEMO_USER_ID, 'pro');
-      const newStatus = await premiumService.getUserPremiumStatus(DEMO_USER_ID);
+      await premiumService.upgradeUser(user.uid, 'pro');
+      const newStatus = await premiumService.getUserPremiumStatus(user.uid);
       setUserPremiumStatus(newStatus);
     }, 'upgrading user');
-  }, [withLoading, setUserPremiumStatus]);
+  }, [withLoading, setUserPremiumStatus, user?.uid, setError]);
 
   return {
     handleError,

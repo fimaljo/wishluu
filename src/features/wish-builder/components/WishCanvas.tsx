@@ -53,11 +53,20 @@ export function WishCanvas({
     aurora: 'from-teal-400 to-blue-500',
   };
 
-  // Debug theme changes
-  // console.log('WishCanvas - Current theme:', theme);
-  // console.log('WishCanvas - Theme gradient:', themeGradients[theme as keyof typeof themeGradients] || themeGradients.purple);
-  // console.log('WishCanvas - Available theme keys:', Object.keys(themeGradients));
-  // console.log('WishCanvas - Custom background color:', customBackgroundColor);
+  // Debug theme changes (development only)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('WishCanvas - Current theme:', theme);
+    console.log(
+      'WishCanvas - Theme gradient:',
+      themeGradients[theme as keyof typeof themeGradients] ||
+        themeGradients.purple
+    );
+    console.log(
+      'WishCanvas - Available theme keys:',
+      Object.keys(themeGradients)
+    );
+    console.log('WishCanvas - Custom background color:', customBackgroundColor);
+  }
 
   const handleSettingsToggle = () => {
     const newState = !showCanvasSettings;
@@ -68,10 +77,12 @@ export function WishCanvas({
   // Add fade transition for step changes
   const [isTransitioning, setIsTransitioning] = React.useState(false);
 
-  // Debug music prop
+  // Debug music prop (development only)
   React.useEffect(() => {
-    console.log('WishCanvas - Music prop:', music);
-    console.log('WishCanvas - isPreviewMode:', isPreviewMode);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('WishCanvas - Music prop:', music);
+      console.log('WishCanvas - isPreviewMode:', isPreviewMode);
+    }
   }, [music, isPreviewMode]);
 
   const handleElementComplete = (elementId: string) => {

@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { WishProvider } from '@/contexts/WishContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { MonthlyLoginBonus } from '@/components/auth/MonthlyLoginBonus';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,7 +24,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <ErrorBoundary>
           <AuthProvider>
-            <WishProvider>{children}</WishProvider>
+            <WishProvider>
+              {children}
+              <MonthlyLoginBonus />
+            </WishProvider>
           </AuthProvider>
         </ErrorBoundary>
       </body>
