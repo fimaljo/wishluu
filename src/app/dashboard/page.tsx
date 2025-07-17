@@ -230,7 +230,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats
         <div className='bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-8 mb-12'>
           <h3 className='text-2xl font-bold text-gray-800 mb-6 text-center'>
             Quick Stats
@@ -261,7 +261,7 @@ export default function DashboardPage() {
               <div className='text-gray-600 font-medium'>Total Views</div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Error State */}
         {error && (

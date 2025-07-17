@@ -440,13 +440,6 @@ export function WishCanvas({
         </div>
       </div>
 
-      {/* Click to add element hint - Positioned outside constrained container */}
-      {elements.length === 0 && (
-        <div className='fixed top-4 left-4 text-xs text-gray-600 z-50 bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg border border-gray-200'>
-          Click elements in the palette to add them
-        </div>
-      )}
-
       {/* Background Music Player - Only show in preview mode when music is selected */}
       {isPreviewMode && music && (
         <MusicPlayer

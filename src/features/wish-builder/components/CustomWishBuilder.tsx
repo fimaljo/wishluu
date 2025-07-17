@@ -513,76 +513,74 @@ const SaveShareStep = ({
   theme?: string;
 }) => {
   return (
-    <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-8 md:p-12'>
+    <div className='bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-10 max-w-2xl mx-auto'>
       <div className='text-center'>
-        <div className='text-8xl mb-6'>{isAdminMode ? '🎨' : '🎉'}</div>
-        <h2 className='text-3xl md:text-4xl font-bold text-gray-800 mb-4'>
+        {/* Icon */}
+        <div className='text-6xl mb-4'>{isAdminMode ? '🎨' : '✨'}</div>
+
+        {/* Title */}
+        <h2 className='text-2xl md:text-3xl font-semibold text-gray-900 mb-3'>
           {isAdminMode
-            ? 'Template Creation Complete!'
+            ? 'Template Ready!'
             : isTemplateMode
-              ? 'Your Customized Template is Ready!'
-              : 'Your Wish is Ready!'}
+              ? 'Template Customized!'
+              : 'Wish Ready!'}
         </h2>
-        <p className='text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed'>
+
+        {/* Description */}
+        <p className='text-gray-600 mb-6 max-w-lg mx-auto'>
           {isAdminMode ? (
             <>
-              You've created a template with{' '}
-              <span className='font-semibold text-purple-600'>
+              Template with{' '}
+              <span className='font-medium text-purple-600'>
                 {elements.length} element{elements.length !== 1 ? 's' : ''}
-              </span>
-              . Now add the template information to make it available for users.
+              </span>{' '}
+              created successfully.
             </>
           ) : (
             <>
-              You've{' '}
-              {isTemplateMode
-                ? 'customized a template with'
-                : 'created a beautiful wish with'}{' '}
-              <span className='font-semibold text-purple-600'>
+              {isTemplateMode ? 'Customized' : 'Created'} with{' '}
+              <span className='font-medium text-purple-600'>
                 {elements.length} element{elements.length !== 1 ? 's' : ''}
               </span>
-              {isTemplateMode ? ' and configured all settings.' : '.'}
               {!isTemplateMode && stepSequence.length > 0 && (
                 <span>
                   {' '}
-                  It has{' '}
-                  <span className='font-semibold text-purple-600'>
+                  and{' '}
+                  <span className='font-medium text-purple-600'>
                     {stepSequence.length} step
                     {stepSequence.length !== 1 ? 's' : ''}
-                  </span>{' '}
-                  in the sequence.
+                  </span>
                 </span>
               )}
             </>
           )}
         </p>
 
-        {/* Stats Cards */}
-        <div
-          className={`grid gap-4 mb-8 max-w-md mx-auto ${isTemplateMode ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}
-        >
-          <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200'>
-            <div className='text-2xl font-bold text-purple-600'>
-              {elements.length}
-            </div>
-            <div className='text-sm text-gray-600'>Elements</div>
+        {/* Simple Stats */}
+        <div className='flex justify-center items-center space-x-6 mb-8'>
+          <div className='flex items-center space-x-2'>
+            <div className='w-2 h-2 bg-purple-500 rounded-full'></div>
+            <span className='text-sm text-gray-600'>
+              {elements.length} element{elements.length !== 1 ? 's' : ''}
+            </span>
           </div>
-          {!isTemplateMode && (
-            <div className='bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200'>
-              <div className='text-2xl font-bold text-green-600'>
-                {stepSequence.length}
-              </div>
-              <div className='text-sm text-gray-600'>Steps</div>
+          {!isTemplateMode && stepSequence.length > 0 && (
+            <div className='flex items-center space-x-2'>
+              <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+              <span className='text-sm text-gray-600'>
+                {stepSequence.length} step{stepSequence.length !== 1 ? 's' : ''}
+              </span>
             </div>
           )}
         </div>
 
-        <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+        {/* Action Buttons */}
+        <div className='flex flex-col sm:flex-row gap-3 justify-center items-center'>
           <Button
             variant='outline'
             onClick={onBackToPreview}
-            className='w-full sm:w-auto px-8 py-3 text-base font-medium'
-            aria-label='Go back to preview'
+            className='w-full sm:w-auto px-6 py-2.5 text-sm font-medium'
           >
             ← Back to Preview
           </Button>
@@ -592,37 +590,28 @@ const SaveShareStep = ({
               <Button
                 variant='outline'
                 onClick={onShowMetadataForm}
-                className='w-full sm:w-auto px-8 py-3 text-base font-medium'
-                aria-label='Add template information'
+                className='w-full sm:w-auto px-6 py-2.5 text-sm font-medium'
               >
-                📝 Add Template Info
+                Add Template Info
               </Button>
               <Button
                 variant='primary'
                 onClick={onSave}
                 disabled={elements.length === 0 || adminIsSaving}
-                className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
-                aria-label='Save template'
+                className='w-full sm:w-auto px-6 py-2.5 text-sm font-medium'
               >
-                {adminIsSaving ? '💾 Saving...' : '💾 Save Template'}
+                {adminIsSaving ? 'Saving...' : 'Save Template'}
               </Button>
             </>
           ) : (
-            <>
-              <Button
-                variant='primary'
-                onClick={onSave}
-                disabled={elements.length === 0}
-                className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-                aria-label={
-                  isTemplateMode
-                    ? 'Save and share customized template'
-                    : 'Save and share wish'
-                }
-              >
-                💾 {isTemplateMode ? 'Save Template' : 'Save & Share'}
-              </Button>
-            </>
+            <Button
+              variant='primary'
+              onClick={onSave}
+              disabled={elements.length === 0}
+              className='w-full sm:w-auto px-6 py-2.5 text-sm font-medium'
+            >
+              {isTemplateMode ? 'Save Template' : 'Save & Share'}
+            </Button>
           )}
         </div>
       </div>
