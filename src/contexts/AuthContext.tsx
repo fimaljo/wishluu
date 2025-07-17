@@ -8,6 +8,7 @@ import {
   onAuthStateChange,
   isUserAdmin,
 } from '@/lib/firebase';
+import { apiClient } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -49,17 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isAdmin: isUserAdmin(user),
           };
 
-          const response = await fetch('/api/auth/user', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ userData }),
-          });
-
-          if (!response.ok) {
+          try {
+            await apiClient.post('/auth/user', { userData });
+          } catch (error) {
             console.warn(
-              'Failed to upsert user data - this is normal for new users'
+              'Failed to upsert user data - this is normal for new users:',
+              error
             );
           }
         } catch (error) {

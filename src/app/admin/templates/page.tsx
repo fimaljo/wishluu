@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Template } from '@/types/templates';
 import { useFirebaseTemplates } from '@/hooks/useFirebaseTemplates';
+import { useNotification } from '@/components/ui/Notification';
 
 export default function AdminTemplatesPage() {
   // Use Firebase templates hook for admin (show all templates, not just public)
@@ -25,6 +26,7 @@ export default function AdminTemplatesPage() {
     orderBy: 'name', // Use name ordering to avoid index issues
     orderDirection: 'asc',
   }); // Show all templates for admin
+  const { notification, showError, showInfo } = useNotification();
 
   const handleEditTemplate = (template: Template) => {
     // Navigate to the admin template edit page
@@ -35,7 +37,7 @@ export default function AdminTemplatesPage() {
     if (confirm('Are you sure you want to delete this template?')) {
       const result = await deleteTemplate(templateId);
       if (!result.success) {
-        alert(`Failed to delete template: ${result.error}`);
+        showError(`Failed to delete template: ${result.error}`);
       }
     }
   };
@@ -48,6 +50,46 @@ export default function AdminTemplatesPage() {
   return (
     <AuthGuard requireAdmin={true}>
       <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
+        {/* Notification */}
+        {notification && (
+          <div
+            className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300 ${
+              notification.type === 'success'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                : notification.type === 'error'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+            }`}
+          >
+            <div className='flex items-center space-x-2'>
+              <div className='text-2xl'>
+                {notification.type === 'success'
+                  ? '🎉'
+                  : notification.type === 'error'
+                    ? '❌'
+                    : '💡'}
+              </div>
+              <div>
+                <div className='font-semibold'>
+                  {notification.type === 'success'
+                    ? 'Success!'
+                    : notification.type === 'error'
+                      ? 'Error'
+                      : 'Info'}
+                </div>
+                <div className='text-sm opacity-90'>{notification.message}</div>
+              </div>
+              <button
+                onClick={() => notification.onClose?.()}
+                className='ml-4 text-white hover:text-gray-200 transition-colors'
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Header */}
         {/* Header */}
         <div className='bg-white shadow-sm'>
           <div className='w-full max-w-[1800px] mx-auto px-6 py-4'>
@@ -108,7 +150,7 @@ export default function AdminTemplatesPage() {
                       `Template Statistics:\nTotal: ${stats.total}\nBy Occasion: ${JSON.stringify(stats.byOccasion, null, 2)}\nBy Difficulty: ${JSON.stringify(stats.byDifficulty, null, 2)}\nAverage Elements: ${stats.averageElements.toFixed(1)}`
                     );
                   } else {
-                    alert(`Failed to get stats: ${result.error}`);
+                    showError(`Failed to get stats: ${result.error}`);
                   }
                 }}
                 className='text-sm'
@@ -130,7 +172,7 @@ export default function AdminTemplatesPage() {
                     a.click();
                     URL.revokeObjectURL(url);
                   } else {
-                    alert(`Failed to export templates: ${result.error}`);
+                    showError(`Failed to export templates: ${result.error}`);
                   }
                 }}
                 className='text-sm'

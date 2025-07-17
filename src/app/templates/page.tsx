@@ -8,9 +8,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoginButton } from '@/components/auth/LoginButton';
 import { Button } from '@/components/ui/Button';
 import { useFirebaseTemplates } from '@/hooks/useFirebaseTemplates';
+import { TemplatePreviewModal } from '@/components/ui/TemplatePreviewModal';
 
 export default function TemplatesPage() {
   const [selectedOccasion, setSelectedOccasion] = useState('all');
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const { user, isAdmin, signOut } = useAuth();
 
   // Use Firebase templates hook
@@ -38,6 +41,11 @@ export default function TemplatesPage() {
     } catch (error) {
       console.error('Error signing out:', error);
     }
+  };
+
+  const handlePreviewTemplate = (template: Template) => {
+    setPreviewTemplate(template);
+    setShowPreviewModal(true);
   };
 
   return (
@@ -230,8 +238,12 @@ export default function TemplatesPage() {
               )}
               {/* Actual template cards */}
               {filteredTemplates.map(template => (
-                <Link key={template.id} href={`/wishes/create/${template.id}`}>
-                  <div className='group cursor-pointer'>
+                <div key={template.id} className='group relative'>
+                  {/* Main Card - Clickable for creating wish */}
+                  <Link
+                    href={`/wishes/create/${template.id}`}
+                    className='block'
+                  >
                     <div
                       className={`bg-gradient-to-r ${template.color} p-8 rounded-2xl text-white text-center transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl h-full flex flex-col justify-center relative overflow-hidden border border-white/20 shadow-lg`}
                     >
@@ -252,7 +264,7 @@ export default function TemplatesPage() {
                         <p className='text-white/90 text-sm mb-6 leading-relaxed'>
                           {template.description}
                         </p>
-                        <div className='bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
+                        <div className='bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300 inline-block'>
                           {template.occasion === 'custom'
                             ? 'Custom'
                             : template.occasion}
@@ -262,8 +274,21 @@ export default function TemplatesPage() {
                       {/* Hover Effect */}
                       <div className='absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+
+                  {/* Preview Button - Separate from card click */}
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handlePreviewTemplate(template);
+                    }}
+                    className='absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-medium hover:bg-white transition-colors border border-white/30 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20'
+                    title='Preview Template'
+                  >
+                    👁️ Preview
+                  </button>
+                </div>
               ))}
 
               {/* No templates message - only show when no actual templates exist */}
@@ -298,6 +323,16 @@ export default function TemplatesPage() {
         {/* Custom Template Option */}
         {/* Removed bottom section as per new design */}
       </main>
+
+      {/* Template Preview Modal */}
+      <TemplatePreviewModal
+        template={previewTemplate}
+        isOpen={showPreviewModal}
+        onClose={() => {
+          setShowPreviewModal(false);
+          setPreviewTemplate(null);
+        }}
+      />
     </div>
   );
 }

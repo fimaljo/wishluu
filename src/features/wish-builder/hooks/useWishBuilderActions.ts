@@ -7,6 +7,7 @@ import { useFirebaseWishes } from '@/hooks/useFirebaseWishes';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePremiumManagement } from '@/hooks/usePremiumManagement';
 import { premiumApi } from '@/lib/api';
+import { useNotification } from '@/components/ui/Notification';
 const MAX_STEPS = 10;
 
 interface UseWishBuilderActionsProps {
@@ -68,6 +69,7 @@ export function useWishBuilderActions({
     autoLoad: false,
   });
   const { user } = useAuth();
+  const { showError, showInfo } = useNotification();
 
   // Error handling
   const handleError = useCallback(
@@ -337,7 +339,7 @@ export function useWishBuilderActions({
         console.log('handleSaveFromDialog called with:', wishData);
 
         if (!user?.uid) {
-          alert('Please sign in to save your wish.');
+          showInfo('Please sign in to save your wish.');
           return null;
         }
 
@@ -412,12 +414,12 @@ export function useWishBuilderActions({
           return createdWish;
         } else {
           console.error('Firebase save failed:', result.error);
-          alert(result.error || 'Failed to save wish');
+          showError(result.error || 'Failed to save wish');
           return null;
         }
       } catch (error) {
         console.error('Error saving wish from dialog:', error);
-        alert('Error saving wish. Please try again.');
+        showError('Error saving wish. Please try again.');
         return null;
       }
     },
@@ -447,7 +449,7 @@ export function useWishBuilderActions({
         }
       } catch (error) {
         console.error('Error sharing wish:', error);
-        alert('Error sharing wish. Please try again.');
+        showError('Error sharing wish. Please try again.');
         return '';
       }
     },

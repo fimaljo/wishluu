@@ -6,13 +6,18 @@ import { AuthGuard } from '@/components/auth/AuthGuard';
 import { WishElement } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
+import { useNotification } from '@/components/ui/Notification';
 
 export default function AdminCreateTemplatePage() {
   const { user } = useAuth();
+  const { notification, showError, showInfo } = useNotification();
   const [templateMetadata, setTemplateMetadata] = useState({
     name: '',
     description: '',
     occasion: 'custom',
+    thumbnail: '✨',
+    color: 'from-purple-400 to-pink-500',
+    difficulty: 'easy' as 'easy' | 'medium' | 'hard' | 'expert',
   });
   const [showMetadataForm, setShowMetadataForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -22,12 +27,17 @@ export default function AdminCreateTemplatePage() {
     stepSequence: string[][]
   ) => {
     if (!user) {
-      alert('You must be signed in to create templates');
+      showError('You must be signed in to create templates');
       return;
     }
 
     if (!templateMetadata.name.trim()) {
-      alert('Please enter a template name');
+      showError('Please enter a template name');
+      return;
+    }
+
+    if (elements.length === 0) {
+      showError('Please add at least one element to the template');
       return;
     }
 
@@ -47,10 +57,10 @@ export default function AdminCreateTemplatePage() {
           name: templateMetadata.name,
           description: templateMetadata.description,
           occasion: templateMetadata.occasion,
-          thumbnail: '✨',
-          color: 'from-purple-400 to-pink-500',
+          thumbnail: templateMetadata.thumbnail,
+          color: templateMetadata.color,
           elements: elements.map(el => el.elementType),
-          difficulty: 'easy',
+          difficulty: templateMetadata.difficulty,
           defaultElementIds: elements.map(el => el.elementType),
           stepSequence: convertedStepSequence,
         },
@@ -58,14 +68,14 @@ export default function AdminCreateTemplatePage() {
       );
 
       if (result.success) {
-        alert('Template created successfully!');
+        showInfo('Template created successfully!');
         window.location.href = '/admin/templates';
       } else {
-        alert(`Failed to create template: ${result.error}`);
+        showError(`Failed to create template: ${result.error}`);
       }
     } catch (error) {
       console.error('Error creating template:', error);
-      alert('An error occurred while creating the template.');
+      showError('An error occurred while creating the template.');
     } finally {
       setIsSaving(false);
     }
@@ -75,9 +85,57 @@ export default function AdminCreateTemplatePage() {
     setShowMetadataForm(true);
   };
 
+  const handleSaveMetadata = () => {
+    if (!templateMetadata.name.trim()) {
+      showError('Please enter a template name');
+      return;
+    }
+    setShowMetadataForm(false);
+    showInfo('Template information saved!');
+  };
+
   return (
     <AuthGuard requireAdmin={true}>
       <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50'>
+        {/* Notification */}
+        {notification && (
+          <div
+            className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300 ${
+              notification.type === 'success'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                : notification.type === 'error'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+            }`}
+          >
+            <div className='flex items-center space-x-2'>
+              <div className='text-2xl'>
+                {notification.type === 'success'
+                  ? '🎉'
+                  : notification.type === 'error'
+                    ? '❌'
+                    : '💡'}
+              </div>
+              <div>
+                <div className='font-semibold'>
+                  {notification.type === 'success'
+                    ? 'Success!'
+                    : notification.type === 'error'
+                      ? 'Error'
+                      : 'Info'}
+                </div>
+                <div className='text-sm opacity-90'>{notification.message}</div>
+              </div>
+              <button
+                onClick={() => notification.onClose?.()}
+                className='ml-4 text-white hover:text-gray-200 transition-colors'
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className='bg-white shadow-sm'>
           <div className='w-full max-w-[1800px] mx-auto px-6 py-4'>
@@ -153,6 +211,85 @@ export default function AdminCreateTemplatePage() {
 
                   <div>
                     <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      Thumbnail Emoji
+                    </label>
+                    <input
+                      type='text'
+                      value={templateMetadata.thumbnail}
+                      onChange={e =>
+                        setTemplateMetadata({
+                          ...templateMetadata,
+                          thumbnail: e.target.value,
+                        })
+                      }
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                      placeholder='🎂'
+                      maxLength={2}
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      Color Gradient
+                    </label>
+                    <select
+                      value={templateMetadata.color}
+                      onChange={e =>
+                        setTemplateMetadata({
+                          ...templateMetadata,
+                          color: e.target.value,
+                        })
+                      }
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                    >
+                      <option value='from-purple-400 to-pink-500'>
+                        Purple to Pink
+                      </option>
+                      <option value='from-blue-400 to-purple-500'>
+                        Blue to Purple
+                      </option>
+                      <option value='from-red-400 to-pink-500'>
+                        Red to Pink
+                      </option>
+                      <option value='from-green-400 to-emerald-500'>
+                        Green to Emerald
+                      </option>
+                      <option value='from-yellow-400 to-orange-500'>
+                        Yellow to Orange
+                      </option>
+                      <option value='from-indigo-400 to-purple-500'>
+                        Indigo to Purple
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      Difficulty
+                    </label>
+                    <select
+                      value={templateMetadata.difficulty}
+                      onChange={e =>
+                        setTemplateMetadata({
+                          ...templateMetadata,
+                          difficulty: e.target.value as
+                            | 'easy'
+                            | 'medium'
+                            | 'hard'
+                            | 'expert',
+                        })
+                      }
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                    >
+                      <option value='easy'>Easy</option>
+                      <option value='medium'>Medium</option>
+                      <option value='hard'>Hard</option>
+                      <option value='expert'>Expert</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
                       Occasion
                     </label>
                     <select
@@ -203,7 +340,7 @@ export default function AdminCreateTemplatePage() {
                     Cancel
                   </button>
                   <button
-                    onClick={() => setShowMetadataForm(false)}
+                    onClick={handleSaveMetadata}
                     className='px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
                   >
                     Save Info

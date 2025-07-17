@@ -4,20 +4,20 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { premiumApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
+import { useNotification } from '@/components/ui/Notification';
 
 export default function TestCreditsPage() {
   const { user } = useAuth();
+  const { notification, showError, showInfo } = useNotification();
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
 
   const addTestCredits = async (amount: number) => {
     if (!user?.uid) {
-      setMessage('Please sign in first');
+      showInfo('Please sign in first');
       return;
     }
 
     setIsLoading(true);
-    setMessage('');
 
     try {
       const result = (await premiumApi.addCredits(
@@ -27,12 +27,12 @@ export default function TestCreditsPage() {
       )) as any;
 
       if (result.success) {
-        setMessage(`✅ Successfully added ${amount} credits!`);
+        showInfo(`Successfully added ${amount} credits!`);
       } else {
-        setMessage(`❌ Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
-      setMessage(`❌ Error: ${error}`);
+      showError(`Error: ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -40,18 +40,17 @@ export default function TestCreditsPage() {
 
   const testCreditCheck = async () => {
     if (!user?.uid) {
-      setMessage('Please sign in first');
+      showInfo('Please sign in first');
       return;
     }
 
     setIsLoading(true);
-    setMessage('');
 
     try {
       // Check user status and credits
       const userResult = (await premiumApi.getStatus()) as any;
       if (!userResult.success) {
-        setMessage(`❌ User not found: ${userResult.error}`);
+        showError(`User not found: ${userResult.error}`);
         return;
       }
 
@@ -59,11 +58,11 @@ export default function TestCreditsPage() {
       const required = 2; // Cost for premium wish
       const hasEnough = credits >= required;
 
-      setMessage(
+      showInfo(
         `Credit Check: ${hasEnough ? '✅' : '❌'} Need ${required}, have ${credits} credits`
       );
     } catch (error) {
-      setMessage(`❌ Error: ${error}`);
+      showError(`Error: ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -71,12 +70,11 @@ export default function TestCreditsPage() {
 
   const testUseCredits = async () => {
     if (!user?.uid) {
-      setMessage('Please sign in first');
+      showInfo('Please sign in first');
       return;
     }
 
     setIsLoading(true);
-    setMessage('');
 
     try {
       const result = (await premiumApi.useCredits(
@@ -86,12 +84,12 @@ export default function TestCreditsPage() {
       )) as any;
 
       if (result.success) {
-        setMessage('✅ Successfully used 2 credits for premium wish!');
+        showInfo('Successfully used 2 credits for premium wish!');
       } else {
-        setMessage(`❌ Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
-      setMessage(`❌ Error: ${error}`);
+      showError(`Error: ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -99,26 +97,25 @@ export default function TestCreditsPage() {
 
   const checkUserExists = async () => {
     if (!user?.uid) {
-      setMessage('Please sign in first');
+      showInfo('Please sign in first');
       return;
     }
 
     setIsLoading(true);
-    setMessage('');
 
     try {
       const result = (await premiumApi.getStatus()) as any;
 
       if (result.success) {
         const userData = result.data;
-        setMessage(
-          `✅ User exists! Plan: ${userData.planType}, Credits: ${userData.credits}, Premium: ${userData.isPremium ? 'Yes' : 'No'}`
+        showInfo(
+          `User exists! Plan: ${userData.planType}, Credits: ${userData.credits}, Premium: ${userData.isPremium ? 'Yes' : 'No'}`
         );
       } else {
-        setMessage(`❌ User not found: ${result.error}`);
+        showError(`User not found: ${result.error}`);
       }
     } catch (error) {
-      setMessage(`❌ Error: ${error}`);
+      showError(`Error: ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -126,26 +123,25 @@ export default function TestCreditsPage() {
 
   const getCreditHistory = async () => {
     if (!user?.uid) {
-      setMessage('Please sign in first');
+      showInfo('Please sign in first');
       return;
     }
 
     setIsLoading(true);
-    setMessage('');
 
     try {
       const result = (await premiumApi.getCreditHistory()) as any;
 
       if (result.success) {
         const transactions = result.data;
-        setMessage(
-          `✅ Credit History: ${transactions.length} transactions found. Latest: ${transactions[0]?.description || 'None'}`
+        showInfo(
+          `Credit History: ${transactions.length} transactions found. Latest: ${transactions[0]?.description || 'None'}`
         );
       } else {
-        setMessage(`❌ Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
-      setMessage(`❌ Error: ${error}`);
+      showError(`Error: ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -153,12 +149,11 @@ export default function TestCreditsPage() {
 
   const testJwtApi = async () => {
     if (!user?.uid) {
-      setMessage('Please sign in first');
+      showInfo('Please sign in first');
       return;
     }
 
     setIsLoading(true);
-    setMessage('');
 
     try {
       // Test the JWT-authenticated API
@@ -166,14 +161,14 @@ export default function TestCreditsPage() {
 
       if (result.success) {
         const userData = result.data;
-        setMessage(
-          `✅ JWT API Test Success! Plan: ${userData.planType}, Credits: ${userData.credits}, Premium: ${userData.isPremium ? 'Yes' : 'No'}`
+        showInfo(
+          `JWT API Test Success! Plan: ${userData.planType}, Credits: ${userData.credits}, Premium: ${userData.isPremium ? 'Yes' : 'No'}`
         );
       } else {
-        setMessage(`❌ JWT API Error: ${result.error}`);
+        showError(`JWT API Error: ${result.error}`);
       }
     } catch (error) {
-      setMessage(`❌ JWT API Error: ${error}`);
+      showError(`JWT API Error: ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -181,12 +176,11 @@ export default function TestCreditsPage() {
 
   const testMonthlyLoginBonus = async () => {
     if (!user?.uid) {
-      setMessage('Please sign in first');
+      showInfo('Please sign in first');
       return;
     }
 
     setIsLoading(true);
-    setMessage('');
 
     try {
       const result = (await premiumApi.claimMonthlyLoginBonus()) as any;
@@ -194,19 +188,19 @@ export default function TestCreditsPage() {
       if (result.success) {
         const bonusData = result.data;
         if (bonusData.claimed) {
-          setMessage(
-            `🎉 Monthly Login Bonus Claimed! +${bonusData.creditsAdded} credits added to your account.\n\n${bonusData.message}`
+          showInfo(
+            `Monthly Login Bonus Claimed! +${bonusData.creditsAdded} credits added to your account.\n\n${bonusData.message}`
           );
         } else {
-          setMessage(
-            `💡 ${bonusData.message}\n\nYou can claim your next bonus on the 1st of next month.`
+          showInfo(
+            `${bonusData.message}\n\nYou can claim your next bonus on the 1st of next month.`
           );
         }
       } else {
-        setMessage(`❌ Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
-      setMessage(`❌ Error: ${error}`);
+      showError(`Error: ${error}`);
     } finally {
       setIsLoading(false);
     }
@@ -382,14 +376,41 @@ export default function TestCreditsPage() {
           </div>
         </div>
 
-        {/* Results */}
-        {message && (
-          <div className='mt-6 bg-white rounded-lg shadow-md p-6'>
-            <h2 className='text-xl font-semibold text-gray-900 mb-4'>
-              Test Results
-            </h2>
-            <div className='bg-gray-50 rounded-lg p-4'>
-              <p className='text-sm font-mono whitespace-pre-wrap'>{message}</p>
+        {/* Notification */}
+        {notification && (
+          <div
+            className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300 ${
+              notification.type === 'success'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                : notification.type === 'error'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+            }`}
+          >
+            <div className='flex items-center space-x-2'>
+              <div className='text-2xl'>
+                {notification.type === 'success'
+                  ? '🎉'
+                  : notification.type === 'error'
+                    ? '❌'
+                    : '💡'}
+              </div>
+              <div>
+                <div className='font-semibold'>
+                  {notification.type === 'success'
+                    ? 'Success!'
+                    : notification.type === 'error'
+                      ? 'Error'
+                      : 'Info'}
+                </div>
+                <div className='text-sm opacity-90'>{notification.message}</div>
+              </div>
+              <button
+                onClick={() => notification.onClose?.()}
+                className='ml-4 text-white hover:text-gray-200 transition-colors'
+              >
+                ✕
+              </button>
             </div>
           </div>
         )}

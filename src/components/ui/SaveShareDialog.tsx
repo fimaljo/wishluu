@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './Button';
 import { Wish } from '@/types';
+import { useNotification } from './Notification';
 
 interface SaveShareDialogProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export function SaveShareDialog({
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const { showInfo } = useNotification();
 
   useEffect(() => {
     if (isOpen && wish) {
@@ -44,7 +46,7 @@ export function SaveShareDialog({
 
   const handleShare = async () => {
     if (!recipientName.trim()) {
-      alert('Please enter a recipient name before sharing.');
+      showInfo('Please enter a recipient name before sharing.');
       return;
     }
 

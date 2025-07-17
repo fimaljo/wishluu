@@ -35,18 +35,19 @@ export const creditValidationSchema = z.object({
 // Security headers configuration
 export const securityHeaders = {
   'X-Frame-Options': 'DENY',
+  'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   'X-Content-Type-Options': 'nosniff',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Content-Security-Policy': [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://www.googleapis.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://www.googleapis.com https://apis.google.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com",
-    "frame-src 'self'",
+    "connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://apis.google.com https://securetoken.googleapis.com https://accounts.google.com",
+    "frame-src 'self' https://accounts.google.com https://*.firebaseapp.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
