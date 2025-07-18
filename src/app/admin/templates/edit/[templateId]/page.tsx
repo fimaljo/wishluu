@@ -22,6 +22,7 @@ export default function AdminEditTemplatePage() {
     name: '',
     description: '',
     occasion: 'custom',
+    creditCost: 0,
   });
   const [showMetadataForm, setShowMetadataForm] = useState(false);
 
@@ -42,6 +43,7 @@ export default function AdminEditTemplatePage() {
             name: result.data.name,
             description: result.data.description,
             occasion: result.data.occasion,
+            creditCost: result.data.creditCost || 0,
           });
         } else {
           setError(result.error || 'Failed to load template');
@@ -92,6 +94,7 @@ export default function AdminEditTemplatePage() {
           color: template.color,
           elements: elements.map(el => el.elementType),
           difficulty: template.difficulty,
+          creditCost: templateMetadata.creditCost,
           defaultElementIds: elements.map(el => el.elementType),
           stepSequence: convertedStepSequence,
         },
@@ -292,6 +295,29 @@ export default function AdminEditTemplatePage() {
                       rows={3}
                       placeholder='Describe what this template is for...'
                     />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      Credit Cost
+                    </label>
+                    <input
+                      type='number'
+                      value={templateMetadata.creditCost}
+                      onChange={e =>
+                        setTemplateMetadata({
+                          ...templateMetadata,
+                          creditCost: parseInt(e.target.value) || 0,
+                        })
+                      }
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                      placeholder='0'
+                      min='0'
+                      step='1'
+                    />
+                    <p className='text-xs text-gray-500 mt-1'>
+                      Number of credits required to use this template (0 = free)
+                    </p>
                   </div>
                 </div>
 

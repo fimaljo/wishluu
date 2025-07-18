@@ -123,6 +123,18 @@ export const premiumApi = {
       wishId,
     }),
 
+  useTemplateCredits: (
+    templateCost: number,
+    description: string,
+    templateId?: string
+  ) =>
+    apiClient.post('/premium', {
+      action: 'useTemplateCredits',
+      templateCost,
+      description,
+      templateId,
+    }),
+
   addCredits: (amount: number, description: string, source: string) =>
     apiClient.post('/premium', {
       action: 'addCredits',

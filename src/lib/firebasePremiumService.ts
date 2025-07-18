@@ -109,7 +109,14 @@ export const CREDIT_COSTS = {
   schedule_wish: 0.5, // Schedule a wish
   custom_elements: 0.5, // Use custom elements
   priority_template: 1, // Use priority template
+  template_usage: 0, // Template usage cost (will be set dynamically based on template)
 };
+
+// Welcome bonus configuration
+export const WELCOME_BONUS_CREDITS = parseInt(
+  process.env.NEXT_PUBLIC_WELCOME_BONUS_CREDITS || '10',
+  10
+);
 
 // Plan configuration (keeping for backward compatibility)
 export const PLAN_LIMITS: Record<string, PlanLimits> = {
@@ -230,7 +237,7 @@ export class FirebasePremiumService {
           message: 'Premium user found',
         };
       } else {
-        // Create default free user
+        // Create default free user with welcome credits
         const defaultUser: Omit<
           PremiumUserDocument,
           'createdAt' | 'updatedAt'
@@ -239,7 +246,7 @@ export class FirebasePremiumService {
           email,
           planType: 'free',
           isPremium: false,
-          credits: 0,
+          credits: WELCOME_BONUS_CREDITS, // Give new users welcome credits
           totalCreditsPurchased: 0,
           status: 'active',
         };
@@ -250,13 +257,32 @@ export class FirebasePremiumService {
           updatedAt: serverTimestamp(),
         });
 
+        // Create a credit transaction record for the welcome bonus
+        try {
+          const transactionDoc = {
+            userId,
+            type: 'bonus' as const,
+            amount: WELCOME_BONUS_CREDITS,
+            description: `Welcome bonus - ${WELCOME_BONUS_CREDITS} credits for new users`,
+            createdAt: serverTimestamp(),
+          };
+
+          await addDoc(this.creditTransactionsRef, transactionDoc);
+        } catch (error) {
+          console.warn(
+            'Failed to create welcome bonus transaction record:',
+            error
+          );
+          // Don't fail the user creation if transaction record fails
+        }
+
         const newDocSnap = await getDoc(docRef);
         const newPremiumUser = this.documentToPremiumUser(newDocSnap);
 
         return {
           success: true,
           data: newPremiumUser,
-          message: 'New premium user created',
+          message: `New premium user created with ${WELCOME_BONUS_CREDITS} welcome credits`,
         };
       }
     } catch (error) {
@@ -331,9 +357,7 @@ export class FirebasePremiumService {
   /**
    * Check if user can create a new wish
    */
-  static async canCreateWish(
-    userId: string
-  ): Promise<
+  static async canCreateWish(userId: string): Promise<
     ServiceResponse<{
       canCreate: boolean;
       reason?: string;
@@ -724,6 +748,69 @@ export class FirebasePremiumService {
       };
     } catch (error) {
       console.error('Error using credits:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
+   * Use credits for template usage (dynamic cost based on template)
+   */
+  static async useTemplateCredits(
+    userId: string,
+    templateCost: number,
+    description: string,
+    templateId?: string
+  ): Promise<ServiceResponse<void>> {
+    try {
+      // Check if user has enough credits
+      const premiumUserResult = await this.getPremiumUser(userId, '');
+
+      if (!premiumUserResult.success || !premiumUserResult.data) {
+        return {
+          success: false,
+          error: 'Failed to get premium user status',
+        };
+      }
+
+      const premiumUser = premiumUserResult.data;
+      const hasEnough = premiumUser.credits >= templateCost;
+
+      if (!hasEnough) {
+        return {
+          success: false,
+          error: `Insufficient credits. Need ${templateCost}, have ${premiumUser.credits}`,
+        };
+      }
+
+      const docRef = doc(this.premiumCollectionRef, userId);
+
+      // Update user credits
+      await updateDoc(docRef, {
+        credits: increment(-templateCost),
+        updatedAt: serverTimestamp(),
+      });
+
+      // Record transaction
+      await addDoc(this.creditTransactionsRef, {
+        userId,
+        type: 'usage',
+        amount: -templateCost,
+        description,
+        featureUsed: 'template_usage',
+        wishId: templateId,
+        createdAt: serverTimestamp(),
+      });
+
+      return {
+        success: true,
+        message: `Used ${templateCost} credits for template`,
+      };
+    } catch (error) {
+      console.error('Error using template credits:', error);
       return {
         success: false,
         error:

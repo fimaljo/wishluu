@@ -270,7 +270,7 @@ export default function DashboardPage() {
                     {premiumUser?.isPremium && ' ✨'}
                   </h3>
                   <p className='text-sm text-gray-600'>
-                    {premiumUser.credits || 0} credits available
+                    {(premiumUser.credits || 0).toFixed(2)} credits available
                   </p>
                 </div>
               </div>
@@ -280,7 +280,8 @@ export default function DashboardPage() {
                   <div className='text-right'>
                     <p className='text-sm text-gray-600'>Total purchased</p>
                     <p className='text-lg font-semibold text-gray-800'>
-                      {premiumUser.totalCreditsPurchased || 0} credits
+                      {(premiumUser.totalCreditsPurchased || 0).toFixed(2)}{' '}
+                      credits
                     </p>
                   </div>
                 </div>

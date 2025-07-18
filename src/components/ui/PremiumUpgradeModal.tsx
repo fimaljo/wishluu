@@ -139,7 +139,7 @@ export function PremiumUpgradeModal({
               <div>
                 <h3 className='font-semibold text-blue-900'>Current Balance</h3>
                 <p className='text-blue-700'>
-                  {currentCredits} credits available
+                  {currentCredits.toFixed(2)} credits available
                 </p>
               </div>
               <div className='w-24 h-2 bg-blue-200 rounded-full overflow-hidden'>

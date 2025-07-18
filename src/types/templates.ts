@@ -8,6 +8,7 @@ export interface Template {
   color: string;
   elements: string[];
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  creditCost?: number; // Credit cost to use this template
   preview?: string;
   defaultElementIds?: string[]; // Element IDs instead of full elements
   stepSequence?: string[][]; // Step sequence for presentation mode
@@ -32,11 +33,17 @@ export interface PropertyDefinition {
   type: 'text' | 'number' | 'color' | 'select' | 'range' | 'checkbox' | 'file';
   label: string;
   defaultValue: any;
-  options?: { value: string; label: string; isPremium?: boolean }[];
+  options?: {
+    value: string;
+    label: string;
+    isPremium?: boolean;
+    creditCost?: number;
+  }[];
   min?: number;
   max?: number;
   step?: number;
-  isPremium?: boolean;
+  isPremium?: boolean; // Legacy support
+  creditCost?: number; // New credit cost system
   premiumLabel?: string;
   upgradeMessage?: string;
 }
@@ -57,7 +64,8 @@ export interface InteractiveElement {
     | 'social';
   properties: ElementProperties;
   propertyDefinitions?: PropertyDefinition[];
-  isPremium?: boolean;
+  isPremium?: boolean; // Legacy support
+  creditCost?: number; // New credit cost system
   tags?: string[];
 }
 

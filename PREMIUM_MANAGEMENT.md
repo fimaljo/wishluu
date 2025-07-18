@@ -2,6 +2,25 @@
 
 This document outlines the comprehensive premium management system implemented for WishLuu, including user limitations, feature access control, and upgrade flows.
 
+## 🎁 Welcome Bonus System
+
+### New User Credits
+
+- **Welcome Bonus**: New users receive 10 credits upon their first signup
+- **Configurable**: Set via `NEXT_PUBLIC_WELCOME_BONUS_CREDITS` environment variable (default: 10)
+- **Transaction Tracking**: Welcome bonus is recorded in the credit transaction history
+- **One-time Only**: Bonus is only given when the premium user document is first created
+
+### Implementation Details
+
+```typescript
+// Environment variable (optional)
+NEXT_PUBLIC_WELCOME_BONUS_CREDITS = 10;
+
+// The bonus is automatically applied in FirebasePremiumService.getPremiumUser()
+// when creating a new premium user document
+```
+
 ## 🏗️ Architecture Overview
 
 ### Core Components

@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, feature, amount, wishId } = body;
+    const { action, feature, amount, wishId, templateCost, templateId } = body;
 
     // Validate request
     if (!action) {
@@ -98,6 +98,39 @@ export async function POST(request: NextRequest) {
           message: creditResult.message,
         });
         return addRateLimitHeaders(response, rateLimitKey, 'premium');
+
+      case 'useTemplateCredits':
+        if (
+          !templateCost ||
+          typeof templateCost !== 'number' ||
+          templateCost < 0
+        ) {
+          return NextResponse.json(
+            { success: false, error: 'Valid template cost is required' },
+            { status: 400 }
+          );
+        }
+
+        const templateCreditResult =
+          await FirebasePremiumService.useTemplateCredits(
+            userId,
+            templateCost,
+            'API template credit usage',
+            templateId
+          );
+
+        if (!templateCreditResult.success) {
+          return NextResponse.json(
+            { success: false, error: templateCreditResult.error },
+            { status: 400 }
+          );
+        }
+
+        const templateResponse = NextResponse.json({
+          success: true,
+          message: templateCreditResult.message,
+        });
+        return addRateLimitHeaders(templateResponse, rateLimitKey, 'premium');
 
       case 'addCredits':
         if (!amount || typeof amount !== 'number' || amount <= 0) {

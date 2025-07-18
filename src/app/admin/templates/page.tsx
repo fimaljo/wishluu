@@ -275,6 +275,17 @@ export default function AdminTemplatesPage() {
                             <span className='text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full'>
                               {template.elements.length} elements
                             </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded-full ${
+                                template.creditCost && template.creditCost > 0
+                                  ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700'
+                                  : 'bg-green-100 text-green-700'
+                              }`}
+                            >
+                              {template.creditCost && template.creditCost > 0
+                                ? `${template.creditCost} credits`
+                                : 'Free'}
+                            </span>
                           </div>
                         </div>
                       </div>

@@ -6,6 +6,7 @@ export interface UserPremiumStatus {
   expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  credits?: number; // Added to support credit system
 }
 
 export interface PremiumFeature {

@@ -16,7 +16,6 @@ export default function TemplateBuilderPage() {
       onBack={() => (window.location.href = '/')}
       templateId={templateId}
       isTemplateMode={isTemplateMode}
-      isUserPremium={false}
     />
   );
 }

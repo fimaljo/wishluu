@@ -78,6 +78,7 @@ export class FirebaseTemplateService {
       color: data.color,
       elements: data.elements,
       difficulty: data.difficulty,
+      ...(data.creditCost !== undefined && { creditCost: data.creditCost }),
       ...(data.preview && { preview: data.preview }),
       // Handle element IDs (no deserialization needed)
       ...(data.defaultElementIds && {
@@ -111,6 +112,9 @@ export class FirebaseTemplateService {
       color: template.color,
       elements: template.elements,
       difficulty: template.difficulty,
+      ...(template.creditCost !== undefined && {
+        creditCost: template.creditCost,
+      }),
       ...(template.preview && { preview: template.preview }),
       // Handle element IDs (no serialization needed)
       ...(template.defaultElementIds && {
@@ -343,6 +347,8 @@ export class FirebaseTemplateService {
         updateData.elements = updates.elements;
       if (updates.difficulty !== undefined)
         updateData.difficulty = updates.difficulty;
+      if (updates.creditCost !== undefined)
+        updateData.creditCost = updates.creditCost;
       if (updates.preview !== undefined) updateData.preview = updates.preview;
       // Handle element IDs (no serialization needed)
       if (updates.defaultElementIds !== undefined) {

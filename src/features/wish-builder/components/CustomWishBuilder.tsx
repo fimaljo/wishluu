@@ -18,6 +18,10 @@ import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
 import { Wish } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import {
+  calculateTotalCreditCost,
+  calculateTemplateCreditCost,
+} from '@/lib/creditCalculator';
+import {
   useWishBuilderState,
   useWishBuilderActions,
   useWishBuilderNavigation,
@@ -37,7 +41,6 @@ const MOBILE_BREAKPOINT = 768;
 interface CustomWishBuilderProps {
   onBack: () => void;
   templateId?: string;
-  isUserPremium?: boolean;
   isTemplateMode?: boolean;
   isAdminMode?: boolean;
   onSaveTemplate?: (elements: WishElement[], stepSequence: string[][]) => void;
@@ -491,6 +494,7 @@ const SaveShareStep = ({
   message = '',
   setMessage = () => {},
   theme = '',
+  templateCreditCost = 0,
 }: {
   elements: WishElement[];
   stepSequence: string[][];
@@ -512,6 +516,7 @@ const SaveShareStep = ({
   message?: string;
   setMessage?: (message: string) => void;
   theme?: string;
+  templateCreditCost?: number;
 }) => {
   return (
     <div className='bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-10 max-w-2xl mx-auto'>
@@ -575,6 +580,80 @@ const SaveShareStep = ({
             </div>
           )}
         </div>
+
+        {/* Credit Cost Display */}
+        {(() => {
+          let creditCost = 0;
+          let costType = '';
+          let breakdown = null;
+
+          if (isTemplateMode) {
+            // Template mode - show template cost + premium properties
+            const premiumBreakdown = calculateTemplateCreditCost(elements);
+            creditCost = templateCreditCost + premiumBreakdown.totalCost;
+            costType = 'Total Template Cost';
+            breakdown = premiumBreakdown;
+          } else {
+            // Custom wish mode - calculate total element and property costs
+            const totalBreakdown = calculateTotalCreditCost(elements);
+            creditCost = totalBreakdown.totalCost;
+            costType = 'Total Cost';
+            breakdown = totalBreakdown;
+          }
+
+          if (creditCost > 0) {
+            return (
+              <div className='mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg'>
+                <div className='flex items-center justify-between'>
+                  <span className='text-sm font-medium text-gray-700'>
+                    {costType}
+                  </span>
+                  <div className='flex items-center space-x-2'>
+                    <span className='text-yellow-500'>💎</span>
+                    <span className='text-lg font-bold text-gray-800'>
+                      {creditCost.toFixed(2)} credits
+                    </span>
+                  </div>
+                </div>
+                {!isTemplateMode && creditCost > 0 && (
+                  <div className='mt-2 text-xs text-gray-600'>
+                    Includes {elements.length} element
+                    {elements.length !== 1 ? 's' : ''} and premium features
+                  </div>
+                )}
+                {isTemplateMode && creditCost > 0 && (
+                  <div className='mt-3 space-y-1'>
+                    {templateCreditCost > 0 && (
+                      <div className='flex items-center justify-between text-xs'>
+                        <span className='text-gray-600'>Template cost:</span>
+                        <span className='font-medium text-gray-800'>
+                          {templateCreditCost.toFixed(2)} credits
+                        </span>
+                      </div>
+                    )}
+                    {breakdown && breakdown.totalCost > 0 && (
+                      <div className='flex items-center justify-between text-xs'>
+                        <span className='text-gray-600'>Premium features:</span>
+                        <span className='font-medium text-gray-800'>
+                          {breakdown.totalCost.toFixed(2)} credits
+                        </span>
+                      </div>
+                    )}
+                    <div className='border-t border-gray-200 pt-1 mt-1'>
+                      <div className='flex items-center justify-between text-xs font-medium'>
+                        <span className='text-gray-700'>Total:</span>
+                        <span className='text-gray-900'>
+                          {creditCost.toFixed(2)} credits
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return null;
+        })()}
 
         {/* Action Buttons */}
         <div className='flex flex-col sm:flex-row gap-3 justify-center items-center'>
@@ -777,7 +856,6 @@ const StepManagerPanel = ({
 export function CustomWishBuilder({
   onBack,
   templateId,
-  isUserPremium: propIsUserPremium,
   isTemplateMode = false,
   isAdminMode = false,
   onSaveTemplate,
@@ -885,13 +963,6 @@ export function CustomWishBuilder({
     () => isTemplateMode && templateId !== 'custom-blank',
     [isTemplateMode, templateId]
   );
-  const isUserPremium = useMemo(
-    () =>
-      propIsUserPremium !== undefined
-        ? propIsUserPremium
-        : userPremiumStatus?.isPremium || false,
-    [propIsUserPremium, userPremiumStatus]
-  );
   const stepInfo = useMemo(
     () => StepInfo({ currentStep, isTemplateMode }),
     [currentStep, isTemplateMode]
@@ -905,6 +976,7 @@ export function CustomWishBuilder({
     setStepSequence,
     setError,
     setIsLoading,
+    setIsSaving,
     setCurrentWish,
     setShowSaveShareDialog,
     setUserPremiumStatus,
@@ -1519,8 +1591,6 @@ export function CustomWishBuilder({
                 }
                 onSelectElement={handleSelectElement}
                 onUnselectElement={handleUnselectElement}
-                isUserPremium={isUserPremium}
-                isRestrictedMode={isRestrictedMode}
                 canvasElements={elements}
               />
             </div>
@@ -1594,7 +1664,7 @@ export function CustomWishBuilder({
                     ? false
                     : showCanvasSettings
                 }
-                isUserPremium={isUserPremium}
+                userCredits={userPremiumStatus?.credits || 0}
                 onUpgradeClick={actions.handleUpgradeClick}
                 selectedElements={getSelectedElementsForDisplay()}
                 elements={elements}
@@ -1614,7 +1684,6 @@ export function CustomWishBuilder({
                 music={music}
                 onUpdateMusic={setMusic}
                 showCanvasSettings={true}
-                isUserPremium={isUserPremium}
               />
             </div>
           )}
@@ -1677,6 +1746,7 @@ export function CustomWishBuilder({
                   message={message}
                   setMessage={setMessage}
                   theme={theme}
+                  templateCreditCost={template?.creditCost || 0}
                 />
               </div>
             </div>
@@ -1745,8 +1815,6 @@ export function CustomWishBuilder({
                   }
                   onSelectElement={handleSelectElement}
                   onUnselectElement={handleUnselectElement}
-                  isUserPremium={isUserPremium}
-                  isRestrictedMode={isRestrictedMode}
                   canvasElements={elements}
                 />
               </div>
@@ -1933,7 +2001,7 @@ export function CustomWishBuilder({
                     ? false
                     : showCanvasSettings
                 }
-                isUserPremium={isUserPremium}
+                userCredits={userPremiumStatus?.credits || 0}
                 onUpgradeClick={actions.handleUpgradeClick}
                 selectedElements={getSelectedElementsForDisplay()}
                 elements={elements}
@@ -1955,7 +2023,6 @@ export function CustomWishBuilder({
                   music={music}
                   onUpdateMusic={setMusic}
                   showCanvasSettings={true}
-                  isUserPremium={isUserPremium}
                 />
               </div>
             )}
@@ -1993,6 +2060,7 @@ export function CustomWishBuilder({
                 message={message}
                 setMessage={setMessage}
                 theme={theme}
+                templateCreditCost={template?.creditCost || 0}
               />
             </div>
           )}

@@ -18,6 +18,7 @@ export default function AdminCreateTemplatePage() {
     thumbnail: '✨',
     color: 'from-purple-400 to-pink-500',
     difficulty: 'easy' as 'easy' | 'medium' | 'hard' | 'expert',
+    creditCost: 0,
   });
   const [showMetadataForm, setShowMetadataForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,6 +62,7 @@ export default function AdminCreateTemplatePage() {
           color: templateMetadata.color,
           elements: elements.map(el => el.elementType),
           difficulty: templateMetadata.difficulty,
+          creditCost: templateMetadata.creditCost,
           defaultElementIds: elements.map(el => el.elementType),
           stepSequence: convertedStepSequence,
         },
@@ -329,6 +331,29 @@ export default function AdminCreateTemplatePage() {
                       rows={3}
                       placeholder='Describe what this template is for...'
                     />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      Credit Cost
+                    </label>
+                    <input
+                      type='number'
+                      value={templateMetadata.creditCost}
+                      onChange={e =>
+                        setTemplateMetadata({
+                          ...templateMetadata,
+                          creditCost: parseInt(e.target.value) || 0,
+                        })
+                      }
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                      placeholder='0'
+                      min='0'
+                      step='1'
+                    />
+                    <p className='text-xs text-gray-500 mt-1'>
+                      Number of credits required to use this template (0 = free)
+                    </p>
                   </div>
                 </div>
 

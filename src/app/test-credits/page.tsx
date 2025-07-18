@@ -206,6 +206,61 @@ export default function TestCreditsPage() {
     }
   };
 
+  const testWelcomeBonus = async () => {
+    if (!user?.uid) {
+      showInfo('Please sign in first');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Check current user status
+      const userResult = (await premiumApi.getStatus()) as any;
+      if (!userResult.success) {
+        showError(`User not found: ${userResult.error}`);
+        return;
+      }
+
+      const userData = userResult.data;
+
+      // Check credit history for welcome bonus transaction
+      const historyResult = (await premiumApi.getCreditHistory()) as any;
+      if (!historyResult.success) {
+        showError(`Failed to get credit history: ${historyResult.error}`);
+        return;
+      }
+
+      const transactions = historyResult.data;
+      const welcomeBonusTransaction = transactions.find((t: any) =>
+        t.description.includes('Welcome bonus')
+      );
+
+      if (welcomeBonusTransaction) {
+        showInfo(
+          `Welcome Bonus Found! 🎉\n\n` +
+            `Transaction: ${welcomeBonusTransaction.description}\n` +
+            `Amount: +${welcomeBonusTransaction.amount} credits\n` +
+            `Date: ${new Date(welcomeBonusTransaction.createdAt?.seconds * 1000).toLocaleString()}\n\n` +
+            `Current Balance: ${userData.credits} credits`
+        );
+      } else {
+        showInfo(
+          `No Welcome Bonus Found\n\n` +
+            `This could mean:\n` +
+            `• You're not a new user\n` +
+            `• The welcome bonus wasn't applied\n` +
+            `• Transaction record failed\n\n` +
+            `Current Balance: ${userData.credits} credits`
+        );
+      }
+    } catch (error) {
+      showError(`Error: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
@@ -372,6 +427,19 @@ export default function TestCreditsPage() {
                   🎁 Test Monthly Login Bonus
                 </Button>
               </div>
+
+              <div>
+                <h3 className='text-lg font-medium text-gray-800 mb-2'>
+                  Welcome Bonus Check
+                </h3>
+                <Button
+                  onClick={testWelcomeBonus}
+                  disabled={isLoading}
+                  className='bg-pink-600 hover:bg-pink-700'
+                >
+                  🎉 Check Welcome Bonus
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -432,22 +500,26 @@ export default function TestCreditsPage() {
           </h2>
           <div className='text-sm text-yellow-700 space-y-2'>
             <p>
-              1. <strong>Add Credits:</strong> Start by adding some test credits
+              1. <strong>Welcome Bonus:</strong> Check if you received the
+              10-credit welcome bonus for new users
+            </p>
+            <p>
+              2. <strong>Add Credits:</strong> Start by adding some test credits
               to your account
             </p>
             <p>
-              2. <strong>Check Balance:</strong> Verify your credit balance is
+              3. <strong>Check Balance:</strong> Verify your credit balance is
               updated
             </p>
             <p>
-              3. <strong>Test Usage:</strong> Try using credits for a premium
+              4. <strong>Test Usage:</strong> Try using credits for a premium
               wish
             </p>
             <p>
-              4. <strong>Check History:</strong> View your transaction history
+              5. <strong>Check History:</strong> View your transaction history
             </p>
             <p>
-              5. <strong>Verify Deduction:</strong> Confirm credits are properly
+              6. <strong>Verify Deduction:</strong> Confirm credits are properly
               deducted
             </p>
           </div>

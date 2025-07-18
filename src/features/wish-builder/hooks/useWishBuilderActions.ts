@@ -8,6 +8,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePremiumManagement } from '@/hooks/usePremiumManagement';
 import { premiumApi } from '@/lib/api';
 import { useNotification } from '@/components/ui/Notification';
+import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
+import {
+  calculateTotalCreditCost,
+  calculateTemplateCreditCost,
+} from '@/lib/creditCalculator';
 const MAX_STEPS = 10;
 
 interface UseWishBuilderActionsProps {
@@ -18,6 +23,7 @@ interface UseWishBuilderActionsProps {
   setStepSequence: React.Dispatch<React.SetStateAction<string[][]>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsSaving: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentWish: React.Dispatch<React.SetStateAction<Wish | null>>;
   setShowSaveShareDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setUserPremiumStatus: React.Dispatch<React.SetStateAction<any>>;
@@ -47,6 +53,7 @@ export function useWishBuilderActions({
   setStepSequence,
   setError,
   setIsLoading,
+  setIsSaving,
   setCurrentWish,
   setShowSaveShareDialog,
   setUserPremiumStatus,
@@ -250,19 +257,6 @@ export function useWishBuilderActions({
       return;
     }
 
-    // Check if user has enough credits for a premium wish
-    try {
-      const creditCheck = (await premiumApi.getStatus()) as any;
-      if (!creditCheck.success || creditCheck.data.credits < 2) {
-        setShowPremiumUpgradeModal(true);
-        return;
-      }
-    } catch (error) {
-      console.error('Failed to check credits:', error);
-      setShowPremiumUpgradeModal(true);
-      return;
-    }
-
     await withLoading(async () => {
       const wishData = {
         title: `Wish for ${recipientName.trim()}`,
@@ -277,16 +271,47 @@ export function useWishBuilderActions({
 
       const result = await createFirebaseWish(wishData);
       if (result.success && result.data) {
-        // Use credits for premium wish creation
+        // Handle credit deduction based on whether it's a template or custom wish
         try {
-          const creditResult = (await premiumApi.useCredits(
-            'premium_wish',
-            `Created premium wish: ${wishData.title}`,
-            result.data.id
-          )) as any;
+          if (templateId && templateId !== 'custom-blank') {
+            // Template-based wish - deduct template cost + premium properties
+            const templateResult =
+              await FirebaseTemplateService.getTemplateById(templateId);
+            if (templateResult.success && templateResult.data) {
+              const templateCost = templateResult.data.creditCost || 0;
+              const premiumBreakdown = calculateTemplateCreditCost(elements);
+              const totalCost = templateCost + premiumBreakdown.totalCost;
 
-          if (!creditResult.success) {
-            console.error('Failed to deduct credits:', creditResult.error);
+              if (totalCost > 0) {
+                const creditResult = (await premiumApi.useTemplateCredits(
+                  totalCost,
+                  `Used template: ${templateResult.data.name} with premium features`,
+                  templateId
+                )) as any;
+
+                if (!creditResult.success) {
+                  console.error(
+                    'Failed to deduct template credits:',
+                    creditResult.error
+                  );
+                }
+              }
+            }
+          } else {
+            // Custom wish - calculate total costs including premium properties
+            const creditBreakdown = calculateTotalCreditCost(elements);
+
+            if (creditBreakdown.totalCost > 0) {
+              const creditResult = (await premiumApi.useCredits(
+                'premium_wish',
+                `Created custom wish with ${elements.length} elements and premium features: ${wishData.title}`,
+                result.data.id
+              )) as any;
+
+              if (!creditResult.success) {
+                console.error('Failed to deduct credits:', creditResult.error);
+              }
+            }
           }
         } catch (error) {
           console.error('Failed to use credits:', error);
@@ -349,18 +374,8 @@ export function useWishBuilderActions({
           return wishData;
         }
 
-        // Check if user has enough credits for a premium wish
-        try {
-          const creditCheck = (await premiumApi.getStatus()) as any;
-          if (!creditCheck.success || creditCheck.data.credits < 2) {
-            setShowPremiumUpgradeModal(true);
-            return null;
-          }
-        } catch (error) {
-          console.error('Failed to check credits:', error);
-          setShowPremiumUpgradeModal(true);
-          return null;
-        }
+        // Set saving state
+        setIsSaving(true);
 
         // Prepare the wish data for Firebase
         const firebaseWishData = {
@@ -377,16 +392,54 @@ export function useWishBuilderActions({
         const result = await createFirebaseWish(firebaseWishData);
 
         if (result.success && result.data) {
-          // Use credits for premium wish creation
+          // Handle credit deduction based on whether it's a template or custom wish
           try {
-            const creditResult = (await premiumApi.useCredits(
-              'premium_wish',
-              `Created premium wish: ${firebaseWishData.title}`,
-              result.data.id
-            )) as any;
+            if (templateId && templateId !== 'custom-blank') {
+              // Template-based wish - deduct template cost + premium properties
+              const templateResult =
+                await FirebaseTemplateService.getTemplateById(templateId);
+              if (templateResult.success && templateResult.data) {
+                const templateCost = templateResult.data.creditCost || 0;
+                const premiumBreakdown = calculateTemplateCreditCost(
+                  firebaseWishData.elements
+                );
+                const totalCost = templateCost + premiumBreakdown.totalCost;
 
-            if (!creditResult.success) {
-              console.error('Failed to deduct credits:', creditResult.error);
+                if (totalCost > 0) {
+                  const creditResult = (await premiumApi.useTemplateCredits(
+                    totalCost,
+                    `Used template: ${templateResult.data.name} with premium features`,
+                    templateId
+                  )) as any;
+
+                  if (!creditResult.success) {
+                    console.error(
+                      'Failed to deduct template credits:',
+                      creditResult.error
+                    );
+                  }
+                }
+              }
+            } else {
+              // Custom wish - calculate total costs including premium properties
+              const creditBreakdown = calculateTotalCreditCost(
+                firebaseWishData.elements
+              );
+
+              if (creditBreakdown.totalCost > 0) {
+                const creditResult = (await premiumApi.useCredits(
+                  'premium_wish',
+                  `Created custom wish with ${firebaseWishData.elements.length} elements and premium features: ${firebaseWishData.title}`,
+                  result.data.id
+                )) as any;
+
+                if (!creditResult.success) {
+                  console.error(
+                    'Failed to deduct credits:',
+                    creditResult.error
+                  );
+                }
+              }
             }
           } catch (error) {
             console.error('Failed to use credits:', error);
@@ -421,6 +474,8 @@ export function useWishBuilderActions({
         console.error('Error saving wish from dialog:', error);
         showError('Error saving wish. Please try again.');
         return null;
+      } finally {
+        setIsSaving(false);
       }
     },
     [
@@ -429,6 +484,7 @@ export function useWishBuilderActions({
       templateId,
       setCurrentWish,
       setShowPremiumUpgradeModal,
+      setIsSaving,
     ]
   );
 

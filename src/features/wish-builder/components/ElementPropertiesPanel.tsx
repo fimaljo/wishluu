@@ -10,10 +10,10 @@ import {
 import { Button } from '@/components/ui/Button';
 import { ColorPicker } from '@/components/ui/ColorPicker';
 import {
-  PremiumPropertyWrapper,
-  PremiumPropertyLabel,
-  PremiumBadge,
-} from '@/components/ui/PremiumPropertyWrapper';
+  CreditCostWrapper,
+  CreditCostLabel,
+  CreditCostBadge,
+} from '@/components/ui/CreditCostBadge';
 import { getAllElements } from '@/config/elements';
 
 interface ElementPropertiesPanelProps {
@@ -29,7 +29,7 @@ interface ElementPropertiesPanelProps {
   customBackgroundColor?: string;
   onUpdateCustomBackgroundColor?: (color: string) => void;
   showCanvasSettings?: boolean;
-  isUserPremium?: boolean;
+  userCredits?: number;
   onUpgradeClick?: () => void;
   selectedElements?: WishElement[];
   elements?: WishElement[];
@@ -51,7 +51,7 @@ export function ElementPropertiesPanel({
   customBackgroundColor = '#ffffff',
   onUpdateCustomBackgroundColor,
   showCanvasSettings = true,
-  isUserPremium = false,
+  userCredits = 0,
   onUpgradeClick,
   selectedElements,
   elements = [],
@@ -571,23 +571,17 @@ export function ElementPropertiesPanel({
 
               return (
                 <div key={propDef.name} className='relative pb-3'>
-                  <PremiumPropertyWrapper
-                    isPremium={propDef.isPremium || false}
-                    premiumLabel={propDef.premiumLabel || 'Premium'}
-                    upgradeMessage={
-                      propDef.upgradeMessage || 'Upgrade to access this feature'
-                    }
-                    isUserPremium={isUserPremium}
-                    onUpgradeClick={onUpgradeClick || (() => {})}
-                    className='mb-3'
-                  >
+                  <div className='mb-3'>
                     <div className='space-y-2'>
-                      <PremiumPropertyLabel
-                        label={propDef.label}
-                        isPremium={propDef.isPremium || false}
-                        premiumLabel={propDef.premiumLabel || 'Premium'}
-                        className='mb-2'
-                      />
+                      <div className='text-sm font-medium text-gray-700 mb-2'>
+                        {propDef.label}
+                        {propDef.creditCost && propDef.creditCost > 0 && (
+                          <span className='ml-2 inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium rounded-full'>
+                            <span>💎</span>
+                            {propDef.creditCost}
+                          </span>
+                        )}
+                      </div>
 
                       {propDef.type === 'text' && (
                         <input
@@ -617,9 +611,7 @@ export function ElementPropertiesPanel({
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium &&
-                                  !isUserPremium &&
-                                  ' ✨ (Premium)'}
+                                {option.isPremium && ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -703,7 +695,7 @@ export function ElementPropertiesPanel({
                         </label>
                       )}
                     </div>
-                  </PremiumPropertyWrapper>
+                  </div>
                 </div>
               );
             })}
@@ -720,23 +712,17 @@ export function ElementPropertiesPanel({
 
               return (
                 <div key={propDef.name} className='relative pb-3'>
-                  <PremiumPropertyWrapper
-                    isPremium={propDef.isPremium || false}
-                    premiumLabel={propDef.premiumLabel || 'Premium'}
-                    upgradeMessage={
-                      propDef.upgradeMessage || 'Upgrade to access this feature'
-                    }
-                    isUserPremium={isUserPremium}
-                    onUpgradeClick={onUpgradeClick || (() => {})}
-                    className='mb-3'
-                  >
+                  <div className='mb-3'>
                     <div className='space-y-2'>
-                      <PremiumPropertyLabel
-                        label={propDef.label}
-                        isPremium={propDef.isPremium || false}
-                        premiumLabel={propDef.premiumLabel || 'Premium'}
-                        className='mb-2'
-                      />
+                      <div className='text-sm font-medium text-gray-700 mb-2'>
+                        {propDef.label}
+                        {propDef.creditCost && propDef.creditCost > 0 && (
+                          <span className='ml-2 inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium rounded-full'>
+                            <span>💎</span>
+                            {propDef.creditCost}
+                          </span>
+                        )}
+                      </div>
 
                       {propDef.type === 'text' && (
                         <input
@@ -766,9 +752,7 @@ export function ElementPropertiesPanel({
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium &&
-                                  !isUserPremium &&
-                                  ' ✨ (Premium)'}
+                                {option.isPremium && ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -852,7 +836,7 @@ export function ElementPropertiesPanel({
                         </label>
                       )}
                     </div>
-                  </PremiumPropertyWrapper>
+                  </div>
                 </div>
               );
             })}
@@ -869,23 +853,17 @@ export function ElementPropertiesPanel({
 
               return (
                 <div key={propDef.name} className='relative pb-3'>
-                  <PremiumPropertyWrapper
-                    isPremium={propDef.isPremium || false}
-                    premiumLabel={propDef.premiumLabel || 'Premium'}
-                    upgradeMessage={
-                      propDef.upgradeMessage || 'Upgrade to access this feature'
-                    }
-                    isUserPremium={isUserPremium}
-                    onUpgradeClick={onUpgradeClick || (() => {})}
-                    className='mb-3'
-                  >
+                  <div className='mb-3'>
                     <div className='space-y-2'>
-                      <PremiumPropertyLabel
-                        label={propDef.label}
-                        isPremium={propDef.isPremium || false}
-                        premiumLabel={propDef.premiumLabel || 'Premium'}
-                        className='mb-2'
-                      />
+                      <div className='text-sm font-medium text-gray-700 mb-2'>
+                        {propDef.label}
+                        {propDef.creditCost && propDef.creditCost > 0 && (
+                          <span className='ml-2 inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium rounded-full'>
+                            <span>💎</span>
+                            {propDef.creditCost}
+                          </span>
+                        )}
+                      </div>
 
                       {propDef.type === 'text' && (
                         <div>
@@ -957,9 +935,7 @@ export function ElementPropertiesPanel({
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium &&
-                                  !isUserPremium &&
-                                  ' ✨ (Premium)'}
+                                {option.isPremium && ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -1043,7 +1019,7 @@ export function ElementPropertiesPanel({
                         </label>
                       )}
                     </div>
-                  </PremiumPropertyWrapper>
+                  </div>
                 </div>
               );
             })}
@@ -1060,23 +1036,17 @@ export function ElementPropertiesPanel({
 
               return (
                 <div key={propDef.name} className='relative pb-3'>
-                  <PremiumPropertyWrapper
-                    isPremium={propDef.isPremium || false}
-                    premiumLabel={propDef.premiumLabel || 'Premium'}
-                    upgradeMessage={
-                      propDef.upgradeMessage || 'Upgrade to access this feature'
-                    }
-                    isUserPremium={isUserPremium}
-                    onUpgradeClick={onUpgradeClick || (() => {})}
-                    className='mb-3'
-                  >
+                  <div className='mb-3'>
                     <div className='space-y-2'>
-                      <PremiumPropertyLabel
-                        label={propDef.label}
-                        isPremium={propDef.isPremium || false}
-                        premiumLabel={propDef.premiumLabel || 'Premium'}
-                        className='mb-2'
-                      />
+                      <div className='text-sm font-medium text-gray-700 mb-2'>
+                        {propDef.label}
+                        {propDef.creditCost && propDef.creditCost > 0 && (
+                          <span className='ml-2 inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium rounded-full'>
+                            <span>💎</span>
+                            {propDef.creditCost}
+                          </span>
+                        )}
+                      </div>
 
                       {propDef.type === 'text' && (
                         <div>
@@ -1144,9 +1114,7 @@ export function ElementPropertiesPanel({
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium &&
-                                  !isUserPremium &&
-                                  ' ✨ (Premium)'}
+                                {option.isPremium && ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -1230,7 +1198,7 @@ export function ElementPropertiesPanel({
                         </label>
                       )}
                     </div>
-                  </PremiumPropertyWrapper>
+                  </div>
                 </div>
               );
             })}
@@ -1892,14 +1860,14 @@ export function CanvasSettingsPanel({
   music,
   onUpdateMusic,
   showCanvasSettings = true,
-  isUserPremium = false,
+  userCredits = 0,
 }: {
   theme: string;
   onUpdateTheme: (theme: string) => void;
   music?: string;
   onUpdateMusic?: (music: string) => void;
   showCanvasSettings?: boolean;
-  isUserPremium?: boolean;
+  userCredits?: number;
 }) {
   const themes = [
     {

@@ -67,6 +67,13 @@ export function TemplatePreviewModal({
                 {template.name}
               </h2>
               <p className='text-sm text-gray-500'>{template.description}</p>
+              {template.creditCost && template.creditCost > 0 && (
+                <div className='flex items-center space-x-2 mt-1'>
+                  <span className='text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full font-medium'>
+                    💎 {template.creditCost} credits
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <button
@@ -137,11 +144,12 @@ export function TemplatePreviewModal({
                             {elementDef?.description || 'Custom element'}
                           </div>
                         </div>
-                        {elementDef?.isPremium && (
-                          <span className='text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full flex-shrink-0'>
-                            Pro
-                          </span>
-                        )}
+                        {elementDef?.creditCost &&
+                          elementDef.creditCost > 0 && (
+                            <span className='text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full flex-shrink-0'>
+                              💎 {elementDef.creditCost}
+                            </span>
+                          )}
                       </div>
                     );
                   })}

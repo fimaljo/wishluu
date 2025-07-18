@@ -264,10 +264,17 @@ export default function TemplatesPage() {
                         <p className='text-white/90 text-sm mb-6 leading-relaxed'>
                           {template.description}
                         </p>
-                        <div className='bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300 inline-block'>
-                          {template.occasion === 'custom'
-                            ? 'Custom'
-                            : template.occasion}
+                        <div className='flex items-center justify-center space-x-2'>
+                          <div className='bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
+                            {template.occasion === 'custom'
+                              ? 'Custom'
+                              : template.occasion}
+                          </div>
+                          {template.creditCost && template.creditCost > 0 && (
+                            <div className='bg-gradient-to-r from-yellow-400 to-orange-500 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
+                              💎 {template.creditCost}
+                            </div>
+                          )}
                         </div>
                       </div>
 
