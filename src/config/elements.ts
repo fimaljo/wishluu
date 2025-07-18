@@ -364,6 +364,69 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       },
     ],
   },
+
+  {
+    id: 'interactive-quiz',
+    type: 'interaction',
+    name: 'Interactive Quiz',
+    description: 'Test how well you know me with multiple choice questions',
+    icon: '🧠',
+    category: 'basic',
+    isPremium: false,
+    tags: ['quiz', 'questions', 'score', 'interactive', 'fun'],
+    properties: {
+      title: 'How Well Do You Know Me?',
+      questions: [
+        {
+          question: 'What is my favorite color?',
+          options: ['Blue', 'Red', 'Green', 'Purple'],
+          correctAnswer: 0,
+        },
+      ],
+      perfectScoreMessage:
+        'Wow! You know me perfectly! We must be soulmates! 💕',
+      goodScoreMessage: 'Great job! You know me pretty well! 😊',
+      averageScoreMessage: 'Not bad! You know some things about me! 🤔',
+      lowScoreMessage: 'Hmm... We need to spend more time together! 😅',
+    },
+    propertyDefinitions: [
+      {
+        name: 'title',
+        type: 'text',
+        label: 'Quiz Title',
+        defaultValue: 'How Well Do You Know Me?',
+        isPremium: false,
+      },
+      {
+        name: 'perfectScoreMessage',
+        type: 'text',
+        label: 'Perfect Score Message (90-100%)',
+        defaultValue: 'Wow! You know me perfectly! We must be soulmates! 💕',
+        isPremium: false,
+      },
+      {
+        name: 'goodScoreMessage',
+        type: 'text',
+        label: 'Good Score Message (70-89%)',
+        defaultValue: 'Great job! You know me pretty well! 😊',
+        isPremium: false,
+      },
+      {
+        name: 'averageScoreMessage',
+        type: 'text',
+        label: 'Average Score Message (50-69%)',
+        defaultValue: 'Not bad! You know some things about me! 🤔',
+        isPremium: false,
+      },
+      {
+        name: 'lowScoreMessage',
+        type: 'text',
+        label: 'Low Score Message (0-49%)',
+        defaultValue: 'Hmm... We need to spend more time together! 😅',
+        isPremium: false,
+      },
+    ],
+  },
 ];
 
 // ===== HELPER FUNCTIONS =====

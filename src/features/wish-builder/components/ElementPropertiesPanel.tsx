@@ -1237,6 +1237,401 @@ export function ElementPropertiesPanel({
           </div>
         );
 
+      case 'interactive-quiz':
+        return (
+          <div className='space-y-4'>
+            {/* Quiz Title */}
+            <div className='relative pb-3'>
+              <div className='space-y-2'>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Quiz Title
+                </label>
+                <input
+                  type='text'
+                  value={properties.title || 'How Well Do You Know Me?'}
+                  onChange={e => {
+                    const newValue = e.target.value.substring(0, 100);
+                    handlePropertyChange('title', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                  placeholder='How Well Do You Know Me?'
+                  maxLength={100}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {(properties.title || 'How Well Do You Know Me?').length}/100
+                  characters
+                  {(properties.title || 'How Well Do You Know Me?').length >=
+                    80 && (
+                    <span className='text-orange-600 ml-2'>
+                      {100 -
+                        (properties.title || 'How Well Do You Know Me?')
+                          .length}{' '}
+                      remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Questions */}
+            <div className='space-y-4'>
+              <div className='flex items-center justify-between'>
+                <label className='block text-sm font-medium text-gray-700'>
+                  Questions (
+                  {properties.questions && properties.questions.length > 0
+                    ? properties.questions.length
+                    : 1}
+                  /10)
+                </label>
+                <div className='flex gap-2'>
+                  {properties.questions && properties.questions.length > 1 && (
+                    <button
+                      onClick={() => {
+                        const currentQuestions = properties.questions || [];
+                        const newQuestions = currentQuestions.slice(0, -1);
+                        handlePropertyChange('questions', newQuestions);
+                      }}
+                      className='px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors'
+                    >
+                      Remove Last
+                    </button>
+                  )}
+                  {(properties.questions && properties.questions.length > 0
+                    ? properties.questions.length
+                    : 1) < 10 && (
+                    <button
+                      onClick={() => {
+                        const currentQuestions =
+                          properties.questions &&
+                          properties.questions.length > 0
+                            ? properties.questions
+                            : [];
+                        const newQuestions = [
+                          ...currentQuestions,
+                          {
+                            question: '',
+                            options: ['', '', '', ''],
+                            correctAnswer: 0,
+                          },
+                        ];
+                        handlePropertyChange('questions', newQuestions);
+                      }}
+                      className='px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors'
+                    >
+                      Add Question
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Render current questions */}
+              {(properties.questions && properties.questions.length > 0
+                ? properties.questions
+                : [
+                    {
+                      question: '',
+                      options: ['', '', '', ''],
+                      correctAnswer: 0,
+                    },
+                  ]
+              ).map((question: any, index: number) => (
+                <div
+                  key={index}
+                  className='p-4 border border-gray-200 rounded-lg bg-gray-50'
+                >
+                  <div className='space-y-3'>
+                    {/* Question Text */}
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Question {index + 1}
+                      </label>
+                      <input
+                        type='text'
+                        value={question.question}
+                        onChange={e => {
+                          const newValue = e.target.value.substring(0, 150);
+                          const currentQuestions = properties.questions || [];
+                          const newQuestions = [...currentQuestions];
+                          newQuestions[index] = {
+                            ...newQuestions[index],
+                            question: newValue,
+                          };
+                          handlePropertyChange('questions', newQuestions);
+                        }}
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                        placeholder={`Question ${index + 1}`}
+                        maxLength={150}
+                      />
+                      <div className='text-xs text-gray-500 mt-1'>
+                        {question.question.length}/150 characters
+                        {question.question.length >= 120 && (
+                          <span className='text-orange-600 ml-2'>
+                            {150 - question.question.length} remaining
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Options */}
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Options (comma separated)
+                      </label>
+                      <input
+                        type='text'
+                        value={question.options.join(', ')}
+                        onChange={e => {
+                          const newValue = e.target.value.substring(0, 300);
+                          // Split by comma and trim, but keep empty options for now
+                          const options = newValue
+                            .split(',')
+                            .map(opt => opt.trim());
+                          const currentQuestions = properties.questions || [];
+                          const newQuestions = [...currentQuestions];
+                          newQuestions[index] = {
+                            ...newQuestions[index],
+                            options: options,
+                          };
+                          handlePropertyChange('questions', newQuestions);
+                        }}
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                        placeholder='Blue, Red, Green, Purple'
+                        maxLength={300}
+                      />
+                      <div className='text-xs text-gray-500 mt-1'>
+                        {question.options.join(', ').length}/300 characters
+                        {question.options.join(', ').length >= 240 && (
+                          <span className='text-orange-600 ml-2'>
+                            {300 - question.options.join(', ').length} remaining
+                          </span>
+                        )}
+                        <div className='text-blue-600 mt-1'>
+                          💡 Separate options with commas (e.g., "Blue, Red,
+                          Green, Purple")
+                        </div>
+                        {question.options.some(
+                          (opt: string) => opt.length === 0
+                        ) && (
+                          <div className='text-orange-600 mt-1'>
+                            ⚠️ Empty options will be ignored
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Correct Answer */}
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                        Correct Answer
+                      </label>
+                      <select
+                        value={question.correctAnswer}
+                        onChange={e => {
+                          const currentQuestions = properties.questions || [];
+                          const newQuestions = [...currentQuestions];
+                          newQuestions[index] = {
+                            ...newQuestions[index],
+                            correctAnswer: parseInt(e.target.value),
+                          };
+                          handlePropertyChange('questions', newQuestions);
+                        }}
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                      >
+                        {question.options.map(
+                          (option: string, optionIndex: number) => (
+                            <option key={optionIndex} value={optionIndex}>
+                              {option || `Option ${optionIndex + 1}`}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Score Messages */}
+            <div className='space-y-4'>
+              <h4 className='text-sm font-medium text-gray-700'>
+                Score Messages
+              </h4>
+
+              {/* Perfect Score Message */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Perfect Score Message (90-100%)
+                </label>
+                <input
+                  type='text'
+                  value={
+                    properties.perfectScoreMessage ||
+                    'Wow! You know me perfectly! We must be soulmates! 💕'
+                  }
+                  onChange={e => {
+                    const newValue = e.target.value.substring(0, 200);
+                    handlePropertyChange('perfectScoreMessage', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                  placeholder='Perfect score message'
+                  maxLength={200}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {
+                    (
+                      properties.perfectScoreMessage ||
+                      'Wow! You know me perfectly! We must be soulmates! 💕'
+                    ).length
+                  }
+                  /200 characters
+                  {(
+                    properties.perfectScoreMessage ||
+                    'Wow! You know me perfectly! We must be soulmates! 💕'
+                  ).length >= 160 && (
+                    <span className='text-orange-600 ml-2'>
+                      {200 -
+                        (
+                          properties.perfectScoreMessage ||
+                          'Wow! You know me perfectly! We must be soulmates! 💕'
+                        ).length}{' '}
+                      remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Good Score Message */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Good Score Message (70-89%)
+                </label>
+                <input
+                  type='text'
+                  value={
+                    properties.goodScoreMessage ||
+                    'Great job! You know me pretty well! 😊'
+                  }
+                  onChange={e => {
+                    const newValue = e.target.value.substring(0, 200);
+                    handlePropertyChange('goodScoreMessage', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                  placeholder='Good score message'
+                  maxLength={200}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {
+                    (
+                      properties.goodScoreMessage ||
+                      'Great job! You know me pretty well! 😊'
+                    ).length
+                  }
+                  /200 characters
+                  {(
+                    properties.goodScoreMessage ||
+                    'Great job! You know me pretty well! 😊'
+                  ).length >= 160 && (
+                    <span className='text-orange-600 ml-2'>
+                      {200 -
+                        (
+                          properties.goodScoreMessage ||
+                          'Great job! You know me pretty well! 😊'
+                        ).length}{' '}
+                      remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Average Score Message */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Average Score Message (50-69%)
+                </label>
+                <input
+                  type='text'
+                  value={
+                    properties.averageScoreMessage ||
+                    'Not bad! You know some things about me! 🤔'
+                  }
+                  onChange={e => {
+                    const newValue = e.target.value.substring(0, 200);
+                    handlePropertyChange('averageScoreMessage', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                  placeholder='Average score message'
+                  maxLength={200}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {
+                    (
+                      properties.averageScoreMessage ||
+                      'Not bad! You know some things about me! 🤔'
+                    ).length
+                  }
+                  /200 characters
+                  {(
+                    properties.averageScoreMessage ||
+                    'Not bad! You know some things about me! 🤔'
+                  ).length >= 160 && (
+                    <span className='text-orange-600 ml-2'>
+                      {200 -
+                        (
+                          properties.averageScoreMessage ||
+                          'Not bad! You know some things about me! 🤔'
+                        ).length}{' '}
+                      remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Low Score Message */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Low Score Message (0-49%)
+                </label>
+                <input
+                  type='text'
+                  value={
+                    properties.lowScoreMessage ||
+                    'Hmm... We need to spend more time together! 😅'
+                  }
+                  onChange={e => {
+                    const newValue = e.target.value.substring(0, 200);
+                    handlePropertyChange('lowScoreMessage', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                  placeholder='Low score message'
+                  maxLength={200}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {
+                    (
+                      properties.lowScoreMessage ||
+                      'Hmm... We need to spend more time together! 😅'
+                    ).length
+                  }
+                  /200 characters
+                  {(
+                    properties.lowScoreMessage ||
+                    'Hmm... We need to spend more time together! 😅'
+                  ).length >= 160 && (
+                    <span className='text-orange-600 ml-2'>
+                      {200 -
+                        (
+                          properties.lowScoreMessage ||
+                          'Hmm... We need to spend more time together! 😅'
+                        ).length}{' '}
+                      remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className='text-gray-500 text-sm'>

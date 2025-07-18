@@ -7,6 +7,7 @@ import { BeautifulText } from '@/components/ui/BeautifulText';
 import { CommentWall } from '@/components/ui/CommentWall';
 import { DateQuestion } from '@/components/ui/DateQuestion';
 import { ImagePuzzle } from '@/components/ui/ImagePuzzle';
+import { InteractiveQuiz } from '@/components/ui/InteractiveQuiz';
 import { MusicPlayer } from '@/components/ui/MusicPlayer';
 
 interface WishCanvasProps {
@@ -132,6 +133,7 @@ export function WishCanvas({
             el.elementType === 'comment-wall' ||
             el.elementType === 'date-question' ||
             el.elementType === 'image-puzzle' ||
+            el.elementType === 'interactive-quiz' ||
             el.elementType === 'confetti' ||
             el.elementType === 'music-player'
         );
@@ -395,6 +397,53 @@ export function WishCanvas({
               gridSize={properties.gridSize || '3'}
               difficulty={properties.difficulty || 'medium'}
               secretMessage={properties.secretMessage || ''}
+            />
+          </div>
+        );
+
+      case 'interactive-quiz':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses} ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              maxWidth: '90%',
+            }}
+            onClick={() => {
+              if (isPreviewMode) {
+                // In preview mode, clicking quiz progresses to next step
+                handleElementComplete(element.id);
+              } else {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+            }}
+          >
+            {selectedIndicator}
+            <InteractiveQuiz
+              title={properties.title || 'How Well Do You Know Me?'}
+              questions={properties.questions || []}
+              perfectScoreMessage={
+                properties.perfectScoreMessage ||
+                'Wow! You know me perfectly! We must be soulmates! 💕'
+              }
+              goodScoreMessage={
+                properties.goodScoreMessage ||
+                'Great job! You know me pretty well! 😊'
+              }
+              averageScoreMessage={
+                properties.averageScoreMessage ||
+                'Not bad! You know some things about me! 🤔'
+              }
+              lowScoreMessage={
+                properties.lowScoreMessage ||
+                'Hmm... We need to spend more time together! 😅'
+              }
             />
           </div>
         );
