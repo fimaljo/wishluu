@@ -215,6 +215,58 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       },
     ],
   },
+
+  // ===== INTERACTION ELEMENTS =====
+  {
+    id: 'comment-wall',
+    type: 'interaction',
+    name: 'Instagram Style Post',
+    description: 'Create an Instagram-style post with photo/video and comments',
+    icon: '📱',
+    category: 'social',
+    isPremium: false,
+    tags: [
+      'instagram',
+      'social',
+      'post',
+      'photo',
+      'video',
+      'comments',
+      'sharing',
+    ],
+    properties: {
+      postType: 'photo', // 'photo' or 'video'
+      mediaUrl: '',
+      postDescription: 'Share your thoughts and memories here...',
+    },
+    propertyDefinitions: [
+      {
+        name: 'postType',
+        type: 'select',
+        label: 'Post Type',
+        defaultValue: 'photo',
+        isPremium: false,
+        options: [
+          { value: 'photo', label: 'Photo Post' },
+          { value: 'video', label: 'Video Post' },
+        ],
+      },
+      {
+        name: 'mediaUrl',
+        type: 'text',
+        label: 'Media URL',
+        defaultValue: '',
+        isPremium: false,
+      },
+      {
+        name: 'postDescription',
+        type: 'text',
+        label: 'Post Description',
+        defaultValue: 'Share your thoughts and memories here...',
+        isPremium: false,
+      },
+    ],
+  },
 ];
 
 // ===== HELPER FUNCTIONS =====
@@ -299,10 +351,11 @@ export const getRecommendedElements = (
   context: string
 ): InteractiveElement[] => {
   const recommendations: { [key: string]: string[] } = {
-    birthday: ['balloons-interactive', 'beautiful-text'],
-    valentine: ['beautiful-text'],
-    celebration: ['balloons-interactive', 'beautiful-text'],
-    basic: ['beautiful-text'],
+    birthday: ['balloons-interactive', 'beautiful-text', 'comment-wall'],
+    valentine: ['beautiful-text', 'comment-wall'],
+    celebration: ['balloons-interactive', 'beautiful-text', 'comment-wall'],
+    basic: ['beautiful-text', 'comment-wall'],
+    social: ['comment-wall'],
   };
 
   const recommendedIds = recommendations[context] || [];
@@ -394,6 +447,12 @@ export const ELEMENT_CATEGORIES = [
     emoji: '🎂',
     description: 'Perfect for birthday wishes',
   },
+  {
+    id: 'social',
+    name: 'Social',
+    emoji: '💬',
+    description: 'Interactive social elements',
+  },
 ];
 
 export const ELEMENT_TYPES = [
@@ -408,6 +467,12 @@ export const ELEMENT_TYPES = [
     name: 'Text',
     emoji: '📝',
     description: 'Text and typography elements',
+  },
+  {
+    id: 'interaction',
+    name: 'Interactive',
+    emoji: '💬',
+    description: 'Social and interactive elements',
   },
 ];
 

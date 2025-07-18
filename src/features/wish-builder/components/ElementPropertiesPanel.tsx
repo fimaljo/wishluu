@@ -710,6 +710,155 @@ export function ElementPropertiesPanel({
           </div>
         );
 
+      case 'comment-wall':
+        return (
+          <div className='space-y-4'>
+            {/* Render properties based on property definitions */}
+            {propertyDefinitions.map((propDef: PropertyDefinition) => {
+              const currentValue =
+                properties[propDef.name] ?? propDef.defaultValue;
+
+              return (
+                <div key={propDef.name} className='relative pb-3'>
+                  <PremiumPropertyWrapper
+                    isPremium={propDef.isPremium || false}
+                    premiumLabel={propDef.premiumLabel || 'Premium'}
+                    upgradeMessage={
+                      propDef.upgradeMessage || 'Upgrade to access this feature'
+                    }
+                    isUserPremium={isUserPremium}
+                    onUpgradeClick={onUpgradeClick || (() => {})}
+                    className='mb-3'
+                  >
+                    <div className='space-y-2'>
+                      <PremiumPropertyLabel
+                        label={propDef.label}
+                        isPremium={propDef.isPremium || false}
+                        premiumLabel={propDef.premiumLabel || 'Premium'}
+                        className='mb-2'
+                      />
+
+                      {propDef.type === 'text' && (
+                        <input
+                          type='text'
+                          value={currentValue}
+                          onChange={e =>
+                            handlePropertyChange(propDef.name, e.target.value)
+                          }
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                          placeholder={propDef.label}
+                        />
+                      )}
+
+                      {propDef.type === 'select' && (
+                        <select
+                          value={currentValue}
+                          onChange={e =>
+                            handlePropertyChange(propDef.name, e.target.value)
+                          }
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                        >
+                          {propDef.options?.map(
+                            (option: {
+                              value: string;
+                              label: string;
+                              isPremium?: boolean;
+                            }) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                                {option.isPremium &&
+                                  !isUserPremium &&
+                                  ' ✨ (Premium)'}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      )}
+
+                      {propDef.type === 'color' && (
+                        <div className='flex items-center gap-3'>
+                          <input
+                            type='color'
+                            value={currentValue}
+                            onChange={e =>
+                              handlePropertyChange(propDef.name, e.target.value)
+                            }
+                            className='w-12 h-10 rounded border border-gray-300 cursor-pointer'
+                          />
+                          <input
+                            type='text'
+                            value={currentValue}
+                            onChange={e =>
+                              handlePropertyChange(propDef.name, e.target.value)
+                            }
+                            className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm'
+                            placeholder={propDef.label}
+                          />
+                        </div>
+                      )}
+
+                      {propDef.type === 'range' && (
+                        <>
+                          <input
+                            type='range'
+                            min={propDef.min}
+                            max={propDef.max}
+                            step={propDef.step}
+                            value={currentValue}
+                            onChange={e =>
+                              handlePropertyChange(
+                                propDef.name,
+                                parseInt(e.target.value)
+                              )
+                            }
+                            className='w-full'
+                          />
+                          <div className='text-xs text-gray-500 mt-1'>
+                            {currentValue}
+                            {propDef.name.includes('Size') && 'px'}
+                            {propDef.name.includes('Speed') &&
+                              ' (Slow: ' +
+                                propDef.min +
+                                ', Fast: ' +
+                                propDef.max +
+                                ')'}
+                            {propDef.name.includes('Duration') && 'ms'}
+                            {propDef.name.includes('Padding') &&
+                              'px (None: ' +
+                                propDef.min +
+                                'px, Large: ' +
+                                propDef.max +
+                                'px)'}
+                          </div>
+                        </>
+                      )}
+
+                      {propDef.type === 'checkbox' && (
+                        <label className='flex items-center'>
+                          <input
+                            type='checkbox'
+                            checked={currentValue}
+                            onChange={e =>
+                              handlePropertyChange(
+                                propDef.name,
+                                e.target.checked
+                              )
+                            }
+                            className='rounded border-gray-300 text-purple-600 focus:ring-purple-500'
+                          />
+                          <span className='ml-2 text-sm font-medium text-gray-700'>
+                            {propDef.label}
+                          </span>
+                        </label>
+                      )}
+                    </div>
+                  </PremiumPropertyWrapper>
+                </div>
+              );
+            })}
+          </div>
+        );
+
       default:
         return (
           <div className='text-gray-500 text-sm'>

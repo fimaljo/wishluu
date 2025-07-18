@@ -4,6 +4,7 @@ import React from 'react';
 import { WishElement, ElementProperties } from '@/types/templates';
 import { InteractiveBalloons } from '@/components/ui/InteractiveBalloons';
 import { BeautifulText } from '@/components/ui/BeautifulText';
+import { CommentWall } from '@/components/ui/CommentWall';
 import { MusicPlayer } from '@/components/ui/MusicPlayer';
 
 interface WishCanvasProps {
@@ -19,6 +20,7 @@ interface WishCanvasProps {
   isPreviewMode?: boolean;
   stepSequence?: string[][]; // Custom step sequence from user
   music?: string; // Background music ID
+  wishId?: string; // Wish ID for Firebase integration
 }
 
 export function WishCanvas({
@@ -34,6 +36,7 @@ export function WishCanvas({
   isPreviewMode = false,
   stepSequence,
   music,
+  wishId,
 }: WishCanvasProps) {
   const [showCanvasSettings, setShowCanvasSettings] = React.useState(false);
   const [currentStep, setCurrentStep] = React.useState(0); // Track current step in sequence
@@ -124,6 +127,7 @@ export function WishCanvas({
           el =>
             el.elementType === 'balloons-interactive' ||
             el.elementType === 'beautiful-text' ||
+            el.elementType === 'comment-wall' ||
             el.elementType === 'confetti' ||
             el.elementType === 'music-player'
         );
@@ -282,6 +286,43 @@ export function WishCanvas({
               shadow={properties.shadow !== false}
               gradient={properties.gradient || false}
               padding={properties.padding || 20}
+            />
+          </div>
+        );
+
+      case 'comment-wall':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses} ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              minWidth: '320px',
+              maxWidth: properties.maxWidth || 470,
+            }}
+            onClick={() => {
+              if (isPreviewMode) {
+                // In preview mode, clicking comment wall progresses to next step
+                handleElementComplete(element.id);
+              } else {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+            }}
+          >
+            {selectedIndicator}
+            <CommentWall
+              postType={properties.postType || 'photo'}
+              mediaUrl={properties.mediaUrl || ''}
+              postDescription={
+                properties.postDescription ||
+                'Share your thoughts and memories here...'
+              }
+              {...(wishId && { wishId })}
             />
           </div>
         );

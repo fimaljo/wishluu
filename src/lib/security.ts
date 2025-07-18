@@ -47,7 +47,7 @@ export const securityHeaders = {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
     "connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://apis.google.com https://securetoken.googleapis.com https://accounts.google.com",
-    "frame-src 'self' https://accounts.google.com https://*.firebaseapp.com",
+    "frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://www.youtube.com https://youtube.com https://*.youtube.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

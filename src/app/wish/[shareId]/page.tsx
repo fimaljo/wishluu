@@ -135,6 +135,7 @@ export default function SharedWishPage() {
           recipientName={wish.recipientName || ''}
           message={wish.message || ''}
           music={(wish as any).music || 'birthday-song'}
+          wishId={shareId}
         />
       </div>
 

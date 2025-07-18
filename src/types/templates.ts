@@ -48,7 +48,13 @@ export interface InteractiveElement {
   name: string;
   description: string;
   icon: string;
-  category: 'basic' | 'birthday' | 'valentine' | 'celebration' | 'custom';
+  category:
+    | 'basic'
+    | 'birthday'
+    | 'valentine'
+    | 'celebration'
+    | 'custom'
+    | 'social';
   properties: ElementProperties;
   propertyDefinitions?: PropertyDefinition[];
   isPremium?: boolean;

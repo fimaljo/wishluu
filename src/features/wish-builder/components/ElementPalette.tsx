@@ -44,6 +44,7 @@ export function ElementPalette({
         { id: 'birthday', name: 'Birthday', emoji: '🎂' },
         { id: 'valentine', name: 'Valentine', emoji: '💕' },
         { id: 'celebration', name: 'Celebration', emoji: '🎊' },
+        { id: 'social', name: 'Social', emoji: '💬' },
       ];
 
   const getFilteredElements = () => {
@@ -59,7 +60,12 @@ export function ElementPalette({
         description: isRestrictedMode
           ? 'Template element (can be customized)'
           : 'Selected element',
-        icon: element.elementType === 'balloons-interactive' ? '🎈' : '📝',
+        icon:
+          element.elementType === 'balloons-interactive'
+            ? '🎈'
+            : element.elementType === 'comment-wall'
+              ? '💬'
+              : '📝',
         category: 'selected',
         properties: element.properties,
         isPremium: false,
