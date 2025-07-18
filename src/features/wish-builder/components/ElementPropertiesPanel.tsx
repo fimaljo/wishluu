@@ -1632,6 +1632,250 @@ export function ElementPropertiesPanel({
           </div>
         );
 
+      case 'love-letter':
+        return (
+          <div className='space-y-4'>
+            {/* Letter Title */}
+            <div className='relative pb-3'>
+              <div className='space-y-2'>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Letter Title
+                </label>
+                <input
+                  type='text'
+                  value={properties.title || 'My Dearest'}
+                  onChange={e => {
+                    const newValue = e.target.value.substring(0, 100);
+                    handlePropertyChange('title', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                  placeholder='My Dearest'
+                  maxLength={100}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {(properties.title || 'My Dearest').length}/100 characters
+                  {(properties.title || 'My Dearest').length >= 80 && (
+                    <span className='text-orange-600 ml-2'>
+                      {100 - (properties.title || 'My Dearest').length}{' '}
+                      remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Love Message */}
+            <div className='relative pb-3'>
+              <div className='space-y-2'>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Love Message
+                </label>
+                <textarea
+                  value={
+                    properties.message ||
+                    'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
+                  }
+                  onChange={e => {
+                    const newValue = e.target.value.substring(0, 500);
+                    handlePropertyChange('message', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none'
+                  placeholder='Write your romantic message here...'
+                  rows={6}
+                  maxLength={500}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {
+                    (
+                      properties.message ||
+                      'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
+                    ).length
+                  }
+                  /500 characters
+                  {(
+                    properties.message ||
+                    'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
+                  ).length >= 400 && (
+                    <span className='text-orange-600 ml-2'>
+                      {500 -
+                        (
+                          properties.message ||
+                          'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
+                        ).length}{' '}
+                      remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Signature */}
+            <div className='relative pb-3'>
+              <div className='space-y-2'>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Signature
+                </label>
+                <input
+                  type='text'
+                  value={properties.signature || 'With all my love'}
+                  onChange={e => {
+                    const newValue = e.target.value.substring(0, 100);
+                    handlePropertyChange('signature', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                  placeholder='With all my love'
+                  maxLength={100}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {(properties.signature || 'With all my love').length}/100
+                  characters
+                  {(properties.signature || 'With all my love').length >=
+                    80 && (
+                    <span className='text-orange-600 ml-2'>
+                      {100 -
+                        (properties.signature || 'With all my love')
+                          .length}{' '}
+                      remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Wax Seal Settings */}
+            <div className='space-y-4'>
+              <h4 className='text-sm font-medium text-gray-700'>Wax Seal</h4>
+
+              {/* Initials */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Wax Seal Initials
+                </label>
+                <input
+                  type='text'
+                  value={properties.initials || 'JD'}
+                  onChange={e => {
+                    const newValue = e.target.value
+                      .substring(0, 4)
+                      .toUpperCase();
+                    handlePropertyChange('initials', newValue);
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center font-bold tracking-wider'
+                  placeholder='JD'
+                  maxLength={4}
+                />
+                <div className='text-xs text-gray-500 mt-1'>
+                  {(properties.initials || 'JD').length}/4 characters
+                </div>
+              </div>
+
+              {/* Seal Color */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Wax Seal Color
+                </label>
+                <div className='flex items-center gap-3'>
+                  <input
+                    type='color'
+                    value={properties.sealColor || '#8B0000'}
+                    onChange={e =>
+                      handlePropertyChange('sealColor', e.target.value)
+                    }
+                    className='w-12 h-10 rounded border border-gray-300 cursor-pointer'
+                  />
+                  <input
+                    type='text'
+                    value={properties.sealColor || '#8B0000'}
+                    onChange={e =>
+                      handlePropertyChange('sealColor', e.target.value)
+                    }
+                    className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm'
+                    placeholder='#8B0000'
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Letter Appearance */}
+            <div className='space-y-4'>
+              <h4 className='text-sm font-medium text-gray-700'>
+                Letter Appearance
+              </h4>
+
+              {/* Letter Color */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Letter Paper Color
+                </label>
+                <div className='flex items-center gap-3'>
+                  <input
+                    type='color'
+                    value={properties.letterColor || '#F5F5DC'}
+                    onChange={e =>
+                      handlePropertyChange('letterColor', e.target.value)
+                    }
+                    className='w-12 h-10 rounded border border-gray-300 cursor-pointer'
+                  />
+                  <input
+                    type='text'
+                    value={properties.letterColor || '#F5F5DC'}
+                    onChange={e =>
+                      handlePropertyChange('letterColor', e.target.value)
+                    }
+                    className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm'
+                    placeholder='#F5F5DC'
+                  />
+                </div>
+              </div>
+
+              {/* Ink Color */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Ink Color
+                </label>
+                <div className='flex items-center gap-3'>
+                  <input
+                    type='color'
+                    value={properties.inkColor || '#2F2F2F'}
+                    onChange={e =>
+                      handlePropertyChange('inkColor', e.target.value)
+                    }
+                    className='w-12 h-10 rounded border border-gray-300 cursor-pointer'
+                  />
+                  <input
+                    type='text'
+                    value={properties.inkColor || '#2F2F2F'}
+                    onChange={e =>
+                      handlePropertyChange('inkColor', e.target.value)
+                    }
+                    className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm'
+                    placeholder='#2F2F2F'
+                  />
+                </div>
+              </div>
+
+              {/* Font Style */}
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Handwriting Font
+                </label>
+                <select
+                  value={properties.fontStyle || 'handwriting'}
+                  onChange={e =>
+                    handlePropertyChange('fontStyle', e.target.value)
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                >
+                  <option value='handwriting'>Elegant Handwriting</option>
+                  <option value='cursive'>Flowing Cursive</option>
+                  <option value='calligraphy'>Calligraphy Style</option>
+                  <option value='romantic'>Romantic Script</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className='text-gray-500 text-sm'>

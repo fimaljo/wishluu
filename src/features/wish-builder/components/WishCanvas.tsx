@@ -8,6 +8,7 @@ import { CommentWall } from '@/components/ui/CommentWall';
 import { DateQuestion } from '@/components/ui/DateQuestion';
 import { ImagePuzzle } from '@/components/ui/ImagePuzzle';
 import { InteractiveQuiz } from '@/components/ui/InteractiveQuiz';
+import { LoveLetter } from '@/components/ui/LoveLetter';
 import { MusicPlayer } from '@/components/ui/MusicPlayer';
 
 interface WishCanvasProps {
@@ -444,6 +445,52 @@ export function WishCanvas({
                 properties.lowScoreMessage ||
                 'Hmm... We need to spend more time together! 😅'
               }
+            />
+          </div>
+        );
+
+      case 'love-letter':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses} ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              maxWidth: '90%',
+            }}
+            onClick={() => {
+              if (!isPreviewMode) {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+              // In preview mode, clicking does nothing - let the LoveLetter handle its own opening
+            }}
+          >
+            {selectedIndicator}
+            <LoveLetter
+              title={properties.title || 'My Dearest'}
+              message={
+                properties.message ||
+                'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
+              }
+              signature={properties.signature || 'With all my love'}
+              initials={properties.initials || 'JD'}
+              letterColor={properties.letterColor || '#F5F5DC'}
+              inkColor={properties.inkColor || '#2F2F2F'}
+              fontStyle={properties.fontStyle || 'handwriting'}
+              onClick={() => {
+                // Only progress to next step after the letter has been opened
+                if (isPreviewMode) {
+                  // Add a delay to allow the letter opening animation to complete
+                  setTimeout(() => {
+                    handleElementComplete(element.id);
+                  }, 2000); // 2 second delay to allow reading the letter
+                }
+              }}
             />
           </div>
         );

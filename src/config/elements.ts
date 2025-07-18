@@ -427,6 +427,85 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       },
     ],
   },
+
+  {
+    id: 'love-letter',
+    type: 'interaction',
+    name: 'Love Letter',
+    description: 'A romantic letter with unfolding animation and wax seal',
+    icon: '💌',
+    category: 'valentine',
+    isPremium: true,
+    tags: ['love', 'letter', 'romantic', 'animation', 'seal', 'handwriting'],
+    properties: {
+      title: 'My Dearest',
+      message:
+        'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.',
+      signature: 'With all my love',
+      initials: 'JD',
+      letterColor: '#F5F5DC',
+      inkColor: '#2F2F2F',
+      fontStyle: 'handwriting',
+    },
+    propertyDefinitions: [
+      {
+        name: 'title',
+        type: 'text',
+        label: 'Letter Title',
+        defaultValue: 'My Dearest',
+        isPremium: false,
+      },
+      {
+        name: 'message',
+        type: 'text',
+        label: 'Love Message',
+        defaultValue:
+          'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.',
+        isPremium: false,
+      },
+      {
+        name: 'signature',
+        type: 'text',
+        label: 'Signature',
+        defaultValue: 'With all my love',
+        isPremium: false,
+      },
+      {
+        name: 'initials',
+        type: 'text',
+        label: 'Wax Seal Initials',
+        defaultValue: 'JD',
+        isPremium: false,
+      },
+      {
+        name: 'letterColor',
+        type: 'color',
+        label: 'Letter Paper Color',
+        defaultValue: '#F5F5DC',
+        isPremium: false,
+      },
+      {
+        name: 'inkColor',
+        type: 'color',
+        label: 'Ink Color',
+        defaultValue: '#2F2F2F',
+        isPremium: false,
+      },
+      {
+        name: 'fontStyle',
+        type: 'select',
+        label: 'Handwriting Font',
+        defaultValue: 'handwriting',
+        isPremium: false,
+        options: [
+          { value: 'handwriting', label: 'Elegant Handwriting' },
+          { value: 'cursive', label: 'Flowing Cursive' },
+          { value: 'calligraphy', label: 'Calligraphy Style' },
+          { value: 'romantic', label: 'Romantic Script' },
+        ],
+      },
+    ],
+  },
 ];
 
 // ===== HELPER FUNCTIONS =====
