@@ -267,6 +267,45 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       },
     ],
   },
+  {
+    id: 'date-question',
+    type: 'interaction',
+    name: 'Interactive Question',
+    description:
+      'Fun interactive question with growing Yes button and shrinking No button',
+    icon: '❓',
+    category: 'basic',
+    isPremium: false,
+    tags: ['question', 'yes', 'no', 'interactive', 'fun'],
+    properties: {
+      question: 'Will you come for a date?',
+      yesText: 'Yes',
+      noText: 'No',
+    },
+    propertyDefinitions: [
+      {
+        name: 'question',
+        type: 'text',
+        label: 'Question',
+        defaultValue: 'Will you come for a date?',
+        isPremium: false,
+      },
+      {
+        name: 'yesText',
+        type: 'text',
+        label: 'Yes Button Text',
+        defaultValue: 'Yes',
+        isPremium: false,
+      },
+      {
+        name: 'noText',
+        type: 'text',
+        label: 'No Button Text',
+        defaultValue: 'No',
+        isPremium: false,
+      },
+    ],
+  },
 ];
 
 // ===== HELPER FUNCTIONS =====

@@ -5,6 +5,7 @@ import { WishElement, ElementProperties } from '@/types/templates';
 import { InteractiveBalloons } from '@/components/ui/InteractiveBalloons';
 import { BeautifulText } from '@/components/ui/BeautifulText';
 import { CommentWall } from '@/components/ui/CommentWall';
+import { DateQuestion } from '@/components/ui/DateQuestion';
 import { MusicPlayer } from '@/components/ui/MusicPlayer';
 
 interface WishCanvasProps {
@@ -128,6 +129,7 @@ export function WishCanvas({
             el.elementType === 'balloons-interactive' ||
             el.elementType === 'beautiful-text' ||
             el.elementType === 'comment-wall' ||
+            el.elementType === 'date-question' ||
             el.elementType === 'confetti' ||
             el.elementType === 'music-player'
         );
@@ -327,6 +329,41 @@ export function WishCanvas({
           </div>
         );
 
+      case 'date-question':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '420px',
+              height: '340px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={() => {
+              if (isPreviewMode) {
+                // In preview mode, clicking date question progresses to next step
+                handleElementComplete(element.id);
+              } else {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+            }}
+          >
+            {selectedIndicator}
+            <DateQuestion
+              question={properties.question || 'Will you come for a date?'}
+              yesText={properties.yesText || 'Yes'}
+              noText={properties.noText || 'No'}
+            />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -411,6 +448,7 @@ export function WishCanvas({
                       el =>
                         el.elementType === 'balloons-interactive' ||
                         el.elementType === 'beautiful-text' ||
+                        el.elementType === 'date-question' ||
                         el.elementType === 'confetti' ||
                         el.elementType === 'music-player'
                     ).length}
@@ -431,6 +469,7 @@ export function WishCanvas({
                         el =>
                           el.elementType === 'balloons-interactive' ||
                           el.elementType === 'beautiful-text' ||
+                          el.elementType === 'date-question' ||
                           el.elementType === 'confetti' ||
                           el.elementType === 'music-player'
                       )
