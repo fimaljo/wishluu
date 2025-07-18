@@ -3,8 +3,16 @@ import { WishElement, ElementProperties } from '@/types/templates';
 import { Wish } from '@/types';
 import { useWishManagement } from '@/features/wishes/hooks/useWishManagement';
 import { premiumService } from '@/lib/premiumService';
-
-const DEMO_USER_ID = 'demo-user-123';
+import { useFirebaseWishes } from '@/hooks/useFirebaseWishes';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePremiumManagement } from '@/hooks/usePremiumManagement';
+import { premiumApi } from '@/lib/api';
+import { useNotification } from '@/components/ui/Notification';
+import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
+import {
+  calculateTotalCreditCost,
+  calculateTemplateCreditCost,
+} from '@/lib/creditCalculator';
 const MAX_STEPS = 10;
 
 interface UseWishBuilderActionsProps {
@@ -15,9 +23,11 @@ interface UseWishBuilderActionsProps {
   setStepSequence: React.Dispatch<React.SetStateAction<string[][]>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsSaving: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentWish: React.Dispatch<React.SetStateAction<Wish | null>>;
   setShowSaveShareDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setUserPremiumStatus: React.Dispatch<React.SetStateAction<any>>;
+  setShowPremiumUpgradeModal: React.Dispatch<React.SetStateAction<boolean>>;
 
   // State values
   elements: WishElement[];
@@ -43,9 +53,11 @@ export function useWishBuilderActions({
   setStepSequence,
   setError,
   setIsLoading,
+  setIsSaving,
   setCurrentWish,
   setShowSaveShareDialog,
   setUserPremiumStatus,
+  setShowPremiumUpgradeModal,
   elements,
   selectedElement,
   selectedElements,
@@ -60,6 +72,11 @@ export function useWishBuilderActions({
   customBackgroundColor,
 }: UseWishBuilderActionsProps) {
   const { createWish, shareWish } = useWishManagement();
+  const { createWish: createFirebaseWish } = useFirebaseWishes({
+    autoLoad: false,
+  });
+  const { user } = useAuth();
+  const { showError, showInfo } = useNotification();
 
   // Error handling
   const handleError = useCallback(
@@ -230,77 +247,284 @@ export function useWishBuilderActions({
       return;
     }
 
+    if (!user?.uid) {
+      setError('Please sign in to save your wish.');
+      return;
+    }
+
+    if (!recipientName?.trim()) {
+      setError('Please enter a recipient name before saving.');
+      return;
+    }
+
     await withLoading(async () => {
       const wishData = {
-        recipientName,
-        message,
+        title: `Wish for ${recipientName.trim()}`,
+        recipientName: recipientName.trim(),
+        message: message?.trim() || '',
         theme,
-        occasion: templateId || 'custom',
-        animation: 'fade',
         elements: elements,
+        stepSequence: stepSequence,
         customBackgroundColor,
+        isPublic: true,
       };
 
-      const createdWish = await createWish(wishData);
-      if (createdWish) {
+      const result = await createFirebaseWish(wishData);
+      if (result.success && result.data) {
+        // Handle credit deduction based on whether it's a template or custom wish
+        try {
+          if (templateId && templateId !== 'custom-blank') {
+            // Template-based wish - deduct template cost + premium properties
+            const templateResult =
+              await FirebaseTemplateService.getTemplateById(templateId);
+            if (templateResult.success && templateResult.data) {
+              const templateCost = templateResult.data.creditCost || 0;
+              const premiumBreakdown = calculateTemplateCreditCost(elements);
+              const totalCost = templateCost + premiumBreakdown.totalCost;
+
+              if (totalCost > 0) {
+                const creditResult = (await premiumApi.useTemplateCredits(
+                  totalCost,
+                  `Used template: ${templateResult.data.name} with premium features`,
+                  templateId
+                )) as any;
+
+                if (!creditResult.success) {
+                  console.error(
+                    'Failed to deduct template credits:',
+                    creditResult.error
+                  );
+                }
+              }
+            }
+          } else {
+            // Custom wish - calculate total costs including premium properties
+            const creditBreakdown = calculateTotalCreditCost(elements);
+
+            if (creditBreakdown.totalCost > 0) {
+              const creditResult = (await premiumApi.useCredits(
+                'premium_wish',
+                `Created custom wish with ${elements.length} elements and premium features: ${wishData.title}`,
+                result.data.id
+              )) as any;
+
+              if (!creditResult.success) {
+                console.error('Failed to deduct credits:', creditResult.error);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to use credits:', error);
+        }
+
+        // Create a wish object compatible with the existing system
+        const createdWish: Wish = {
+          id: result.data.id,
+          recipientName: result.data.recipientName,
+          message: result.data.message,
+          theme: result.data.theme,
+          occasion: templateId || 'custom',
+          animation: 'fade',
+          elements: result.data.elements,
+          ...(result.data.customBackgroundColor && {
+            customBackgroundColor: result.data.customBackgroundColor,
+          }),
+          shareId: result.data.shareId,
+          createdAt: result.data.createdAt,
+          updatedAt: result.data.updatedAt,
+          isPublic: result.data.isPublic,
+        };
+
         setCurrentWish(createdWish);
         setShowSaveShareDialog(true);
+      } else {
+        setError(result.error || 'Failed to save wish');
       }
     }, 'saving wish');
   }, [
     elements,
+    stepSequence,
     recipientName,
     message,
     theme,
     templateId,
     customBackgroundColor,
-    createWish,
+    createFirebaseWish,
+    user?.uid,
     withLoading,
     setError,
     setCurrentWish,
     setShowSaveShareDialog,
+    setShowPremiumUpgradeModal,
   ]);
 
   const handleSaveFromDialog = useCallback(
     async (wishData: any): Promise<Wish | null> => {
       try {
-        const createdWish = await createWish(wishData);
-        if (createdWish) {
+        console.log('handleSaveFromDialog called with:', wishData);
+
+        if (!user?.uid) {
+          showInfo('Please sign in to save your wish.');
+          return null;
+        }
+
+        // If the wish already has an ID, it means it was already saved
+        if (wishData.id) {
+          console.log('Wish already has ID, returning existing wish');
+          return wishData;
+        }
+
+        // Set saving state
+        setIsSaving(true);
+
+        // Prepare the wish data for Firebase
+        const firebaseWishData = {
+          title: wishData.title || `Wish for ${wishData.recipientName}`,
+          recipientName: wishData.recipientName,
+          message: wishData.message || '',
+          theme: wishData.theme,
+          elements: wishData.elements,
+          stepSequence: wishData.stepSequence,
+          customBackgroundColor: wishData.customBackgroundColor,
+          isPublic: wishData.isPublic !== false,
+        };
+
+        const result = await createFirebaseWish(firebaseWishData);
+
+        if (result.success && result.data) {
+          // Handle credit deduction based on whether it's a template or custom wish
+          try {
+            if (templateId && templateId !== 'custom-blank') {
+              // Template-based wish - deduct template cost + premium properties
+              const templateResult =
+                await FirebaseTemplateService.getTemplateById(templateId);
+              if (templateResult.success && templateResult.data) {
+                const templateCost = templateResult.data.creditCost || 0;
+                const premiumBreakdown = calculateTemplateCreditCost(
+                  firebaseWishData.elements
+                );
+                const totalCost = templateCost + premiumBreakdown.totalCost;
+
+                if (totalCost > 0) {
+                  const creditResult = (await premiumApi.useTemplateCredits(
+                    totalCost,
+                    `Used template: ${templateResult.data.name} with premium features`,
+                    templateId
+                  )) as any;
+
+                  if (!creditResult.success) {
+                    console.error(
+                      'Failed to deduct template credits:',
+                      creditResult.error
+                    );
+                  }
+                }
+              }
+            } else {
+              // Custom wish - calculate total costs including premium properties
+              const creditBreakdown = calculateTotalCreditCost(
+                firebaseWishData.elements
+              );
+
+              if (creditBreakdown.totalCost > 0) {
+                const creditResult = (await premiumApi.useCredits(
+                  'premium_wish',
+                  `Created custom wish with ${firebaseWishData.elements.length} elements and premium features: ${firebaseWishData.title}`,
+                  result.data.id
+                )) as any;
+
+                if (!creditResult.success) {
+                  console.error(
+                    'Failed to deduct credits:',
+                    creditResult.error
+                  );
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Failed to use credits:', error);
+          }
+
+          // Create a wish object compatible with the existing system
+          const createdWish: Wish = {
+            id: result.data.id,
+            recipientName: result.data.recipientName,
+            message: result.data.message,
+            theme: result.data.theme,
+            occasion: templateId || 'custom',
+            animation: 'fade',
+            elements: result.data.elements,
+            ...(result.data.customBackgroundColor && {
+              customBackgroundColor: result.data.customBackgroundColor,
+            }),
+            shareId: result.data.shareId,
+            createdAt: result.data.createdAt,
+            updatedAt: result.data.updatedAt,
+            isPublic: result.data.isPublic,
+          };
+
           setCurrentWish(createdWish);
           return createdWish;
+        } else {
+          console.error('Firebase save failed:', result.error);
+          showError(result.error || 'Failed to save wish');
+          return null;
         }
-        return null;
       } catch (error) {
         console.error('Error saving wish from dialog:', error);
-        alert('Error saving wish. Please try again.');
+        showError('Error saving wish. Please try again.');
         return null;
+      } finally {
+        setIsSaving(false);
       }
     },
-    [createWish, setCurrentWish]
+    [
+      createFirebaseWish,
+      user?.uid,
+      templateId,
+      setCurrentWish,
+      setShowPremiumUpgradeModal,
+      setIsSaving,
+    ]
   );
 
   const handleShareFromDialog = useCallback(
     async (wish: Wish): Promise<string> => {
       try {
-        const shareUrl = await shareWish(wish);
-        return shareUrl;
+        // Generate Firebase share URL
+        if (wish.shareId) {
+          const baseUrl = window.location.origin;
+          return `${baseUrl}/wish/${wish.shareId}`;
+        } else if (wish.id) {
+          // Fallback: generate a temporary share URL
+          const baseUrl = window.location.origin;
+          return `${baseUrl}/wish/${wish.id}`;
+        } else {
+          // If no ID, this is an unsaved wish
+          throw new Error('Wish must be saved before sharing');
+        }
       } catch (error) {
         console.error('Error sharing wish:', error);
-        alert('Error sharing wish. Please try again.');
+        showError('Error sharing wish. Please try again.');
         return '';
       }
     },
-    [shareWish]
+    []
   );
 
   // Premium features
   const handleUpgradeClick = useCallback(async () => {
+    if (!user?.uid) {
+      setError('Please sign in to upgrade your account');
+      return;
+    }
+
     await withLoading(async () => {
-      await premiumService.upgradeUser(DEMO_USER_ID, 'pro');
-      const newStatus = await premiumService.getUserPremiumStatus(DEMO_USER_ID);
+      await premiumService.upgradeUser(user.uid, 'pro');
+      const newStatus = await premiumService.getUserPremiumStatus(user.uid);
       setUserPremiumStatus(newStatus);
     }, 'upgrading user');
-  }, [withLoading, setUserPremiumStatus]);
+  }, [withLoading, setUserPremiumStatus, user?.uid, setError]);
 
   return {
     handleError,

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { InteractiveElement } from '@/types/templates';
-import { PremiumBadge } from '@/components/ui/PremiumPropertyWrapper';
+// Removed CreditCostBadge import - no longer showing credit badges on elements
 
 interface ElementPaletteProps {
   elements: InteractiveElement[];
@@ -10,7 +10,6 @@ interface ElementPaletteProps {
   selectedElements?: any[]; // Array of selected elements
   onSelectElement?: (elementId: string) => void;
   onUnselectElement?: (elementId: string) => void;
-  isUserPremium?: boolean;
   isRestrictedMode?: boolean; // New prop for template mode
   canvasElements?: any[]; // Array of elements currently on the canvas
 }
@@ -21,7 +20,6 @@ export function ElementPalette({
   selectedElements = [],
   onSelectElement,
   onUnselectElement,
-  isUserPremium,
   isRestrictedMode = false,
   canvasElements = [],
 }: ElementPaletteProps) {
@@ -44,6 +42,7 @@ export function ElementPalette({
         { id: 'birthday', name: 'Birthday', emoji: '🎂' },
         { id: 'valentine', name: 'Valentine', emoji: '💕' },
         { id: 'celebration', name: 'Celebration', emoji: '🎊' },
+        { id: 'social', name: 'Social', emoji: '💬' },
       ];
 
   const getFilteredElements = () => {
@@ -59,7 +58,12 @@ export function ElementPalette({
         description: isRestrictedMode
           ? 'Template element (can be customized)'
           : 'Selected element',
-        icon: element.elementType === 'balloons-interactive' ? '🎈' : '📝',
+        icon:
+          element.elementType === 'balloons-interactive'
+            ? '🎈'
+            : element.elementType === 'comment-wall'
+              ? '💬'
+              : '📝',
         category: 'selected',
         properties: element.properties,
         isPremium: false,
@@ -180,14 +184,17 @@ export function ElementPalette({
                       : 'bg-gray-50 border-transparent hover:bg-purple-50 hover:border-purple-200'
                 }`}
               >
-                <div className='text-xl md:text-2xl mb-1 md:mb-2 relative'>
-                  {element.icon}
-                  {/* Premium Badge - positioned on top right of emoji */}
-                  {element.isPremium && !isUserPremium && (
-                    <div className='absolute -top-1 -right-1'>
-                      <PremiumBadge label='Premium' />
-                    </div>
-                  )}
+                <div className='text-xl md:text-2xl mb-1 md:mb-2 relative flex items-center'>
+                  <span>{element.icon}</span>
+                  {/* Show credit cost after emoji if element costs credits */}
+                  {'creditCost' in element &&
+                    element.creditCost &&
+                    element.creditCost > 0 && (
+                      <span className='ml-2 inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-medium rounded-full shadow-sm'>
+                        <span>💎</span>
+                        {element.creditCost}
+                      </span>
+                    )}
 
                   {/* Template Element Badge - show for template elements in selected view */}
                   {selectedCategory === 'selected' &&

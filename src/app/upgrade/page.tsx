@@ -121,7 +121,7 @@ export default function UpgradePage() {
   ];
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50'>
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
       {/* Header */}
       <div className='bg-white/70 backdrop-blur-sm border-b border-purple-100'>
         <div className='max-w-6xl mx-auto px-6 py-8'>

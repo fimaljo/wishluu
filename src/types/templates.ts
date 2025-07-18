@@ -8,9 +8,16 @@ export interface Template {
   color: string;
   elements: string[];
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  creditCost?: number; // Credit cost to use this template
   preview?: string;
-  defaultElements?: WishElement[]; // Default elements configuration for the template
+  defaultElementIds?: string[]; // Element IDs instead of full elements
   stepSequence?: string[][]; // Step sequence for presentation mode
+  // Firebase-specific properties
+  createdAt?: any; // Firestore timestamp
+  updatedAt?: any; // Firestore timestamp
+  createdBy?: string; // User ID who created the template
+  isPublic?: boolean; // Whether template is publicly available
+  version?: string; // Template version for migration
 }
 
 // Premium Property Types
@@ -26,11 +33,17 @@ export interface PropertyDefinition {
   type: 'text' | 'number' | 'color' | 'select' | 'range' | 'checkbox' | 'file';
   label: string;
   defaultValue: any;
-  options?: { value: string; label: string; isPremium?: boolean }[];
+  options?: {
+    value: string;
+    label: string;
+    isPremium?: boolean;
+    creditCost?: number;
+  }[];
   min?: number;
   max?: number;
   step?: number;
-  isPremium?: boolean;
+  isPremium?: boolean; // Legacy support
+  creditCost?: number; // New credit cost system
   premiumLabel?: string;
   upgradeMessage?: string;
 }
@@ -42,10 +55,17 @@ export interface InteractiveElement {
   name: string;
   description: string;
   icon: string;
-  category: 'basic' | 'birthday' | 'valentine' | 'celebration' | 'custom';
+  category:
+    | 'basic'
+    | 'birthday'
+    | 'valentine'
+    | 'celebration'
+    | 'custom'
+    | 'social';
   properties: ElementProperties;
   propertyDefinitions?: PropertyDefinition[];
-  isPremium?: boolean;
+  isPremium?: boolean; // Legacy support
+  creditCost?: number; // New credit cost system
   tags?: string[];
 }
 

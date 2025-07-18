@@ -6,6 +6,7 @@ import { CustomWishBuilder } from '@/features/wish-builder/components/CustomWish
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
 import { Template } from '@/types/templates';
+import { TemplatePreviewModal } from '@/components/ui/TemplatePreviewModal';
 
 interface WishCreatorProps {
   onBack: () => void;
@@ -16,76 +17,19 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [showCustomBuilder, setShowCustomBuilder] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Template data
-  const templates: Template[] = [
-    {
-      id: 'birthday-cake',
-      name: 'Birthday Cake',
-      description: 'Interactive birthday cake with candles to blow out',
-      occasion: 'birthday',
-      thumbnail: '🎂',
-      color: 'from-pink-400 to-rose-500',
-      elements: ['cake', 'candles', 'balloons', 'music'],
-      difficulty: 'easy',
-    },
-    {
-      id: 'memory-board',
-      name: 'Memory Board',
-      description: 'Create a beautiful collage of memories and photos',
-      occasion: 'general',
-      thumbnail: '📸',
-      color: 'from-blue-400 to-purple-500',
-      elements: ['photos', 'text', 'frames', 'stickers'],
-      difficulty: 'medium',
-    },
-    {
-      id: 'valentine-heart',
-      name: 'Valentine Heart',
-      description: 'Animated heart with love messages and effects',
-      occasion: 'valentine',
-      thumbnail: '💕',
-      color: 'from-red-400 to-pink-500',
-      elements: ['heart', 'sparkles', 'love-messages', 'animations'],
-      difficulty: 'easy',
-    },
-    {
-      id: 'proposal-ring',
-      name: 'Proposal Ring',
-      description: 'Special proposal with ring animation and romantic effects',
-      occasion: 'proposal',
-      thumbnail: '💍',
-      color: 'from-purple-400 to-pink-500',
-      elements: ['ring', 'rose-petals', 'romantic-text', 'music'],
-      difficulty: 'hard',
-    },
-    {
-      id: 'graduation-cap',
-      name: 'Graduation Cap',
-      description: 'Celebrate graduation with animated cap and confetti',
-      occasion: 'graduation',
-      thumbnail: '🎓',
-      color: 'from-yellow-400 to-orange-500',
-      elements: ['cap', 'confetti', 'diploma', 'celebration'],
-      difficulty: 'medium',
-    },
-    {
-      id: 'custom-blank',
-      name: 'Custom Wish',
-      description: 'Start from scratch and build your own unique wish',
-      occasion: 'custom',
-      thumbnail: '✨',
-      color: 'from-indigo-400 to-purple-500',
-      elements: ['all-elements'],
-      difficulty: 'expert',
-    },
-  ];
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
     if (templateId === 'custom-blank') {
       setShowCustomBuilder(true);
     }
+  };
+
+  const handlePreviewTemplate = (template: Template) => {
+    setPreviewTemplate(template);
+    setShowPreviewModal(true);
   };
 
   const handleStartCreating = () => {
@@ -128,18 +72,6 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
             Create a beautiful, personalized wish that&apos;ll make
             someone&apos;s day special
           </p>
-        </div>
-
-        {/* Template Grid */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12'>
-          {templates.map(template => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              isSelected={selectedTemplate === template.id}
-              onSelect={() => handleTemplateSelect(template.id)}
-            />
-          ))}
         </div>
 
         {/* Action Buttons */}
@@ -197,6 +129,16 @@ export function WishCreator({ onBack, onWishCreated }: WishCreatorProps) {
           </div>
         </div>
       </div>
+
+      {/* Template Preview Modal */}
+      <TemplatePreviewModal
+        template={previewTemplate}
+        isOpen={showPreviewModal}
+        onClose={() => {
+          setShowPreviewModal(false);
+          setPreviewTemplate(null);
+        }}
+      />
     </div>
   );
 }

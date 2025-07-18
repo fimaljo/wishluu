@@ -4,6 +4,12 @@ import React from 'react';
 import { WishElement, ElementProperties } from '@/types/templates';
 import { InteractiveBalloons } from '@/components/ui/InteractiveBalloons';
 import { BeautifulText } from '@/components/ui/BeautifulText';
+import { CommentWall } from '@/components/ui/CommentWall';
+import { DateQuestion } from '@/components/ui/DateQuestion';
+import { ImagePuzzle } from '@/components/ui/ImagePuzzle';
+import { InteractiveQuiz } from '@/components/ui/InteractiveQuiz';
+import { LoveLetter } from '@/components/ui/LoveLetter';
+import { MusicPlayer } from '@/components/ui/MusicPlayer';
 
 interface WishCanvasProps {
   elements: WishElement[];
@@ -17,6 +23,8 @@ interface WishCanvasProps {
   onCanvasSettingsToggle?: (show: boolean) => void;
   isPreviewMode?: boolean;
   stepSequence?: string[][]; // Custom step sequence from user
+  music?: string; // Background music ID
+  wishId?: string; // Wish ID for Firebase integration
 }
 
 export function WishCanvas({
@@ -31,6 +39,8 @@ export function WishCanvas({
   onCanvasSettingsToggle,
   isPreviewMode = false,
   stepSequence,
+  music,
+  wishId,
 }: WishCanvasProps) {
   const [showCanvasSettings, setShowCanvasSettings] = React.useState(false);
   const [currentStep, setCurrentStep] = React.useState(0); // Track current step in sequence
@@ -39,6 +49,7 @@ export function WishCanvas({
   ); // Track completed elements
 
   const themeGradients = {
+    white: 'from-white to-gray-50',
     purple: 'from-purple-400 to-pink-400',
     ocean: 'from-blue-400 to-cyan-400',
     sunset: 'from-orange-400 to-pink-400',
@@ -49,11 +60,20 @@ export function WishCanvas({
     aurora: 'from-teal-400 to-blue-500',
   };
 
-  // Debug theme changes
-  // console.log('WishCanvas - Current theme:', theme);
-  // console.log('WishCanvas - Theme gradient:', themeGradients[theme as keyof typeof themeGradients] || themeGradients.purple);
-  // console.log('WishCanvas - Available theme keys:', Object.keys(themeGradients));
-  // console.log('WishCanvas - Custom background color:', customBackgroundColor);
+  // Debug theme changes (development only)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('WishCanvas - Current theme:', theme);
+    console.log(
+      'WishCanvas - Theme gradient:',
+      themeGradients[theme as keyof typeof themeGradients] ||
+        themeGradients.purple
+    );
+    console.log(
+      'WishCanvas - Available theme keys:',
+      Object.keys(themeGradients)
+    );
+    console.log('WishCanvas - Custom background color:', customBackgroundColor);
+  }
 
   const handleSettingsToggle = () => {
     const newState = !showCanvasSettings;
@@ -63,6 +83,14 @@ export function WishCanvas({
 
   // Add fade transition for step changes
   const [isTransitioning, setIsTransitioning] = React.useState(false);
+
+  // Debug music prop (development only)
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('WishCanvas - Music prop:', music);
+      console.log('WishCanvas - isPreviewMode:', isPreviewMode);
+    }
+  }, [music, isPreviewMode]);
 
   const handleElementComplete = (elementId: string) => {
     setIsTransitioning(true);
@@ -80,9 +108,21 @@ export function WishCanvas({
       if (stepSequence && stepSequence.length > 0) {
         if (currentStep < stepSequence.length) {
           const currentStepElements = stepSequence[currentStep];
-          return elements.filter(
-            element => currentStepElements?.includes(element.id) || false
-          );
+
+          // Try to match elements by ID first, then by elementType if no match
+          const visibleElements = elements.filter(element => {
+            // First try exact ID match
+            if (currentStepElements?.includes(element.id)) {
+              return true;
+            }
+            // If no exact match, try matching by elementType
+            if (currentStepElements?.includes(element.elementType)) {
+              return true;
+            }
+            return false;
+          });
+
+          return visibleElements;
         }
         return [];
       } else {
@@ -91,6 +131,10 @@ export function WishCanvas({
           el =>
             el.elementType === 'balloons-interactive' ||
             el.elementType === 'beautiful-text' ||
+            el.elementType === 'comment-wall' ||
+            el.elementType === 'date-question' ||
+            el.elementType === 'image-puzzle' ||
+            el.elementType === 'interactive-quiz' ||
             el.elementType === 'confetti' ||
             el.elementType === 'music-player'
         );
@@ -253,6 +297,204 @@ export function WishCanvas({
           </div>
         );
 
+      case 'comment-wall':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses} ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              minWidth: '320px',
+              maxWidth: properties.maxWidth || 470,
+            }}
+            onClick={() => {
+              if (isPreviewMode) {
+                // In preview mode, clicking comment wall progresses to next step
+                handleElementComplete(element.id);
+              } else {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+            }}
+          >
+            {selectedIndicator}
+            <CommentWall
+              postType={properties.postType || 'photo'}
+              mediaUrl={properties.mediaUrl || ''}
+              postDescription={
+                properties.postDescription ||
+                'Share your thoughts and memories here...'
+              }
+              {...(wishId && { wishId })}
+            />
+          </div>
+        );
+
+      case 'date-question':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '420px',
+              height: '340px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={() => {
+              if (isPreviewMode) {
+                // In preview mode, clicking date question progresses to next step
+                handleElementComplete(element.id);
+              } else {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+            }}
+          >
+            {selectedIndicator}
+            <DateQuestion
+              question={properties.question || 'Will you come for a date?'}
+              yesText={properties.yesText || 'Yes'}
+              noText={properties.noText || 'No'}
+            />
+          </div>
+        );
+
+      case 'image-puzzle':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses} ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              maxWidth: '90%',
+            }}
+            onClick={() => {
+              if (isPreviewMode) {
+                // In preview mode, clicking image puzzle progresses to next step
+                handleElementComplete(element.id);
+              } else {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+            }}
+          >
+            {selectedIndicator}
+            <ImagePuzzle
+              imageUrl={properties.imageUrl || ''}
+              gridSize={properties.gridSize || '3'}
+              difficulty={properties.difficulty || 'medium'}
+              secretMessage={properties.secretMessage || ''}
+            />
+          </div>
+        );
+
+      case 'interactive-quiz':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses} ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              maxWidth: '90%',
+            }}
+            onClick={() => {
+              if (isPreviewMode) {
+                // In preview mode, clicking quiz progresses to next step
+                handleElementComplete(element.id);
+              } else {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+            }}
+          >
+            {selectedIndicator}
+            <InteractiveQuiz
+              title={properties.title || 'How Well Do You Know Me?'}
+              questions={properties.questions || []}
+              perfectScoreMessage={
+                properties.perfectScoreMessage ||
+                'Wow! You know me perfectly! We must be soulmates! 💕'
+              }
+              goodScoreMessage={
+                properties.goodScoreMessage ||
+                'Great job! You know me pretty well! 😊'
+              }
+              averageScoreMessage={
+                properties.averageScoreMessage ||
+                'Not bad! You know some things about me! 🤔'
+              }
+              lowScoreMessage={
+                properties.lowScoreMessage ||
+                'Hmm... We need to spend more time together! 😅'
+              }
+            />
+          </div>
+        );
+
+      case 'love-letter':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses} ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              maxWidth: '90%',
+            }}
+            onClick={() => {
+              if (!isPreviewMode) {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+              // In preview mode, clicking does nothing - let the LoveLetter handle its own opening
+            }}
+          >
+            {selectedIndicator}
+            <LoveLetter
+              title={properties.title || 'My Dearest'}
+              message={
+                properties.message ||
+                'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
+              }
+              signature={properties.signature || 'With all my love'}
+              initials={properties.initials || 'JD'}
+              letterColor={properties.letterColor || '#F5F5DC'}
+              inkColor={properties.inkColor || '#2F2F2F'}
+              fontStyle={properties.fontStyle || 'handwriting'}
+              onClick={() => {
+                // Only progress to next step after the letter has been opened
+                if (isPreviewMode) {
+                  // Add a delay to allow the letter opening animation to complete
+                  setTimeout(() => {
+                    handleElementComplete(element.id);
+                  }, 2000); // 2 second delay to allow reading the letter
+                }
+              }}
+            />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -312,14 +554,15 @@ export function WishCanvas({
         className={`relative bg-gradient-to-br from-purple-50 to-pink-50 overflow-hidden ${isPreviewMode ? 'h-full' : 'flex-1'}`}
       >
         {/* Background */}
-        {customBackgroundColor ? (
+        {/* Always show theme gradient as base */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${themeGradients[theme as keyof typeof themeGradients] || themeGradients.purple} opacity-60`}
+        />
+        {/* Show custom background color as overlay if provided */}
+        {customBackgroundColor && customBackgroundColor !== '#ffffff' && (
           <div
-            className='absolute inset-0 opacity-60'
+            className='absolute inset-0 opacity-40'
             style={{ backgroundColor: customBackgroundColor }}
-          />
-        ) : (
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${themeGradients[theme as keyof typeof themeGradients] || themeGradients.purple} opacity-60`}
           />
         )}
 
@@ -328,7 +571,7 @@ export function WishCanvas({
           {/* Progress Indicator - Only show in preview mode */}
           {isPreviewMode && (
             <div className='absolute top-4 right-4 z-20'>
-              <div className='bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-medium text-gray-700 shadow-lg'>
+              <div className='bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs sm:text-sm font-medium text-gray-700 shadow-lg'>
                 Step {currentStep + 1} of{' '}
                 {stepSequence && stepSequence.length > 0
                   ? stepSequence.length
@@ -336,6 +579,7 @@ export function WishCanvas({
                       el =>
                         el.elementType === 'balloons-interactive' ||
                         el.elementType === 'beautiful-text' ||
+                        el.elementType === 'date-question' ||
                         el.elementType === 'confetti' ||
                         el.elementType === 'music-player'
                     ).length}
@@ -356,6 +600,7 @@ export function WishCanvas({
                         el =>
                           el.elementType === 'balloons-interactive' ||
                           el.elementType === 'beautiful-text' ||
+                          el.elementType === 'date-question' ||
                           el.elementType === 'confetti' ||
                           el.elementType === 'music-player'
                       )
@@ -365,7 +610,7 @@ export function WishCanvas({
               const hasMoreSteps = currentStep < sequenceToUse.length - 1;
 
               return hasMoreSteps ? (
-                <div className='absolute bottom-4 right-4 z-20'>
+                <div className='absolute bottom-32 right-4 z-20 sm:bottom-4'>
                   <button
                     onClick={() => {
                       const currentElement = getVisibleElements()[0];
@@ -373,7 +618,7 @@ export function WishCanvas({
                         handleElementComplete(currentElement.id);
                       }
                     }}
-                    className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300'
+                    className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-2 rounded-full text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300'
                   >
                     Next →
                   </button>
@@ -402,13 +647,6 @@ export function WishCanvas({
           >
             {getVisibleElements().map(renderElement)}
           </div>
-
-          {/* Click to add element hint */}
-          {elements.length === 0 && (
-            <div className='absolute bottom-4 right-4 text-xs text-gray-400'>
-              Click elements in the palette to add them
-            </div>
-          )}
         </div>
 
         {/* Canvas Grid Overlay (for positioning) - Hidden on mobile */}
@@ -423,6 +661,18 @@ export function WishCanvas({
           />
         </div>
       </div>
+
+      {/* Background Music Player - Only show in preview mode when music is selected */}
+      {isPreviewMode && music && (
+        <MusicPlayer
+          musicId={music}
+          isVisible={true}
+          onMusicEnd={() => {
+            // Optionally restart the music or handle end
+            console.log('Music ended');
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,11 +1,49 @@
 'use client';
 
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoginButton } from '@/components/auth/LoginButton';
+import { UserMenu } from '@/components/auth/UserMenu';
 
-export default function Home() {
+export default function HomePage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAdmin } = useAuth();
 
+  React.useEffect(() => {
+    if (user) {
+      window.location.href = '/dashboard';
+    }
+  }, [user]);
+
+  if (user) {
+    // Show loading while redirecting
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4'>
+            <svg
+              className='w-8 h-8 text-white animate-spin'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+              />
+            </svg>
+          </div>
+          <p className='text-gray-600'>Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // For non-logged-in users, show landing page
   return (
     <div className='min-h-screen'>
       {/* Navigation */}
@@ -33,24 +71,10 @@ export default function Home() {
           >
             Occasions
           </Link>
-          <Link
-            href='/templates'
-            className='text-gray-600 hover:text-purple-600 transition-colors'
-          >
-            Templates
-          </Link>
-          <Link
-            href='/wishes'
-            className='text-gray-600 hover:text-purple-600 transition-colors'
-          >
-            My Wishes
-          </Link>
-          <Link
-            href='/templates'
-            className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300'
-          >
-            Create Wish
-          </Link>
+
+          <LoginButton variant='primary' size='sm'>
+            Sign In
+          </LoginButton>
         </div>
 
         {/* Mobile Menu Button */}
@@ -101,20 +125,11 @@ export default function Home() {
             >
               Templates
             </Link>
-            <Link
-              href='/wishes'
-              className='block text-gray-600 hover:text-purple-600 transition-colors'
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              My Wishes
-            </Link>
-            <Link
-              href='/templates'
-              className='block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300 text-center'
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Create Wish
-            </Link>
+            <div className='pt-2'>
+              <LoginButton variant='primary' size='sm' className='w-full'>
+                Sign In
+              </LoginButton>
+            </div>
           </div>
         </div>
       )}
@@ -133,12 +148,9 @@ export default function Home() {
           ones&apos; day special
         </p>
         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-          <Link
-            href='/templates'
-            className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105'
-          >
-            Start Creating
-          </Link>
+          <LoginButton size='lg' className='px-8 py-4 text-lg'>
+            Get Started with Google
+          </LoginButton>
           <Link
             href='/presentation/demo'
             className='border-2 border-purple-500 text-purple-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-purple-50 transition-all duration-300'
@@ -267,12 +279,13 @@ export default function Home() {
             Join thousands of people who are already creating magical moments
             with WishLuu.
           </p>
-          <Link
-            href='/templates'
-            className='bg-white text-purple-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-block'
+          <LoginButton
+            size='lg'
+            variant='outline'
+            className='px-8 py-4 text-lg'
           >
             Start Creating Now
-          </Link>
+          </LoginButton>
         </div>
       </section>
 

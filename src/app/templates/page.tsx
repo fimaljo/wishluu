@@ -2,158 +2,344 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getAllTemplates, TEMPLATE_OCCASIONS } from '@/config/templates';
+import { TEMPLATE_OCCASIONS } from '@/config/templates';
 import { Template } from '@/types/templates';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoginButton } from '@/components/auth/LoginButton';
+import { Button } from '@/components/ui/Button';
+import { useFirebaseTemplates } from '@/hooks/useFirebaseTemplates';
+import { TemplatePreviewModal } from '@/components/ui/TemplatePreviewModal';
 
 export default function TemplatesPage() {
   const [selectedOccasion, setSelectedOccasion] = useState('all');
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const { user, isAdmin, signOut } = useAuth();
 
-  // Load templates on component mount (client-side only)
-  useEffect(() => {
-    const loadTemplates = () => {
-      setTemplates(getAllTemplates());
-      setIsLoading(false);
-    };
-    loadTemplates();
-  }, []);
+  // Use Firebase templates hook
+  const {
+    templates,
+    isLoading,
+    error,
+    refreshTemplates,
+    getTemplatesByOccasion,
+  } = useFirebaseTemplates();
 
-  const filteredTemplates =
-    selectedOccasion === 'all'
-      ? templates
-      : templates.filter(template => template.occasion === selectedOccasion);
+  // Filter templates by selected occasion
+  const filteredTemplates = React.useMemo(() => {
+    if (selectedOccasion === 'all') {
+      return templates;
+    }
+    return templates.filter(template => template.occasion === selectedOccasion);
+  }, [templates, selectedOccasion]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // Redirect to home page after sign out
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const handlePreviewTemplate = (template: Template) => {
+    setPreviewTemplate(template);
+    setShowPreviewModal(true);
+  };
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-50 to-pink-50'>
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
       {/* Header */}
-      <div className='bg-white shadow-sm'>
-        <div className='w-full max-w-[1800px] mx-auto px-6 py-4'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center space-x-2'>
-              <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center'>
+      <header className='bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className='flex items-center justify-between h-16'>
+            <div className='flex items-center space-x-4'>
+              <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg'>
                 <span className='text-white font-bold text-lg'>W</span>
               </div>
-              <span className='text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'>
-                WishLuu
-              </span>
+              <div>
+                <h1 className='text-xl font-bold text-gray-800'>WishLuu</h1>
+                <p className='text-sm text-gray-500'>Create & Share Wishes</p>
+              </div>
             </div>
             <div className='flex items-center space-x-4'>
-              <Link
-                href='/admin/templates'
-                className='text-gray-600 hover:text-purple-600 transition-colors'
-              >
-                Manage Templates
-              </Link>
-              <Link
-                href='/'
-                className='text-gray-600 hover:text-purple-600 transition-colors'
-              >
-                ← Back to Home
-              </Link>
+              <div className='hidden md:flex items-center space-x-2 text-sm text-gray-600'>
+                <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse'></div>
+                <span>
+                  Welcome back,{' '}
+                  {user?.displayName || user?.email?.split('@')[0]}! 👋
+                </span>
+              </div>
+              {isAdmin && (
+                <div className='flex items-center space-x-3'>
+                  <Link
+                    href='/admin/templates'
+                    className='text-sm text-gray-600 hover:text-blue-600 transition-colors font-medium'
+                  >
+                    ⚙️ Admin
+                  </Link>
+                  <Link
+                    href='/admin/cleanup'
+                    className='text-sm text-gray-600 hover:text-blue-600 transition-colors font-medium'
+                  >
+                    🧹 Cleanup
+                  </Link>
+                </div>
+              )}
+              {user ? (
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handleSignOut}
+                  className='text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-300'
+                >
+                  <svg
+                    className='w-4 h-4 mr-2'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'
+                    />
+                  </svg>
+                  Sign Out
+                </Button>
+              ) : (
+                <LoginButton variant='outline' size='sm'>
+                  Sign In
+                </LoginButton>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className='w-full max-w-[1800px] mx-auto px-6 py-12'>
+      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        {/* Welcome Section */}
         <div className='text-center mb-12'>
-          <h1 className='text-4xl md:text-5xl font-bold mb-4'>
-            <span className='bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'>
-              Choose Your Template
-            </span>
-          </h1>
-          <p className='text-xl text-gray-600 max-w-2xl mx-auto'>
+          <h2 className='text-4xl md:text-5xl font-bold text-gray-800 mb-4'>
+            Choose Your Template ✨
+          </h2>
+          <p className='text-xl text-gray-600 max-w-3xl mx-auto'>
             Select from our beautiful collection of templates to create your
-            perfect interactive wish
+            perfect interactive wish, or start from scratch with our custom
+            builder.
           </p>
         </div>
 
         {/* Occasion Filter */}
-        <div className='flex flex-wrap justify-center gap-4 mb-8'>
-          {TEMPLATE_OCCASIONS.map(occasion => (
-            <button
-              key={occasion.id}
-              onClick={() => setSelectedOccasion(occasion.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                selectedOccasion === occasion.id
-                  ? 'bg-purple-500 text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600'
-              }`}
-            >
-              <span className='mr-2'>{occasion.emoji}</span>
-              {occasion.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Templates Grid */}
-        {isLoading ? (
-          <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
-            {[1, 2, 3].map(i => (
-              <div
-                key={i}
-                className='bg-white rounded-2xl shadow-lg p-8 animate-pulse'
+        <div className='mb-12'>
+          <div className='text-center mb-6'>
+            <h3 className='text-2xl font-bold text-gray-800 mb-2'>
+              Filter by Occasion
+            </h3>
+            <p className='text-gray-600'>
+              Find the perfect template for your special moment
+            </p>
+          </div>
+          <div className='flex flex-wrap justify-center gap-3'>
+            {TEMPLATE_OCCASIONS.map(occasion => (
+              <button
+                key={occasion.id}
+                onClick={() => setSelectedOccasion(occasion.id)}
+                className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
+                  selectedOccasion === occasion.id
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-105'
+                    : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-blue-600 shadow-md hover:shadow-lg border border-white/20'
+                }`}
               >
-                <div className='bg-gray-200 rounded-lg h-24 mb-4'></div>
-                <div className='bg-gray-200 rounded h-6 mb-2'></div>
-                <div className='bg-gray-200 rounded h-4 mb-4'></div>
-                <div className='bg-gray-200 rounded-full h-6 w-24'></div>
-              </div>
+                <span className='mr-2'>{occasion.emoji}</span>
+                {occasion.name}
+              </button>
             ))}
           </div>
-        ) : (
+        </div>
+
+        {/* Error State */}
+        {error && (
+          <div className='text-center py-16'>
+            <div className='inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6'>
+              <span className='text-4xl'>⚠️</span>
+            </div>
+            <h3 className='text-2xl font-bold text-gray-800 mb-3'>
+              Error Loading Templates
+            </h3>
+            <p className='text-gray-600 mb-6 max-w-md mx-auto'>{error}</p>
+            <Button
+              onClick={refreshTemplates}
+              variant='primary'
+              size='lg'
+              className='px-8 py-3'
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && !error && (
           <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
-            {filteredTemplates.map(template => (
-              <Link key={template.id} href={`/wishes/create/${template.id}`}>
-                <div className='group cursor-pointer'>
-                  <div
-                    className={`bg-gradient-to-r ${template.color} p-8 rounded-2xl text-white text-center transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl h-full flex flex-col justify-center`}
-                  >
-                    <div className='text-6xl mb-4'>{template.thumbnail}</div>
-                    <h3 className='text-xl font-semibold mb-2'>
-                      {template.name}
-                    </h3>
-                    <p className='text-purple-100 text-sm mb-4'>
-                      {template.description}
-                    </p>
-                    <div className='bg-white/20 rounded-full px-4 py-1 text-sm font-medium'>
-                      {template.occasion === 'custom'
-                        ? 'Custom'
-                        : template.occasion}
-                    </div>
-                  </div>
-                </div>
-              </Link>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div
+                key={i}
+                className='bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 animate-pulse border border-white/20'
+              >
+                <div className='bg-gradient-to-r from-blue-200 to-purple-200 rounded-xl h-32 mb-6'></div>
+                <div className='bg-gray-200 rounded-lg h-6 mb-3'></div>
+                <div className='bg-gray-200 rounded h-4 mb-6'></div>
+                <div className='bg-gray-200 rounded-full h-8 w-24'></div>
+              </div>
             ))}
           </div>
         )}
 
-        {/* Custom Template Option */}
-        <div className='mt-16 text-center'>
-          <div className='bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto'>
-            <div className='text-6xl mb-4'>✨</div>
-            <h2 className='text-2xl font-bold mb-4'>
-              Create Your Own Custom Wish
-            </h2>
-            <p className='text-gray-600 mb-6'>
-              Start from scratch and build a completely unique interactive wish
-              with our powerful drag-and-drop builder.
-            </p>
-            <Link
-              href='/wishes/create/custom-blank'
-              className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-block'
-            >
-              Start Building Now
-            </Link>
-            <p className='text-sm text-gray-500 mt-4'>
-              ✨ Preview your wish in real-time • 🎨 Customize every element •
-              📤 Share with a single click
-            </p>
+        {/* Templates Grid */}
+        {!isLoading && !error && (
+          <div className='mb-12'>
+            <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
+              {/* Custom Wish Card - only show when there are templates */}
+              {filteredTemplates.length > 0 && (
+                <Link href='/wishes/create/custom-blank'>
+                  <div className='group cursor-pointer'>
+                    <div className='bg-gradient-to-r from-blue-500 to-purple-600 p-8 rounded-2xl text-white text-center transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl h-full flex flex-col justify-center relative overflow-hidden border border-white/20 shadow-lg'>
+                      {/* Background Pattern */}
+                      <div className='absolute inset-0 opacity-10'>
+                        <div className='absolute top-4 right-4 w-16 h-16 rounded-full bg-white/20'></div>
+                        <div className='absolute bottom-4 left-4 w-8 h-8 rounded-full bg-white/20'></div>
+                        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/10'></div>
+                      </div>
+
+                      <div className='relative z-10'>
+                        <div className='text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-300'>
+                          ✨
+                        </div>
+                        <h3 className='text-xl font-bold mb-3 text-shadow-lg'>
+                          Create Your Own Custom Wish
+                        </h3>
+                        <p className='text-white/90 text-sm mb-6 leading-relaxed'>
+                          Start from scratch and build something unique.
+                        </p>
+                        <div className='bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
+                          Custom
+                        </div>
+                      </div>
+
+                      {/* Hover Effect */}
+                      <div className='absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                    </div>
+                  </div>
+                </Link>
+              )}
+              {/* Actual template cards */}
+              {filteredTemplates.map(template => (
+                <div key={template.id} className='group relative'>
+                  {/* Main Card - Clickable for creating wish */}
+                  <Link
+                    href={`/wishes/create/${template.id}`}
+                    className='block'
+                  >
+                    <div
+                      className={`bg-gradient-to-r ${template.color} p-8 rounded-2xl text-white text-center transform transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl h-full flex flex-col justify-center relative overflow-hidden border border-white/20 shadow-lg`}
+                    >
+                      {/* Background Pattern */}
+                      <div className='absolute inset-0 opacity-10'>
+                        <div className='absolute top-4 right-4 w-16 h-16 rounded-full bg-white/20'></div>
+                        <div className='absolute bottom-4 left-4 w-8 h-8 rounded-full bg-white/20'></div>
+                        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/10'></div>
+                      </div>
+
+                      <div className='relative z-10'>
+                        <div className='text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-300'>
+                          {template.thumbnail}
+                        </div>
+                        <h3 className='text-xl font-bold mb-3 text-shadow-lg'>
+                          {template.name}
+                        </h3>
+                        <p className='text-white/90 text-sm mb-6 leading-relaxed'>
+                          {template.description}
+                        </p>
+                        <div className='flex items-center justify-center space-x-2'>
+                          <div className='bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
+                            {template.occasion === 'custom'
+                              ? 'Custom'
+                              : template.occasion}
+                          </div>
+                          {template.creditCost && template.creditCost > 0 && (
+                            <div className='bg-gradient-to-r from-yellow-400 to-orange-500 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold border border-white/30 transform group-hover:scale-105 transition-transform duration-300'>
+                              💎 {template.creditCost}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Hover Effect */}
+                      <div className='absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+                    </div>
+                  </Link>
+
+                  {/* Preview Button - Separate from card click */}
+                  <button
+                    onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handlePreviewTemplate(template);
+                    }}
+                    className='absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-medium hover:bg-white transition-colors border border-white/30 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20'
+                    title='Preview Template'
+                  >
+                    👁️ Preview
+                  </button>
+                </div>
+              ))}
+
+              {/* No templates message - only show when no actual templates exist */}
+              {filteredTemplates.length === 0 && (
+                <div className='col-span-full text-center py-20'>
+                  <div className='inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full mb-6'>
+                    <span className='text-5xl'>📝</span>
+                  </div>
+                  <h3 className='text-2xl font-bold text-gray-800 mb-3'>
+                    No Templates Found
+                  </h3>
+                  <p className='text-gray-600 text-lg max-w-md mx-auto mb-8'>
+                    {selectedOccasion === 'all'
+                      ? 'No templates are available yet. Check back soon for beautiful new templates!'
+                      : `No templates found for ${selectedOccasion} occasion. Try selecting a different category.`}
+                  </p>
+                  <Link href='/wishes/create/custom-blank'>
+                    <Button
+                      variant='primary'
+                      size='lg'
+                      className='px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300'
+                    >
+                      Create Your Own Custom Wish ✨
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
+        )}
+
+        {/* Custom Template Option */}
+        {/* Removed bottom section as per new design */}
+      </main>
+
+      {/* Template Preview Modal */}
+      <TemplatePreviewModal
+        template={previewTemplate}
+        isOpen={showPreviewModal}
+        onClose={() => {
+          setShowPreviewModal(false);
+          setPreviewTemplate(null);
+        }}
+      />
     </div>
   );
 }

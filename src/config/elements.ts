@@ -1,4 +1,4 @@
-import { InteractiveElement } from '@/types/templates';
+import { InteractiveElement, WishElement } from '@/types/templates';
 
 // Centralized Elements Configuration
 // This is the single source of truth for all elements in the application
@@ -11,7 +11,7 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
     description: 'Click to pop balloons with surprise images',
     icon: '🎈',
     category: 'birthday',
-    isPremium: false,
+    creditCost: 0, // Free element
     tags: [
       'balloons',
       'interactive',
@@ -46,7 +46,7 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       'Add beautiful titles and messages with custom fonts and colors',
     icon: '✨',
     category: 'basic',
-    isPremium: true,
+    creditCost: 2, // Free element
     properties: {
       title: 'Happy Birthday!',
       message: 'Wishing you a wonderful day filled with joy and laughter!',
@@ -70,7 +70,6 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         type: 'text',
         label: 'Title',
         defaultValue: 'Happy Birthday!',
-        isPremium: false,
       },
       {
         name: 'message',
@@ -78,14 +77,12 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         label: 'Message',
         defaultValue:
           'Wishing you a wonderful day filled with joy and laughter!',
-        isPremium: false,
       },
       {
         name: 'titleFont',
         type: 'select',
         label: 'Title Font',
         defaultValue: 'playfair',
-        isPremium: false,
         options: [
           { value: 'inter', label: 'Inter' },
           { value: 'poppins', label: 'Poppins' },
@@ -95,12 +92,12 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
           { value: 'lato', label: 'Lato' },
           { value: 'raleway', label: 'Raleway' },
           { value: 'playfair', label: 'Playfair Display' },
-          { value: 'dancing', label: 'Dancing Script', isPremium: true },
-          { value: 'pacifico', label: 'Pacifico', isPremium: true },
-          { value: 'great-vibes', label: 'Great Vibes', isPremium: true },
-          { value: 'satisfy', label: 'Satisfy', isPremium: true },
-          { value: 'kaushan', label: 'Kaushan Script', isPremium: true },
-          { value: 'allura', label: 'Allura', isPremium: true },
+          { value: 'dancing', label: 'Dancing Script', creditCost: 0.5 },
+          { value: 'pacifico', label: 'Pacifico', creditCost: 0.5 },
+          { value: 'great-vibes', label: 'Great Vibes', creditCost: 0.5 },
+          { value: 'satisfy', label: 'Satisfy', creditCost: 0.5 },
+          { value: 'kaushan', label: 'Kaushan Script', creditCost: 0.5 },
+          { value: 'allura', label: 'Allura', creditCost: 0.5 },
         ],
       },
       {
@@ -108,7 +105,6 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         type: 'select',
         label: 'Message Font',
         defaultValue: 'inter',
-        isPremium: false,
         options: [
           { value: 'inter', label: 'Inter' },
           { value: 'poppins', label: 'Poppins' },
@@ -118,8 +114,8 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
           { value: 'lato', label: 'Lato' },
           { value: 'raleway', label: 'Raleway' },
           { value: 'playfair', label: 'Playfair Display' },
-          { value: 'dancing', label: 'Dancing Script', isPremium: true },
-          { value: 'pacifico', label: 'Pacifico', isPremium: true },
+          { value: 'dancing', label: 'Dancing Script', creditCost: 0.5 },
+          { value: 'pacifico', label: 'Pacifico', creditCost: 0.5 },
         ],
       },
       {
@@ -127,14 +123,12 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         type: 'color',
         label: 'Title Color',
         defaultValue: '#FF6B9D',
-        isPremium: false,
       },
       {
         name: 'messageColor',
         type: 'color',
         label: 'Message Color',
         defaultValue: '#4A5568',
-        isPremium: false,
       },
       {
         name: 'titleSize',
@@ -144,7 +138,6 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         min: 24,
         max: 96,
         step: 1,
-        isPremium: false,
       },
       {
         name: 'messageSize',
@@ -154,14 +147,12 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         min: 12,
         max: 32,
         step: 1,
-        isPremium: false,
       },
       {
         name: 'alignment',
         type: 'select',
         label: 'Text Alignment',
         defaultValue: 'center',
-        isPremium: false,
         options: [
           { value: 'left', label: 'Left' },
           { value: 'center', label: 'Center' },
@@ -173,7 +164,6 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         type: 'select',
         label: 'Animation',
         defaultValue: 'fade-in',
-        isPremium: false,
         options: [
           { value: 'none', label: 'None' },
           { value: 'fade-in', label: 'Fade In' },
@@ -182,9 +172,9 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
           { value: 'zoom-in', label: 'Zoom In' },
           { value: 'bounce', label: 'Bounce' },
           { value: 'pulse', label: 'Pulse' },
-          { value: 'flip', label: '3D Flip', isPremium: true },
-          { value: 'rotate', label: 'Rotate', isPremium: true },
-          { value: 'typewriter', label: 'Typewriter', isPremium: true },
+          { value: 'flip', label: '3D Flip', creditCost: 1 },
+          { value: 'rotate', label: 'Rotate', creditCost: 1 },
+          { value: 'typewriter', label: 'Typewriter', creditCost: 1 },
         ],
       },
       {
@@ -192,14 +182,12 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         type: 'checkbox',
         label: 'Enable Shadow',
         defaultValue: true,
-        isPremium: false,
       },
       {
         name: 'gradient',
         type: 'checkbox',
         label: 'Enable Gradient',
         defaultValue: false,
-        isPremium: false,
         premiumLabel: 'Premium',
         upgradeMessage: 'Unlock gradient text effects',
       },
@@ -211,7 +199,275 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
         min: 0,
         max: 60,
         step: 1,
-        isPremium: false,
+      },
+    ],
+  },
+
+  // ===== INTERACTION ELEMENTS =====
+  {
+    id: 'comment-wall',
+    type: 'interaction',
+    name: 'Instagram Style Post',
+    description: 'Create an Instagram-style post with photo/video and comments',
+    icon: '📱',
+    category: 'social',
+    creditCost: 0, // Free element
+    tags: [
+      'instagram',
+      'social',
+      'post',
+      'photo',
+      'video',
+      'comments',
+      'sharing',
+    ],
+    properties: {
+      postType: 'photo', // 'photo' or 'video'
+      mediaUrl: '',
+      postDescription: 'Share your thoughts and memories here...',
+    },
+    propertyDefinitions: [
+      {
+        name: 'postType',
+        type: 'select',
+        label: 'Post Type',
+        defaultValue: 'photo',
+        options: [
+          { value: 'photo', label: 'Photo Post' },
+          { value: 'video', label: 'Video Post' },
+        ],
+      },
+      {
+        name: 'mediaUrl',
+        type: 'text',
+        label: 'Media URL',
+        defaultValue: '',
+      },
+      {
+        name: 'postDescription',
+        type: 'text',
+        label: 'Post Description',
+        defaultValue: 'Share your thoughts and memories here...',
+      },
+    ],
+  },
+  {
+    id: 'date-question',
+    type: 'interaction',
+    name: 'Interactive Question',
+    description:
+      'Fun interactive question with growing Yes button and shrinking No button',
+    icon: '❓',
+    category: 'basic',
+    creditCost: 0, // Free element
+    tags: ['question', 'yes', 'no', 'interactive', 'fun'],
+    properties: {
+      question: 'Will you come for a date?',
+      yesText: 'Yes',
+      noText: 'No',
+    },
+    propertyDefinitions: [
+      {
+        name: 'question',
+        type: 'text',
+        label: 'Question',
+        defaultValue: 'Will you come for a date?',
+      },
+      {
+        name: 'yesText',
+        type: 'text',
+        label: 'Yes Button Text',
+        defaultValue: 'Yes',
+      },
+      {
+        name: 'noText',
+        type: 'text',
+        label: 'No Button Text',
+        defaultValue: 'No',
+      },
+    ],
+  },
+
+  {
+    id: 'image-puzzle',
+    type: 'interaction',
+    name: 'Image Puzzle',
+    description: 'Interactive image puzzle with drag and drop pieces',
+    icon: '🧩',
+    category: 'basic',
+    creditCost: 0, // Free element
+    tags: ['puzzle', 'image', 'drag', 'drop', 'game', 'interactive'],
+    properties: {
+      imageUrl: '',
+      gridSize: 3,
+      difficulty: 'medium',
+      secretMessage: '',
+    },
+    propertyDefinitions: [
+      {
+        name: 'imageUrl',
+        type: 'text',
+        label: 'Image URL',
+        defaultValue: '',
+      },
+      {
+        name: 'gridSize',
+        type: 'select',
+        label: 'Grid Size',
+        defaultValue: 3,
+        options: [
+          { value: '2', label: '2x2 (Easy)' },
+          { value: '3', label: '3x3 (Medium)' },
+          { value: '4', label: '4x4 (Hard)' },
+          { value: '5', label: '5x5 (Expert)' },
+        ],
+      },
+      {
+        name: 'difficulty',
+        type: 'select',
+        label: 'Difficulty',
+        defaultValue: 'medium',
+        options: [
+          { value: 'easy', label: 'Easy' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'hard', label: 'Hard' },
+        ],
+      },
+      {
+        name: 'secretMessage',
+        type: 'text',
+        label: 'Secret Message (shown when solved)',
+        defaultValue: '',
+      },
+    ],
+  },
+
+  {
+    id: 'interactive-quiz',
+    type: 'interaction',
+    name: 'Interactive Quiz',
+    description: 'Test how well you know me with multiple choice questions',
+    icon: '🧠',
+    category: 'basic',
+    creditCost: 0, // Free element
+    tags: ['quiz', 'questions', 'score', 'interactive', 'fun'],
+    properties: {
+      title: 'How Well Do You Know Me?',
+      questions: [
+        {
+          question: 'What is my favorite color?',
+          options: ['Blue', 'Red', 'Green', 'Purple'],
+          correctAnswer: 0,
+        },
+      ],
+      perfectScoreMessage:
+        'Wow! You know me perfectly! We must be soulmates! 💕',
+      goodScoreMessage: 'Great job! You know me pretty well! 😊',
+      averageScoreMessage: 'Not bad! You know some things about me! 🤔',
+      lowScoreMessage: 'Hmm... We need to spend more time together! 😅',
+    },
+    propertyDefinitions: [
+      {
+        name: 'title',
+        type: 'text',
+        label: 'Quiz Title',
+        defaultValue: 'How Well Do You Know Me?',
+      },
+      {
+        name: 'perfectScoreMessage',
+        type: 'text',
+        label: 'Perfect Score Message (90-100%)',
+        defaultValue: 'Wow! You know me perfectly! We must be soulmates! 💕',
+      },
+      {
+        name: 'goodScoreMessage',
+        type: 'text',
+        label: 'Good Score Message (70-89%)',
+        defaultValue: 'Great job! You know me pretty well! 😊',
+      },
+      {
+        name: 'averageScoreMessage',
+        type: 'text',
+        label: 'Average Score Message (50-69%)',
+        defaultValue: 'Not bad! You know some things about me! 🤔',
+      },
+      {
+        name: 'lowScoreMessage',
+        type: 'text',
+        label: 'Low Score Message (0-49%)',
+        defaultValue: 'Hmm... We need to spend more time together! 😅',
+      },
+    ],
+  },
+
+  {
+    id: 'love-letter',
+    type: 'interaction',
+    name: 'Love Letter',
+    description: 'A romantic letter with unfolding animation and wax seal',
+    icon: '💌',
+    category: 'valentine',
+    creditCost: 0, // Free element
+    tags: ['love', 'letter', 'romantic', 'animation', 'seal', 'handwriting'],
+    properties: {
+      title: 'My Dearest',
+      message:
+        'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.',
+      signature: 'With all my love',
+      initials: 'JD',
+      letterColor: '#F5F5DC',
+      inkColor: '#2F2F2F',
+      fontStyle: 'handwriting',
+    },
+    propertyDefinitions: [
+      {
+        name: 'title',
+        type: 'text',
+        label: 'Letter Title',
+        defaultValue: 'My Dearest',
+      },
+      {
+        name: 'message',
+        type: 'text',
+        label: 'Love Message',
+        defaultValue:
+          'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.',
+      },
+      {
+        name: 'signature',
+        type: 'text',
+        label: 'Signature',
+        defaultValue: 'With all my love',
+      },
+      {
+        name: 'initials',
+        type: 'text',
+        label: 'Wax Seal Initials',
+        defaultValue: 'JD',
+      },
+      {
+        name: 'letterColor',
+        type: 'color',
+        label: 'Letter Paper Color',
+        defaultValue: '#F5F5DC',
+      },
+      {
+        name: 'inkColor',
+        type: 'color',
+        label: 'Ink Color',
+        defaultValue: '#2F2F2F',
+      },
+      {
+        name: 'fontStyle',
+        type: 'select',
+        label: 'Handwriting Font',
+        defaultValue: 'handwriting',
+        options: [
+          { value: 'handwriting', label: 'Elegant Handwriting' },
+          { value: 'cursive', label: 'Flowing Cursive' },
+          { value: 'calligraphy', label: 'Calligraphy Style' },
+          { value: 'romantic', label: 'Romantic Script' },
+        ],
       },
     ],
   },
@@ -253,14 +509,14 @@ export const getElementsByType = (type: string): InteractiveElement[] => {
  * Get premium elements only
  */
 export const getPremiumElements = (): InteractiveElement[] => {
-  return ELEMENT_DEFINITIONS.filter(element => element.isPremium);
+  return ELEMENT_DEFINITIONS.filter(element => (element.creditCost ?? 0) > 0);
 };
 
 /**
  * Get free elements only
  */
 export const getFreeElements = (): InteractiveElement[] => {
-  return ELEMENT_DEFINITIONS.filter(element => !element.isPremium);
+  return ELEMENT_DEFINITIONS.filter(element => (element.creditCost ?? 0) === 0);
 };
 
 /**
@@ -299,10 +555,11 @@ export const getRecommendedElements = (
   context: string
 ): InteractiveElement[] => {
   const recommendations: { [key: string]: string[] } = {
-    birthday: ['balloons-interactive', 'beautiful-text'],
-    valentine: ['beautiful-text'],
-    celebration: ['balloons-interactive', 'beautiful-text'],
-    basic: ['beautiful-text'],
+    birthday: ['balloons-interactive', 'beautiful-text', 'comment-wall'],
+    valentine: ['beautiful-text', 'comment-wall'],
+    celebration: ['balloons-interactive', 'beautiful-text', 'comment-wall'],
+    basic: ['beautiful-text', 'comment-wall'],
+    social: ['comment-wall'],
   };
 
   const recommendedIds = recommendations[context] || [];
@@ -349,6 +606,30 @@ export const cloneElement = (
   };
 };
 
+/**
+ * Convert element IDs to WishElements with default properties
+ */
+export const elementIdsToWishElements = (
+  elementIds: string[]
+): WishElement[] => {
+  return elementIds
+    .map((elementId, index) => {
+      const element = getElementById(elementId);
+      if (!element) {
+        console.warn(`Element with ID ${elementId} not found`);
+        return null;
+      }
+
+      return {
+        id: `${elementId}_${Date.now()}_${index}`,
+        elementType: elementId,
+        properties: { ...element.properties },
+        order: index,
+      };
+    })
+    .filter(Boolean) as WishElement[];
+};
+
 // ===== ELEMENT METADATA =====
 
 export const ELEMENT_CATEGORIES = [
@@ -370,6 +651,12 @@ export const ELEMENT_CATEGORIES = [
     emoji: '🎂',
     description: 'Perfect for birthday wishes',
   },
+  {
+    id: 'social',
+    name: 'Social',
+    emoji: '💬',
+    description: 'Interactive social elements',
+  },
 ];
 
 export const ELEMENT_TYPES = [
@@ -384,6 +671,12 @@ export const ELEMENT_TYPES = [
     name: 'Text',
     emoji: '📝',
     description: 'Text and typography elements',
+  },
+  {
+    id: 'interaction',
+    name: 'Interactive',
+    emoji: '💬',
+    description: 'Social and interactive elements',
   },
 ];
 
@@ -404,6 +697,7 @@ export default {
   validateElementProperties,
   getDefaultProperties,
   cloneElement,
+  elementIdsToWishElements,
   ELEMENT_CATEGORIES,
   ELEMENT_TYPES,
 };

@@ -5,13 +5,22 @@ import { WishElement } from '@/types/templates';
 import { Button } from '@/components/ui/Button';
 import { ElementPalette } from './ElementPalette';
 import { WishCanvas } from './WishCanvas';
-import { ElementPropertiesPanel } from './ElementPropertiesPanel';
+import {
+  ElementPropertiesPanel,
+  CanvasSettingsPanel,
+} from './ElementPropertiesPanel';
 import { SaveShareDialog } from '@/components/ui/SaveShareDialog';
 import { PresentationMode } from '@/components/ui/PresentationMode';
+import { PremiumUpgradeModal } from '@/components/ui/PremiumUpgradeModal';
 import { getAllElements } from '@/config/elements';
-import { getTemplateById } from '@/config/templates';
 import { premiumService } from '@/lib/premiumService';
+import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
 import { Wish } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  calculateTotalCreditCost,
+  calculateTemplateCreditCost,
+} from '@/lib/creditCalculator';
 import {
   useWishBuilderState,
   useWishBuilderActions,
@@ -28,12 +37,10 @@ const TEMPLATE_STEPS = [
 ] as const;
 const MAX_STEPS = 10;
 const MOBILE_BREAKPOINT = 768;
-const DEMO_USER_ID = 'demo-user-123';
 
 interface CustomWishBuilderProps {
   onBack: () => void;
   templateId?: string;
-  isUserPremium?: boolean;
   isTemplateMode?: boolean;
   isAdminMode?: boolean;
   onSaveTemplate?: (elements: WishElement[], stepSequence: string[][]) => void;
@@ -482,6 +489,12 @@ const SaveShareStep = ({
   templateMetadata,
   onShowMetadataForm,
   adminIsSaving = false,
+  recipientName = '',
+  setRecipientName = () => {},
+  message = '',
+  setMessage = () => {},
+  theme = '',
+  templateCreditCost = 0,
 }: {
   elements: WishElement[];
   stepSequence: string[][];
@@ -498,120 +511,193 @@ const SaveShareStep = ({
     | undefined;
   onShowMetadataForm?: (() => void) | undefined;
   adminIsSaving?: boolean;
-}) => (
-  <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-8 md:p-12'>
-    <div className='text-center'>
-      <div className='text-8xl mb-6'>{isAdminMode ? '🎨' : '🎉'}</div>
-      <h2 className='text-3xl md:text-4xl font-bold text-gray-800 mb-4'>
-        {isAdminMode
-          ? 'Template Creation Complete!'
-          : isTemplateMode
-            ? 'Your Customized Template is Ready!'
-            : 'Your Wish is Ready!'}
-      </h2>
-      <p className='text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed'>
-        {isAdminMode ? (
-          <>
-            You've created a template with{' '}
-            <span className='font-semibold text-purple-600'>
-              {elements.length} element{elements.length !== 1 ? 's' : ''}
-            </span>
-            . Now add the template information to make it available for users.
-          </>
-        ) : (
-          <>
-            You've{' '}
-            {isTemplateMode
-              ? 'customized a template with'
-              : 'created a beautiful wish with'}{' '}
-            <span className='font-semibold text-purple-600'>
-              {elements.length} element{elements.length !== 1 ? 's' : ''}
-            </span>
-            {isTemplateMode ? ' and configured all settings.' : '.'}
-            {!isTemplateMode && stepSequence.length > 0 && (
-              <span>
-                {' '}
-                It has{' '}
-                <span className='font-semibold text-purple-600'>
-                  {stepSequence.length} step
-                  {stepSequence.length !== 1 ? 's' : ''}
-                </span>{' '}
-                in the sequence.
+  recipientName?: string;
+  setRecipientName?: (name: string) => void;
+  message?: string;
+  setMessage?: (message: string) => void;
+  theme?: string;
+  templateCreditCost?: number;
+}) => {
+  return (
+    <div className='bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-10 max-w-2xl mx-auto'>
+      <div className='text-center'>
+        {/* Icon */}
+        <div className='text-6xl mb-4'>{isAdminMode ? '🎨' : '✨'}</div>
+
+        {/* Title */}
+        <h2 className='text-2xl md:text-3xl font-semibold text-gray-900 mb-3'>
+          {isAdminMode
+            ? 'Template Ready!'
+            : isTemplateMode
+              ? 'Template Customized!'
+              : 'Wish Ready!'}
+        </h2>
+
+        {/* Description */}
+        <p className='text-gray-600 mb-6 max-w-lg mx-auto'>
+          {isAdminMode ? (
+            <>
+              Template with{' '}
+              <span className='font-medium text-purple-600'>
+                {elements.length} element{elements.length !== 1 ? 's' : ''}
+              </span>{' '}
+              created successfully.
+            </>
+          ) : (
+            <>
+              {isTemplateMode ? 'Customized' : 'Created'} with{' '}
+              <span className='font-medium text-purple-600'>
+                {elements.length} element{elements.length !== 1 ? 's' : ''}
               </span>
-            )}
-          </>
-        )}
-      </p>
+              {!isTemplateMode && stepSequence.length > 0 && (
+                <span>
+                  {' '}
+                  and{' '}
+                  <span className='font-medium text-purple-600'>
+                    {stepSequence.length} step
+                    {stepSequence.length !== 1 ? 's' : ''}
+                  </span>
+                </span>
+              )}
+            </>
+          )}
+        </p>
 
-      {/* Stats Cards */}
-      <div
-        className={`grid gap-4 mb-8 max-w-md mx-auto ${isTemplateMode ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}
-      >
-        <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200'>
-          <div className='text-2xl font-bold text-purple-600'>
-            {elements.length}
+        {/* Simple Stats */}
+        <div className='flex justify-center items-center space-x-6 mb-8'>
+          <div className='flex items-center space-x-2'>
+            <div className='w-2 h-2 bg-purple-500 rounded-full'></div>
+            <span className='text-sm text-gray-600'>
+              {elements.length} element{elements.length !== 1 ? 's' : ''}
+            </span>
           </div>
-          <div className='text-sm text-gray-600'>Elements</div>
-        </div>
-        {!isTemplateMode && (
-          <div className='bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200'>
-            <div className='text-2xl font-bold text-green-600'>
-              {stepSequence.length}
+          {!isTemplateMode && stepSequence.length > 0 && (
+            <div className='flex items-center space-x-2'>
+              <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+              <span className='text-sm text-gray-600'>
+                {stepSequence.length} step{stepSequence.length !== 1 ? 's' : ''}
+              </span>
             </div>
-            <div className='text-sm text-gray-600'>Steps</div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
-        <Button
-          variant='outline'
-          onClick={onBackToPreview}
-          className='w-full sm:w-auto px-8 py-3 text-base font-medium'
-          aria-label='Go back to preview'
-        >
-          ← Back to Preview
-        </Button>
+        {/* Credit Cost Display */}
+        {(() => {
+          let creditCost = 0;
+          let costType = '';
+          let breakdown = null;
 
-        {isAdminMode ? (
-          <>
-            <Button
-              variant='outline'
-              onClick={onShowMetadataForm}
-              className='w-full sm:w-auto px-8 py-3 text-base font-medium'
-              aria-label='Add template information'
-            >
-              📝 Add Template Info
-            </Button>
+          if (isTemplateMode) {
+            // Template mode - show template cost + premium properties
+            const premiumBreakdown = calculateTemplateCreditCost(elements);
+            creditCost = templateCreditCost + premiumBreakdown.totalCost;
+            costType = 'Total Template Cost';
+            breakdown = premiumBreakdown;
+          } else {
+            // Custom wish mode - calculate total element and property costs
+            const totalBreakdown = calculateTotalCreditCost(elements);
+            creditCost = totalBreakdown.totalCost;
+            costType = 'Total Cost';
+            breakdown = totalBreakdown;
+          }
+
+          if (creditCost > 0) {
+            return (
+              <div className='mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg'>
+                <div className='flex items-center justify-between'>
+                  <span className='text-sm font-medium text-gray-700'>
+                    {costType}
+                  </span>
+                  <div className='flex items-center space-x-2'>
+                    <span className='text-yellow-500'>💎</span>
+                    <span className='text-lg font-bold text-gray-800'>
+                      {creditCost.toFixed(2)} credits
+                    </span>
+                  </div>
+                </div>
+                {!isTemplateMode && creditCost > 0 && (
+                  <div className='mt-2 text-xs text-gray-600'>
+                    Includes {elements.length} element
+                    {elements.length !== 1 ? 's' : ''} and premium features
+                  </div>
+                )}
+                {isTemplateMode && creditCost > 0 && (
+                  <div className='mt-3 space-y-1'>
+                    {templateCreditCost > 0 && (
+                      <div className='flex items-center justify-between text-xs'>
+                        <span className='text-gray-600'>Template cost:</span>
+                        <span className='font-medium text-gray-800'>
+                          {templateCreditCost.toFixed(2)} credits
+                        </span>
+                      </div>
+                    )}
+                    {breakdown && breakdown.totalCost > 0 && (
+                      <div className='flex items-center justify-between text-xs'>
+                        <span className='text-gray-600'>Premium features:</span>
+                        <span className='font-medium text-gray-800'>
+                          {breakdown.totalCost.toFixed(2)} credits
+                        </span>
+                      </div>
+                    )}
+                    <div className='border-t border-gray-200 pt-1 mt-1'>
+                      <div className='flex items-center justify-between text-xs font-medium'>
+                        <span className='text-gray-700'>Total:</span>
+                        <span className='text-gray-900'>
+                          {creditCost.toFixed(2)} credits
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return null;
+        })()}
+
+        {/* Action Buttons */}
+        <div className='flex flex-col sm:flex-row gap-3 justify-center items-center'>
+          <Button
+            variant='outline'
+            onClick={onBackToPreview}
+            className='w-full sm:w-auto px-6 py-2.5 text-sm font-medium'
+          >
+            ← Back to Preview
+          </Button>
+
+          {isAdminMode ? (
+            <>
+              <Button
+                variant='outline'
+                onClick={onShowMetadataForm}
+                className='w-full sm:w-auto px-6 py-2.5 text-sm font-medium'
+              >
+                Add Template Info
+              </Button>
+              <Button
+                variant='primary'
+                onClick={onSave}
+                disabled={elements.length === 0 || adminIsSaving}
+                className='w-full sm:w-auto px-6 py-2.5 text-sm font-medium'
+              >
+                {adminIsSaving ? 'Saving...' : 'Save Template'}
+              </Button>
+            </>
+          ) : (
             <Button
               variant='primary'
               onClick={onSave}
-              disabled={elements.length === 0 || adminIsSaving}
-              className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
-              aria-label='Save template'
+              disabled={elements.length === 0}
+              className='w-full sm:w-auto px-6 py-2.5 text-sm font-medium'
             >
-              {adminIsSaving ? '💾 Saving...' : '💾 Save Template'}
+              {isTemplateMode ? 'Save Template' : 'Save & Share'}
             </Button>
-          </>
-        ) : (
-          <Button
-            variant='primary'
-            onClick={onSave}
-            disabled={elements.length === 0}
-            className='w-full sm:w-auto px-8 py-3 text-base font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-            aria-label={
-              isTemplateMode
-                ? 'Save and share customized template'
-                : 'Save and share wish'
-            }
-          >
-            💾 {isTemplateMode ? 'Save Template' : 'Save & Share'}
-          </Button>
-        )}
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Extracted Step Manager Panel Component
 const StepManagerPanel = ({
@@ -770,7 +856,6 @@ const StepManagerPanel = ({
 export function CustomWishBuilder({
   onBack,
   templateId,
-  isUserPremium: propIsUserPremium,
   isTemplateMode = false,
   isAdminMode = false,
   onSaveTemplate,
@@ -780,6 +865,7 @@ export function CustomWishBuilder({
 }: CustomWishBuilderProps) {
   // Use custom hooks for state management
   const state = useWishBuilderState();
+  const { user } = useAuth();
   const {
     selectedElement,
     setSelectedElement,
@@ -828,22 +914,54 @@ export function CustomWishBuilder({
     loadedTemplateRef,
   } = state;
 
+  // State for template loading
+  const [template, setTemplate] = React.useState<any>(null);
+  const [templateLoading, setTemplateLoading] = React.useState(false);
+  const [music, setMusic] = React.useState('');
+  const [showPremiumUpgradeModal, setShowPremiumUpgradeModal] =
+    React.useState(false);
+
   // Computed values
   const availableElements = useMemo(() => getAllElements(), []);
-  const template = useMemo(
-    () => (templateId ? getTemplateById(templateId) : null),
-    [templateId]
-  );
+
+  // Load template from Firebase
+  React.useEffect(() => {
+    const loadTemplate = async () => {
+      if (!templateId) {
+        setTemplate(null);
+        return;
+      }
+
+      // Don't try to load template for custom-blank (custom wish creation)
+      if (templateId === 'custom-blank') {
+        setTemplate(null);
+        setTemplateLoading(false);
+        return;
+      }
+
+      setTemplateLoading(true);
+      try {
+        const result =
+          await FirebaseTemplateService.getTemplateById(templateId);
+        if (result.success && result.data) {
+          setTemplate(result.data);
+        } else {
+          console.error('Failed to load template:', result.error);
+          setTemplate(null);
+        }
+      } catch (error) {
+        console.error('Error loading template:', error);
+        setTemplate(null);
+      } finally {
+        setTemplateLoading(false);
+      }
+    };
+
+    loadTemplate();
+  }, [templateId]);
   const isRestrictedMode = useMemo(
     () => isTemplateMode && templateId !== 'custom-blank',
     [isTemplateMode, templateId]
-  );
-  const isUserPremium = useMemo(
-    () =>
-      propIsUserPremium !== undefined
-        ? propIsUserPremium
-        : userPremiumStatus?.isPremium || false,
-    [propIsUserPremium, userPremiumStatus]
   );
   const stepInfo = useMemo(
     () => StepInfo({ currentStep, isTemplateMode }),
@@ -858,9 +976,11 @@ export function CustomWishBuilder({
     setStepSequence,
     setError,
     setIsLoading,
+    setIsSaving,
     setCurrentWish,
     setShowSaveShareDialog,
     setUserPremiumStatus,
+    setShowPremiumUpgradeModal,
     elements,
     selectedElement,
     selectedElements,
@@ -1155,8 +1275,11 @@ export function CustomWishBuilder({
   useEffect(() => {
     const loadPremiumStatus = async () => {
       try {
-        const status = await premiumService.getUserPremiumStatus(DEMO_USER_ID);
-        setUserPremiumStatus(status);
+        // Only load premium status if user is authenticated
+        if (user?.uid) {
+          const status = await premiumService.getUserPremiumStatus(user.uid);
+          setUserPremiumStatus(status);
+        }
       } catch (error) {
         console.error('Error loading premium status:', error);
       } finally {
@@ -1165,28 +1288,62 @@ export function CustomWishBuilder({
     };
 
     loadPremiumStatus();
-  }, []);
+  }, [user?.uid]);
 
   useEffect(() => {
-    if (
-      template?.id &&
-      template?.defaultElements &&
-      loadedTemplateRef.current !== template.id
-    ) {
-      setElements(template.defaultElements as WishElement[]);
-      setOriginalTemplateElements(template.defaultElements as WishElement[]);
-      if (template.defaultElements.length > 0) {
-        setSelectedElement(
-          (template.defaultElements[0] as WishElement) || null
+    const loadTemplateElements = async () => {
+      if (
+        template?.id &&
+        template?.defaultElementIds &&
+        loadedTemplateRef.current !== template.id
+      ) {
+        // Convert element IDs to WishElements using the helper function
+        const { elementIdsToWishElements } = await import('@/config/elements');
+        const wishElements = elementIdsToWishElements(
+          template.defaultElementIds
         );
-        setSelectedElements(template.defaultElements as WishElement[]);
+
+        setElements(wishElements);
+        setOriginalTemplateElements(wishElements);
+        if (wishElements.length > 0) {
+          setSelectedElement(wishElements[0] || null);
+          setSelectedElements(wishElements);
+        }
+        // Load step sequence if available
+        if (template.stepSequence) {
+          // Convert step sequence from element type IDs to actual element IDs
+          const convertedStepSequence = template.stepSequence.map(
+            (step: string[]) =>
+              step.map((elementId: string) => {
+                // First try to find by exact ID (in case it's already a full ID)
+                let element = wishElements.find(el => el.id === elementId);
+
+                // If not found by ID, try by elementType (in case it's an element type ID)
+                if (!element) {
+                  element = wishElements.find(
+                    el => el.elementType === elementId
+                  );
+                }
+
+                // If still not found, try to match by elementType from the old ID
+                if (!element) {
+                  // Extract elementType from old ID (e.g., "balloons-interactive_1752587338014" -> "balloons-interactive")
+                  const elementType = elementId.split('_')[0];
+                  element = wishElements.find(
+                    el => el.elementType === elementType
+                  );
+                }
+
+                return element ? element.id : elementId;
+              })
+          );
+          setStepSequence(convertedStepSequence);
+        }
+        loadedTemplateRef.current = template.id;
       }
-      // Load step sequence if available
-      if (template.stepSequence) {
-        setStepSequence(template.stepSequence);
-      }
-      loadedTemplateRef.current = template.id;
-    }
+    };
+
+    loadTemplateElements();
   }, [template?.id]);
 
   useEffect(() => {
@@ -1207,7 +1364,19 @@ export function CustomWishBuilder({
       if ((event.ctrlKey || event.metaKey) && event.key === 's') {
         event.preventDefault();
         if (currentStep === 'save') {
-          actions.handleSaveWish();
+          // For both template mode and custom wish creation, create a wish object and open the dialog
+          const wishData = {
+            title: `Wish for ${recipientName || 'Recipient'}`,
+            recipientName: recipientName || '',
+            message: message || '',
+            theme,
+            elements: elements,
+            stepSequence: stepSequence,
+            customBackgroundColor,
+            isPublic: true,
+          };
+          setCurrentWish(wishData as any);
+          setShowSaveShareDialog(true);
         }
       }
     };
@@ -1219,11 +1388,18 @@ export function CustomWishBuilder({
     showPresentationMode,
     currentStep,
     navigation.handlePreviousStep,
-    actions.handleSaveWish,
+    recipientName,
+    message,
+    theme,
+    elements,
+    stepSequence,
+    customBackgroundColor,
+    setCurrentWish,
+    setShowSaveShareDialog,
   ]);
 
   return (
-    <div className='h-screen bg-gray-50 flex flex-col'>
+    <div className='h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col'>
       {/* Error Toast */}
       {error && (
         <div className='fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg max-w-md'>
@@ -1244,17 +1420,19 @@ export function CustomWishBuilder({
       )}
 
       {/* Loading Overlay */}
-      {isLoading && (
+      {(isLoading || templateLoading) && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
           <div className='bg-white rounded-lg p-6 flex items-center space-x-3'>
             <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600'></div>
-            <span className='text-gray-700'>Processing...</span>
+            <span className='text-gray-700'>
+              {templateLoading ? 'Loading template...' : 'Processing...'}
+            </span>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className='bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 border-b border-purple-100 flex-shrink-0'>
+      <div className='bg-white/80 backdrop-blur-sm border-b border-white/20 flex-shrink-0'>
         <div className='w-full max-w-[1800px] mx-auto px-4 md:px-6 py-3'>
           {/* Main Header Row */}
           <div className='flex items-center justify-between relative'>
@@ -1344,7 +1522,21 @@ export function CustomWishBuilder({
               {currentStep === 'save' && (
                 <Button
                   variant='primary'
-                  onClick={actions.handleSaveWish}
+                  onClick={() => {
+                    // For both template mode and custom wish creation, create a wish object and open the dialog
+                    const wishData = {
+                      title: `Wish for ${recipientName || 'Recipient'}`,
+                      recipientName: recipientName || '',
+                      message: message || '',
+                      theme,
+                      elements: elements,
+                      stepSequence: stepSequence,
+                      customBackgroundColor,
+                      isPublic: true,
+                    };
+                    setCurrentWish(wishData as any);
+                    setShowSaveShareDialog(true);
+                  }}
                   disabled={isLoading || elements.length === 0}
                   className='text-xs md:text-sm px-2 md:px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
                   aria-label='Save and share wish'
@@ -1399,8 +1591,6 @@ export function CustomWishBuilder({
                 }
                 onSelectElement={handleSelectElement}
                 onUnselectElement={handleUnselectElement}
-                isUserPremium={isUserPremium}
-                isRestrictedMode={isRestrictedMode}
                 canvasElements={elements}
               />
             </div>
@@ -1440,6 +1630,7 @@ export function CustomWishBuilder({
                 onCanvasSettingsToggle={setShowCanvasSettings}
                 isPreviewMode={currentStep === 'preview'}
                 stepSequence={stepSequence}
+                music={music}
               />
             </div>
           )}
@@ -1473,11 +1664,13 @@ export function CustomWishBuilder({
                     ? false
                     : showCanvasSettings
                 }
-                isUserPremium={isUserPremium}
+                userCredits={userPremiumStatus?.credits || 0}
                 onUpgradeClick={actions.handleUpgradeClick}
                 selectedElements={getSelectedElementsForDisplay()}
                 elements={elements}
                 onSwitchToElement={handleSwitchToElement}
+                music={music}
+                onUpdateMusic={setMusic}
               />
             </div>
           ) : null}
@@ -1485,120 +1678,13 @@ export function CustomWishBuilder({
           {/* Canvas Settings Panel - Show in canvas-settings step (template mode) */}
           {currentStep === 'canvas-settings' && isTemplateMode && (
             <div className='col-span-4 lg:col-span-4 xl:col-span-4 overflow-hidden'>
-              <div className='bg-white rounded-lg shadow-sm border h-full flex flex-col'>
-                <div className='p-4 border-b flex-shrink-0'>
-                  <h3 className='text-lg font-semibold text-gray-800 mb-3'>
-                    Canvas Settings
-                  </h3>
-                  <p className='text-sm text-gray-600'>
-                    Configure background, music, and overall template settings
-                  </p>
-                </div>
-                <div className='flex-1 p-4 overflow-y-auto'>
-                  <div className='space-y-6'>
-                    {/* Background Settings */}
-                    <div>
-                      <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                        Background
-                      </h4>
-                      <div className='space-y-3'>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Background Color
-                          </label>
-                          <input
-                            type='color'
-                            value={customBackgroundColor}
-                            onChange={e =>
-                              setCustomBackgroundColor(e.target.value)
-                            }
-                            className='w-full h-10 rounded border border-gray-300'
-                          />
-                        </div>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Theme
-                          </label>
-                          <select
-                            value={theme}
-                            onChange={e => setTheme(e.target.value)}
-                            className='w-full p-2 border border-gray-300 rounded text-sm'
-                          >
-                            <option value='purple'>Purple</option>
-                            <option value='blue'>Blue</option>
-                            <option value='green'>Green</option>
-                            <option value='pink'>Pink</option>
-                            <option value='orange'>Orange</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Music Settings */}
-                    <div>
-                      <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                        Music
-                      </h4>
-                      <div className='space-y-3'>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Background Music
-                          </label>
-                          <select className='w-full p-2 border border-gray-300 rounded text-sm'>
-                            <option value='none'>No Music</option>
-                            <option value='happy'>Happy Birthday</option>
-                            <option value='romantic'>Romantic</option>
-                            <option value='celebratory'>Celebratory</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Volume
-                          </label>
-                          <input
-                            type='range'
-                            min='0'
-                            max='100'
-                            defaultValue='50'
-                            className='w-full'
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Animation Settings */}
-                    <div>
-                      <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                        Animation
-                      </h4>
-                      <div className='space-y-3'>
-                        <div>
-                          <label className='block text-sm text-gray-600 mb-1'>
-                            Animation Speed
-                          </label>
-                          <select className='w-full p-2 border border-gray-300 rounded text-sm'>
-                            <option value='slow'>Slow</option>
-                            <option value='normal'>Normal</option>
-                            <option value='fast'>Fast</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className='flex items-center'>
-                            <input
-                              type='checkbox'
-                              className='mr-2'
-                              defaultChecked
-                            />
-                            <span className='text-sm text-gray-600'>
-                              Enable particle effects
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <CanvasSettingsPanel
+                theme={theme}
+                onUpdateTheme={setTheme}
+                music={music}
+                onUpdateMusic={setMusic}
+                showCanvasSettings={true}
+              />
             </div>
           )}
 
@@ -1633,13 +1719,34 @@ export function CustomWishBuilder({
                   onSave={
                     isAdminMode
                       ? () => onSaveTemplate?.(elements, stepSequence)
-                      : actions.handleSaveWish
+                      : () => {
+                          // For both template mode and custom wish creation, create a wish object and open the dialog
+                          const wishData = {
+                            title: `Wish for ${recipientName || 'Recipient'}`,
+                            recipientName: recipientName || '',
+                            message: message || '',
+                            theme,
+                            elements: elements,
+                            stepSequence: stepSequence,
+                            customBackgroundColor,
+                            music,
+                            isPublic: true,
+                          };
+                          setCurrentWish(wishData as any);
+                          setShowSaveShareDialog(true);
+                        }
                   }
                   isTemplateMode={isTemplateMode}
                   isAdminMode={isAdminMode}
                   templateMetadata={templateMetadata}
                   onShowMetadataForm={onShowMetadataForm}
                   adminIsSaving={adminIsSaving}
+                  recipientName={recipientName}
+                  setRecipientName={setRecipientName}
+                  message={message}
+                  setMessage={setMessage}
+                  theme={theme}
+                  templateCreditCost={template?.creditCost || 0}
                 />
               </div>
             </div>
@@ -1708,8 +1815,6 @@ export function CustomWishBuilder({
                   }
                   onSelectElement={handleSelectElement}
                   onUnselectElement={handleUnselectElement}
-                  isUserPremium={isUserPremium}
-                  isRestrictedMode={isRestrictedMode}
                   canvasElements={elements}
                 />
               </div>
@@ -1844,6 +1949,7 @@ export function CustomWishBuilder({
                   onCanvasSettingsToggle={setShowCanvasSettings}
                   isPreviewMode={currentStep === 'preview'}
                   stepSequence={stepSequence}
+                  music={music}
                 />
               </div>
             )}
@@ -1895,11 +2001,13 @@ export function CustomWishBuilder({
                     ? false
                     : showCanvasSettings
                 }
-                isUserPremium={isUserPremium}
+                userCredits={userPremiumStatus?.credits || 0}
                 onUpgradeClick={actions.handleUpgradeClick}
                 selectedElements={getSelectedElementsForDisplay()}
                 elements={elements}
                 onSwitchToElement={handleSwitchToElement}
+                music={music}
+                onUpdateMusic={setMusic}
               />
             </div>
           ) : null}
@@ -1909,120 +2017,13 @@ export function CustomWishBuilder({
             mobileView === 'properties' &&
             isTemplateMode && (
               <div className='h-full'>
-                <div className='bg-white rounded-lg shadow-sm border h-full flex flex-col'>
-                  <div className='p-4 border-b flex-shrink-0'>
-                    <h3 className='text-lg font-semibold text-gray-800 mb-3'>
-                      Canvas Settings
-                    </h3>
-                    <p className='text-sm text-gray-600'>
-                      Configure background, music, and overall template settings
-                    </p>
-                  </div>
-                  <div className='flex-1 p-4 overflow-y-auto'>
-                    <div className='space-y-6'>
-                      {/* Background Settings */}
-                      <div>
-                        <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                          Background
-                        </h4>
-                        <div className='space-y-3'>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Background Color
-                            </label>
-                            <input
-                              type='color'
-                              value={customBackgroundColor}
-                              onChange={e =>
-                                setCustomBackgroundColor(e.target.value)
-                              }
-                              className='w-full h-10 rounded border border-gray-300'
-                            />
-                          </div>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Theme
-                            </label>
-                            <select
-                              value={theme}
-                              onChange={e => setTheme(e.target.value)}
-                              className='w-full p-2 border border-gray-300 rounded text-sm'
-                            >
-                              <option value='purple'>Purple</option>
-                              <option value='blue'>Blue</option>
-                              <option value='green'>Green</option>
-                              <option value='pink'>Pink</option>
-                              <option value='orange'>Orange</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Music Settings */}
-                      <div>
-                        <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                          Music
-                        </h4>
-                        <div className='space-y-3'>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Background Music
-                            </label>
-                            <select className='w-full p-2 border border-gray-300 rounded text-sm'>
-                              <option value='none'>No Music</option>
-                              <option value='happy'>Happy Birthday</option>
-                              <option value='romantic'>Romantic</option>
-                              <option value='celebratory'>Celebratory</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Volume
-                            </label>
-                            <input
-                              type='range'
-                              min='0'
-                              max='100'
-                              defaultValue='50'
-                              className='w-full'
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Animation Settings */}
-                      <div>
-                        <h4 className='text-sm font-medium text-gray-700 mb-3'>
-                          Animation
-                        </h4>
-                        <div className='space-y-3'>
-                          <div>
-                            <label className='block text-sm text-gray-600 mb-1'>
-                              Animation Speed
-                            </label>
-                            <select className='w-full p-2 border border-gray-300 rounded text-sm'>
-                              <option value='slow'>Slow</option>
-                              <option value='normal'>Normal</option>
-                              <option value='fast'>Fast</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className='flex items-center'>
-                              <input
-                                type='checkbox'
-                                className='mr-2'
-                                defaultChecked
-                              />
-                              <span className='text-sm text-gray-600'>
-                                Enable particle effects
-                              </span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <CanvasSettingsPanel
+                  theme={theme}
+                  onUpdateTheme={setTheme}
+                  music={music}
+                  onUpdateMusic={setMusic}
+                  showCanvasSettings={true}
+                />
               </div>
             )}
 
@@ -2036,9 +2037,30 @@ export function CustomWishBuilder({
                 onSave={
                   isAdminMode
                     ? () => onSaveTemplate?.(elements, stepSequence)
-                    : actions.handleSaveWish
+                    : () => {
+                        // For both template mode and custom wish creation, create a wish object and open the dialog
+                        const wishData = {
+                          title: `Wish for ${recipientName || 'Recipient'}`,
+                          recipientName: recipientName || '',
+                          message: message || '',
+                          theme,
+                          elements: elements,
+                          stepSequence: stepSequence,
+                          customBackgroundColor,
+                          music,
+                          isPublic: true,
+                        };
+                        setCurrentWish(wishData as any);
+                        setShowSaveShareDialog(true);
+                      }
                 }
                 isTemplateMode={isTemplateMode}
+                recipientName={recipientName}
+                setRecipientName={setRecipientName}
+                message={message}
+                setMessage={setMessage}
+                theme={theme}
+                templateCreditCost={template?.creditCost || 0}
               />
             </div>
           )}
@@ -2068,6 +2090,13 @@ export function CustomWishBuilder({
         isOpen={showPresentationMode}
         onClose={() => setShowPresentationMode(false)}
         wish={currentWish!}
+      />
+
+      {/* Premium Upgrade Modal */}
+      <PremiumUpgradeModal
+        isOpen={showPremiumUpgradeModal}
+        onClose={() => setShowPremiumUpgradeModal(false)}
+        trigger='wish-limit'
       />
     </div>
   );

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Wish } from '@/types';
 import { formatDate } from '@/lib/utils';
+import { ExpirationBadge } from '@/components/ui/ExpirationBadge';
 
 interface WishCardProps {
   wish: Wish;
@@ -63,6 +64,8 @@ export function WishCard({ wish, onEdit, onDelete, onView }: WishCardProps) {
               Public
             </span>
           )}
+          {/* Expiration Badge */}
+          <ExpirationBadge expiresAt={wish.expiresAt} />
         </div>
 
         {/* Actions */}
