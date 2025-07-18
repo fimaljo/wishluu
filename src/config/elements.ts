@@ -306,6 +306,64 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
       },
     ],
   },
+
+  {
+    id: 'image-puzzle',
+    type: 'interaction',
+    name: 'Image Puzzle',
+    description: 'Interactive image puzzle with drag and drop pieces',
+    icon: '🧩',
+    category: 'basic',
+    isPremium: false,
+    tags: ['puzzle', 'image', 'drag', 'drop', 'game', 'interactive'],
+    properties: {
+      imageUrl: '',
+      gridSize: 3,
+      difficulty: 'medium',
+      secretMessage: '',
+    },
+    propertyDefinitions: [
+      {
+        name: 'imageUrl',
+        type: 'text',
+        label: 'Image URL',
+        defaultValue: '',
+        isPremium: false,
+      },
+      {
+        name: 'gridSize',
+        type: 'select',
+        label: 'Grid Size',
+        defaultValue: 3,
+        isPremium: false,
+        options: [
+          { value: '2', label: '2x2 (Easy)' },
+          { value: '3', label: '3x3 (Medium)' },
+          { value: '4', label: '4x4 (Hard)' },
+          { value: '5', label: '5x5 (Expert)' },
+        ],
+      },
+      {
+        name: 'difficulty',
+        type: 'select',
+        label: 'Difficulty',
+        defaultValue: 'medium',
+        isPremium: false,
+        options: [
+          { value: 'easy', label: 'Easy' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'hard', label: 'Hard' },
+        ],
+      },
+      {
+        name: 'secretMessage',
+        type: 'text',
+        label: 'Secret Message (shown when solved)',
+        defaultValue: '',
+        isPremium: false,
+      },
+    ],
+  },
 ];
 
 // ===== HELPER FUNCTIONS =====

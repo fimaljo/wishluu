@@ -6,6 +6,7 @@ import { InteractiveBalloons } from '@/components/ui/InteractiveBalloons';
 import { BeautifulText } from '@/components/ui/BeautifulText';
 import { CommentWall } from '@/components/ui/CommentWall';
 import { DateQuestion } from '@/components/ui/DateQuestion';
+import { ImagePuzzle } from '@/components/ui/ImagePuzzle';
 import { MusicPlayer } from '@/components/ui/MusicPlayer';
 
 interface WishCanvasProps {
@@ -130,6 +131,7 @@ export function WishCanvas({
             el.elementType === 'beautiful-text' ||
             el.elementType === 'comment-wall' ||
             el.elementType === 'date-question' ||
+            el.elementType === 'image-puzzle' ||
             el.elementType === 'confetti' ||
             el.elementType === 'music-player'
         );
@@ -360,6 +362,39 @@ export function WishCanvas({
               question={properties.question || 'Will you come for a date?'}
               yesText={properties.yesText || 'Yes'}
               noText={properties.noText || 'No'}
+            />
+          </div>
+        );
+
+      case 'image-puzzle':
+        return (
+          <div
+            key={element.id}
+            className={`${baseClasses} ${getTransitionClasses(properties.transition)}`}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'auto',
+              maxWidth: '90%',
+            }}
+            onClick={() => {
+              if (isPreviewMode) {
+                // In preview mode, clicking image puzzle progresses to next step
+                handleElementComplete(element.id);
+              } else {
+                // In edit mode, clicking selects the element
+                onSelectElement(element);
+              }
+            }}
+          >
+            {selectedIndicator}
+            <ImagePuzzle
+              imageUrl={properties.imageUrl || ''}
+              gridSize={properties.gridSize || '3'}
+              difficulty={properties.difficulty || 'medium'}
+              secretMessage={properties.secretMessage || ''}
             />
           </div>
         );
