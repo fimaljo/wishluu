@@ -14,10 +14,10 @@ interface LoveLetterProps {
 }
 
 export function LoveLetter({
-  title = 'My Dearest',
-  message = 'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.',
-  signature = 'With all my love',
-  initials = 'JD',
+  title,
+  message,
+  signature,
+  initials,
   letterColor = '#F5F5DC',
   inkColor = '#2F2F2F',
   fontStyle = 'handwriting',
@@ -70,6 +70,31 @@ export function LoveLetter({
     }
   };
 
+  // Generate lined paper effect
+  const generateLines = () => {
+    const lines = [];
+    const lineHeight = 24; // Height of each line - matches text line-height
+    const totalLines = 12; // Reduced number of lines to prevent overflow
+    const lineStartY = 40; // Start right after the title
+    const lineWidth = 'calc(100% - 2rem)'; // Account for padding
+
+    for (let i = 0; i < totalLines; i++) {
+      lines.push(
+        <div
+          key={i}
+          className='absolute border-b border-gray-300/40'
+          style={{
+            top: `${lineStartY + i * lineHeight}px`,
+            left: '1rem',
+            right: '1rem',
+            height: '1px',
+          }}
+        />
+      );
+    }
+    return lines;
+  };
+
   return (
     <div className='relative w-full h-full flex items-center justify-center'>
       {/* Love Letter Container */}
@@ -120,35 +145,61 @@ export function LoveLetter({
           {/* Letter Content */}
           {showContent && (
             <div
-              className={`absolute inset-4 p-6 transition-all duration-500 ease-out ${
+              className={`absolute top-6 left-6 right-6 bottom-6 transition-all duration-500 ease-out ${
                 contentVisible ? 'opacity-100' : 'opacity-0'
               }`}
               style={{
                 color: inkColor,
               }}
             >
-              <div className={`text-center space-y-6 ${getFontClass()}`}>
-                {/* Title */}
-                <h2
-                  className='text-2xl font-bold mb-4'
-                  style={{ color: inkColor }}
-                >
-                  {title}
-                </h2>
+              {/* Lined Paper Lines */}
+              {generateLines()}
 
-                {/* Message */}
-                <div className='text-sm leading-relaxed text-left space-y-3'>
-                  {message.split('\n').map((paragraph, index) => (
-                    <p key={index} className='indent-4'>
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
+              <div className={`relative space-y-6 ${getFontClass()}`}>
+                {/* Title */}
+                {title && (
+                  <h2
+                    className='text-2xl font-bold mb-2 text-center'
+                    style={{ color: inkColor }}
+                  >
+                    {title}
+                  </h2>
+                )}
+
+                {/* Message with line spacing */}
+                {message && (
+                  <div
+                    className='text-sm leading-6 text-left'
+                    style={{
+                      marginTop: '35px',
+                      marginLeft: '1rem',
+                      marginRight: '1rem',
+                    }}
+                  >
+                    {message.split('\n').map((paragraph, index) => (
+                      <p key={index} className='indent-4 mb-6'>
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                )}
 
                 {/* Signature */}
-                <div className='text-right mt-8'>
-                  <p className='text-lg font-semibold'>{signature}</p>
-                </div>
+                {signature && (
+                  <div className='text-right mt-8'>
+                    <div
+                      className='text-2xl font-bold italic tracking-widest transform -rotate-3'
+                      style={{
+                        color: inkColor,
+                        fontFamily: 'Brush Script MT, cursive, serif',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+                        letterSpacing: '0.1em',
+                      }}
+                    >
+                      {signature}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

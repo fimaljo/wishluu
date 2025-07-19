@@ -472,13 +472,10 @@ export function WishCanvas({
           >
             {selectedIndicator}
             <LoveLetter
-              title={properties.title || 'My Dearest'}
-              message={
-                properties.message ||
-                'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
-              }
-              signature={properties.signature || 'With all my love'}
-              initials={properties.initials || 'JD'}
+              title={properties.title}
+              message={properties.message}
+              signature={properties.signature}
+              initials={properties.initials}
               letterColor={properties.letterColor || '#F5F5DC'}
               inkColor={properties.inkColor || '#2F2F2F'}
               fontStyle={properties.fontStyle || 'handwriting'}
