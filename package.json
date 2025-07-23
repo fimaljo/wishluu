@@ -12,7 +12,10 @@
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel",
+    "deploy:dev": "vercel --dev"
   },
   "dependencies": {
     "cors": "^2.8.5",
