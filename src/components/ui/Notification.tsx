@@ -28,6 +28,7 @@ export function Notification({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [duration, onClose]);
 
   const handleClose = () => {

@@ -44,6 +44,7 @@ interface CustomWishBuilderProps {
   templateId?: string;
   isTemplateMode?: boolean;
   isAdminMode?: boolean;
+  isUserPremium?: boolean;
   onSaveTemplate?: (elements: WishElement[], stepSequence: string[][]) => void;
   templateMetadata?:
     | {
@@ -831,6 +832,7 @@ export function CustomWishBuilder({
   templateId,
   isTemplateMode = false,
   isAdminMode = false,
+  isUserPremium = false,
   onSaveTemplate,
   templateMetadata,
   onShowMetadataForm,

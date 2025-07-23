@@ -341,6 +341,7 @@ export function InteractiveQuiz({
       }, 50);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [confetti]);
 
   // Get result message based on score
