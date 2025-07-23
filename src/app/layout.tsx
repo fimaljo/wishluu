@@ -24,6 +24,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { WishProvider } from '@/contexts/WishContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { MonthlyLoginBonus } from '@/components/auth/MonthlyLoginBonus';
+import { GoogleAdSense } from '@/components/ui/GoogleAdSense';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const poppins = Poppins({
@@ -133,6 +134,10 @@ export default function RootLayout({
             <WishProvider>
               {children}
               <MonthlyLoginBonus />
+              <GoogleAdSense
+                client={process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT || ''}
+                enabled={process.env.NEXT_PUBLIC_ADS_ENABLED === 'true'}
+              />
             </WishProvider>
           </AuthProvider>
         </ErrorBoundary>

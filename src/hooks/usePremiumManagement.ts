@@ -38,6 +38,14 @@ export interface PremiumActions {
     creditsAdded: number;
     message: string;
   }>;
+  addCredits: (
+    amount: number,
+    description: string
+  ) => Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+  }>;
 }
 
 export function usePremiumManagement(): PremiumStatus & PremiumActions {
@@ -210,6 +218,42 @@ export function usePremiumManagement(): PremiumStatus & PremiumActions {
     );
   }, [user?.uid, loadPremiumStatus]);
 
+  const addCredits = useCallback(
+    async (amount: number, description: string) => {
+      if (!user?.uid) {
+        return { success: false, error: 'User not authenticated' };
+      }
+
+      try {
+        const result = await firebasePremiumService.addCredits(
+          user.uid,
+          amount,
+          description,
+          'bonus'
+        );
+
+        if (result.success) {
+          // Refresh status after adding credits
+          await loadPremiumStatus();
+          return { success: true, message: `Added ${amount} credits` };
+        } else {
+          return {
+            success: false,
+            error: result.error || 'Failed to add credits',
+          };
+        }
+      } catch (error) {
+        console.error('Error adding credits:', error);
+        return {
+          success: false,
+          error:
+            error instanceof Error ? error.message : 'Unknown error occurred',
+        };
+      }
+    },
+    [user?.uid, loadPremiumStatus]
+  );
+
   // Load premium status when user changes
   useEffect(() => {
     loadPremiumStatus();
@@ -224,6 +268,7 @@ export function usePremiumManagement(): PremiumStatus & PremiumActions {
     downgradeUser,
     refreshStatus,
     claimMonthlyLoginBonus,
+    addCredits,
   };
 }
 

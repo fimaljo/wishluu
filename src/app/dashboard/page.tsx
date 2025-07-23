@@ -11,6 +11,7 @@ import { ExpirationBadge } from '@/components/ui/ExpirationBadge';
 import { usePremiumManagement } from '@/hooks/usePremiumManagement';
 import { PremiumUpgradeModal } from '@/components/ui/PremiumUpgradeModal';
 import { useNotification } from '@/components/ui/Notification';
+import { WatchAdsForCredits } from '@/components/ui/WatchAdsForCredits';
 
 export default function DashboardPage() {
   const { user, isAdmin, signOut } = useAuth();
@@ -313,6 +314,8 @@ export default function DashboardPage() {
                   >
                     Buy Credits
                   </Button>
+
+                  <WatchAdsForCredits />
                 </div>
               </div>
             </div>
