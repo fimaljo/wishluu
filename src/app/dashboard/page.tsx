@@ -30,6 +30,26 @@ export default function DashboardPage() {
   const [showPremiumUpgradeModal, setShowPremiumUpgradeModal] = useState(false);
   const { notification, showInfo, showError } = useNotification();
 
+  // Handle payment success/cancel from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const canceled = urlParams.get('canceled');
+    const packageId = urlParams.get('package');
+
+    if (success === 'true' && packageId) {
+      showInfo(
+        `Payment successful! Your credits have been added to your account.`
+      );
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (canceled === 'true') {
+      showInfo('Payment was canceled. You can try again anytime.');
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [showInfo]);
+
   // Calculate dashboard statistics
   const stats = {
     totalWishes: wishes.length,

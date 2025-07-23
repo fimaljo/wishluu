@@ -155,6 +155,13 @@ export const rateLimitConfigs = {
     blockDurationMs: 30 * 60 * 1000, // Block for 30 minutes if exceeded
   },
 
+  // Payment operations - moderate
+  payment: {
+    maxRequests: 20,
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    blockDurationMs: 30 * 60 * 1000, // Block for 30 minutes if exceeded
+  },
+
   // Auth operations - moderate
   auth: {
     maxRequests: 50,

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { usePremiumManagement } from '@/hooks/usePremiumManagement';
+import { usePayment } from '@/hooks/usePayment';
 import { PLAN_LIMITS, CREDIT_COSTS } from '@/lib/firebasePremiumService';
 
 interface PremiumUpgradeModalProps {
@@ -19,11 +20,20 @@ export function PremiumUpgradeModal({
 }: PremiumUpgradeModalProps) {
   const { user, usage, limits, upgradeUser, isLoading, error } =
     usePremiumManagement();
-  const [isUpgrading, setIsUpgrading] = useState(false);
+  const {
+    purchaseCredits,
+    isProcessing,
+    error: paymentError,
+    getAllPackages,
+  } = usePayment();
 
   if (!isOpen) return null;
 
   const currentCredits = user?.credits || 0;
+  const creditPackages = getAllPackages().map(pkg => ({
+    ...pkg,
+    price: `$${(pkg.price / 100).toFixed(2)}`, // Convert cents to dollars
+  }));
 
   const getTriggerMessage = () => {
     switch (trigger) {
@@ -35,44 +45,6 @@ export function PremiumUpgradeModal({
         return 'Choose a plan to unlock premium features and create amazing wishes!';
     }
   };
-
-  const creditPackages = [
-    {
-      id: 'starter',
-      name: 'Starter',
-      price: '$4.99',
-      credits: 10,
-      bonus: 0,
-      features: ['10 credits', 'Ad-free experience'],
-      popular: false,
-    },
-    {
-      id: 'popular',
-      name: 'Popular',
-      price: '$9.99',
-      credits: 25,
-      bonus: 5,
-      features: [
-        '30 credits total (25 + 5 bonus)',
-        'Ad-free experience',
-        'Priority support',
-      ],
-      popular: true,
-    },
-    {
-      id: 'premium',
-      name: 'Premium',
-      price: '$19.99',
-      credits: 60,
-      bonus: 15,
-      features: [
-        '75 credits total (60 + 15 bonus)',
-        'Ad-free experience',
-        'Priority support',
-      ],
-      popular: false,
-    },
-  ];
 
   return (
     <div className='fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4'>
@@ -203,26 +175,24 @@ export function PremiumUpgradeModal({
                   <button
                     onClick={async () => {
                       try {
-                        setIsUpgrading(true);
-                        // TODO: Implement payment processing
-                        console.log('Purchasing credits:', pkg.id);
-                        onClose();
+                        const result = await purchaseCredits(pkg.id as any);
+                        if (result.success) {
+                          onClose();
+                        }
                       } catch (error) {
                         console.error('Error purchasing credits:', error);
-                      } finally {
-                        setIsUpgrading(false);
                       }
                     }}
-                    disabled={isUpgrading}
+                    disabled={isProcessing}
                     className={`w-full py-5 px-8 rounded-2xl font-bold text-xl transition-all duration-300 mt-auto ${
-                      isUpgrading
+                      isProcessing
                         ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                         : pkg.popular
                           ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-xl hover:shadow-2xl transform hover:-translate-y-1'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-lg border border-gray-300'
                     }`}
                   >
-                    {isUpgrading ? (
+                    {isProcessing ? (
                       <div className='flex items-center justify-center space-x-3'>
                         <div className='w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin'></div>
                         <span>Processing...</span>
@@ -236,8 +206,8 @@ export function PremiumUpgradeModal({
             ))}
           </div>
 
-          {/* Error Message */}
-          {error && (
+          {/* Error Messages */}
+          {(error || paymentError) && (
             <div className='mt-8 p-6 bg-red-50 border border-red-200 rounded-2xl'>
               <div className='flex items-center space-x-4'>
                 <div className='w-8 h-8 bg-red-100 rounded-full flex items-center justify-center border border-red-200'>
@@ -255,7 +225,9 @@ export function PremiumUpgradeModal({
                     />
                   </svg>
                 </div>
-                <p className='text-red-800 font-semibold text-lg'>{error}</p>
+                <p className='text-red-800 font-semibold text-lg'>
+                  {error || paymentError}
+                </p>
               </div>
             </div>
           )}
