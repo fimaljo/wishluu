@@ -36,6 +36,10 @@ const fontFamilies = {
   satisfy: 'var(--font-satisfy)',
   kaushan: 'var(--font-kaushan)',
   allura: 'var(--font-allura)',
+  parisienne: 'var(--font-parisienne)',
+  'cormorant-garamond': 'var(--font-cormorant-garamond)',
+  'cinzel-decorative': 'var(--font-cinzel-decorative)',
+  'alex-brush': 'var(--font-alex-brush)',
 
   // Premium bubble fonts (using web-safe alternatives)
   fredoka: '"Fredoka One", cursive',

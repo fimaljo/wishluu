@@ -5,6 +5,26 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Font CSS Variables */
+  --font-inter: 'Inter', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-roboto: 'Roboto', sans-serif;
+  --font-opensans: 'Open Sans', sans-serif;
+  --font-lato: 'Lato', sans-serif;
+  --font-raleway: 'Raleway', sans-serif;
+  --font-playfair: 'Playfair Display', serif;
+  --font-dancing: 'Dancing Script', cursive;
+  --font-pacifico: 'Pacifico', cursive;
+  --font-great-vibes: 'Great Vibes', cursive;
+  --font-satisfy: 'Satisfy', cursive;
+  --font-kaushan: 'Kaushan Script', cursive;
+  --font-allura: 'Allura', cursive;
+  --font-parisienne: 'Parisienne', cursive;
+  --font-cormorant-garamond: 'Cormorant Garamond', serif;
+  --font-cinzel-decorative: 'Cinzel Decorative', cursive;
+  --font-alex-brush: 'Alex Brush', cursive;
 }
 
 @theme inline {

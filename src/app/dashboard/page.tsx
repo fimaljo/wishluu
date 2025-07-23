@@ -230,7 +230,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         {/* Welcome Section */}
-        <div className='text-center mb-12'>
+        {/* <div className='text-center mb-12'>
           <h2 className='text-4xl md:text-5xl font-bold text-gray-800 mb-4'>
             Welcome back, {user.displayName || user.email?.split('@')[0]}! 👋
           </h2>
@@ -238,7 +238,7 @@ export default function DashboardPage() {
             Ready to create something beautiful? Choose how you'd like to get
             started.
           </p>
-        </div>
+        </div> */}
 
         {/* Credit Display */}
         {premiumLoading ? (
@@ -276,16 +276,6 @@ export default function DashboardPage() {
               </div>
 
               <div className='flex items-center space-x-4'>
-                <div className='flex items-center space-x-2'>
-                  <div className='text-right'>
-                    <p className='text-sm text-gray-600'>Total purchased</p>
-                    <p className='text-lg font-semibold text-gray-800'>
-                      {(premiumUser.totalCreditsPurchased || 0).toFixed(2)}{' '}
-                      credits
-                    </p>
-                  </div>
-                </div>
-
                 <div className='flex items-center space-x-2'>
                   <Button
                     variant='outline'

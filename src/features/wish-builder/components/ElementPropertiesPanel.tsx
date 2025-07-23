@@ -607,10 +607,16 @@ export function ElementPropertiesPanel({
                               value: string;
                               label: string;
                               isPremium?: boolean;
+                              creditCost?: number;
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium && ' ✨ (Premium)'}
+                                {option.creditCost &&
+                                  option.creditCost > 0 &&
+                                  ` 💎 ${option.creditCost}`}
+                                {option.isPremium &&
+                                  !option.creditCost &&
+                                  ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -747,10 +753,16 @@ export function ElementPropertiesPanel({
                               value: string;
                               label: string;
                               isPremium?: boolean;
+                              creditCost?: number;
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium && ' ✨ (Premium)'}
+                                {option.creditCost &&
+                                  option.creditCost > 0 &&
+                                  ` 💎 ${option.creditCost}`}
+                                {option.isPremium &&
+                                  !option.creditCost &&
+                                  ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -929,10 +941,16 @@ export function ElementPropertiesPanel({
                               value: string;
                               label: string;
                               isPremium?: boolean;
+                              creditCost?: number;
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium && ' ✨ (Premium)'}
+                                {option.creditCost &&
+                                  option.creditCost > 0 &&
+                                  ` 💎 ${option.creditCost}`}
+                                {option.isPremium &&
+                                  !option.creditCost &&
+                                  ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -1107,10 +1125,16 @@ export function ElementPropertiesPanel({
                               value: string;
                               label: string;
                               isPremium?: boolean;
+                              creditCost?: number;
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium && ' ✨ (Premium)'}
+                                {option.creditCost &&
+                                  option.creditCost > 0 &&
+                                  ` 💎 ${option.creditCost}`}
+                                {option.isPremium &&
+                                  !option.creditCost &&
+                                  ' ✨ (Premium)'}
                               </option>
                             )
                           )}

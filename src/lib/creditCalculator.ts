@@ -113,6 +113,10 @@ export function calculateTotalCreditCost(
           satisfy: 0.5,
           kaushan: 0.5,
           allura: 0.5,
+          parisienne: 0.5,
+          'cormorant-garamond': 0.5,
+          'cinzel-decorative': 0.5,
+          'alex-brush': 0.5,
         };
 
         if (premiumFonts[value]) {
@@ -299,6 +303,10 @@ export function calculateTemplateCreditCost(
           satisfy: 0.5,
           kaushan: 0.5,
           allura: 0.5,
+          parisienne: 0.5,
+          'cormorant-garamond': 0.5,
+          'cinzel-decorative': 0.5,
+          'alex-brush': 0.5,
         };
 
         if (premiumFonts[value]) {

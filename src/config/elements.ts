@@ -98,6 +98,18 @@ export const ELEMENT_DEFINITIONS: InteractiveElement[] = [
           { value: 'satisfy', label: 'Satisfy', creditCost: 0.5 },
           { value: 'kaushan', label: 'Kaushan Script', creditCost: 0.5 },
           { value: 'allura', label: 'Allura', creditCost: 0.5 },
+          { value: 'parisienne', label: 'Parisienne', creditCost: 0.5 },
+          {
+            value: 'cormorant-garamond',
+            label: 'Cormorant Garamond',
+            creditCost: 0.5,
+          },
+          {
+            value: 'cinzel-decorative',
+            label: 'Cinzel Decorative',
+            creditCost: 0.5,
+          },
+          { value: 'alex-brush', label: 'Alex Brush', creditCost: 0.5 },
         ],
       },
       {
