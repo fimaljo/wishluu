@@ -122,7 +122,7 @@ export default function SharedWishPage() {
       </div>
 
       {/* Wish Canvas - Full Screen */}
-      <div className='w-full h-screen'>
+      <div className='w-full' style={{ height: 'calc(100vh - 160px)' }}>
         <WishCanvas
           elements={wish.elements || []}
           stepSequence={wish.stepSequence || []}
