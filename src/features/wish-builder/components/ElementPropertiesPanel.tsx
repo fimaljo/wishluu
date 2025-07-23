@@ -566,8 +566,7 @@ export function ElementPropertiesPanel({
           <div className='space-y-4'>
             {/* Render properties based on property definitions */}
             {propertyDefinitions.map((propDef: PropertyDefinition) => {
-              const currentValue =
-                properties[propDef.name] ?? propDef.defaultValue;
+              const currentValue = properties[propDef.name] || '';
 
               return (
                 <div key={propDef.name} className='relative pb-3'>
@@ -608,10 +607,16 @@ export function ElementPropertiesPanel({
                               value: string;
                               label: string;
                               isPremium?: boolean;
+                              creditCost?: number;
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium && ' ✨ (Premium)'}
+                                {option.creditCost &&
+                                  option.creditCost > 0 &&
+                                  ` 💎 ${option.creditCost}`}
+                                {option.isPremium &&
+                                  !option.creditCost &&
+                                  ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -707,8 +712,7 @@ export function ElementPropertiesPanel({
           <div className='space-y-4'>
             {/* Render properties based on property definitions */}
             {propertyDefinitions.map((propDef: PropertyDefinition) => {
-              const currentValue =
-                properties[propDef.name] ?? propDef.defaultValue;
+              const currentValue = properties[propDef.name] || '';
 
               return (
                 <div key={propDef.name} className='relative pb-3'>
@@ -749,10 +753,16 @@ export function ElementPropertiesPanel({
                               value: string;
                               label: string;
                               isPremium?: boolean;
+                              creditCost?: number;
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium && ' ✨ (Premium)'}
+                                {option.creditCost &&
+                                  option.creditCost > 0 &&
+                                  ` 💎 ${option.creditCost}`}
+                                {option.isPremium &&
+                                  !option.creditCost &&
+                                  ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -848,8 +858,7 @@ export function ElementPropertiesPanel({
           <div className='space-y-4'>
             {/* Render properties based on property definitions */}
             {propertyDefinitions.map((propDef: PropertyDefinition) => {
-              const currentValue =
-                properties[propDef.name] ?? propDef.defaultValue;
+              const currentValue = properties[propDef.name] || '';
 
               return (
                 <div key={propDef.name} className='relative pb-3'>
@@ -932,10 +941,16 @@ export function ElementPropertiesPanel({
                               value: string;
                               label: string;
                               isPremium?: boolean;
+                              creditCost?: number;
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium && ' ✨ (Premium)'}
+                                {option.creditCost &&
+                                  option.creditCost > 0 &&
+                                  ` 💎 ${option.creditCost}`}
+                                {option.isPremium &&
+                                  !option.creditCost &&
+                                  ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -1031,8 +1046,7 @@ export function ElementPropertiesPanel({
           <div className='space-y-4'>
             {/* Render properties based on property definitions */}
             {propertyDefinitions.map((propDef: PropertyDefinition) => {
-              const currentValue =
-                properties[propDef.name] ?? propDef.defaultValue;
+              const currentValue = properties[propDef.name] || '';
 
               return (
                 <div key={propDef.name} className='relative pb-3'>
@@ -1111,10 +1125,16 @@ export function ElementPropertiesPanel({
                               value: string;
                               label: string;
                               isPremium?: boolean;
+                              creditCost?: number;
                             }) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
-                                {option.isPremium && ' ✨ (Premium)'}
+                                {option.creditCost &&
+                                  option.creditCost > 0 &&
+                                  ` 💎 ${option.creditCost}`}
+                                {option.isPremium &&
+                                  !option.creditCost &&
+                                  ' ✨ (Premium)'}
                               </option>
                             )
                           )}
@@ -1216,7 +1236,7 @@ export function ElementPropertiesPanel({
                 </label>
                 <input
                   type='text'
-                  value={properties.title || 'How Well Do You Know Me?'}
+                  value={properties.title || ''}
                   onChange={e => {
                     const newValue = e.target.value.substring(0, 100);
                     handlePropertyChange('title', newValue);
@@ -1226,15 +1246,10 @@ export function ElementPropertiesPanel({
                   maxLength={100}
                 />
                 <div className='text-xs text-gray-500 mt-1'>
-                  {(properties.title || 'How Well Do You Know Me?').length}/100
-                  characters
-                  {(properties.title || 'How Well Do You Know Me?').length >=
-                    80 && (
+                  {(properties.title || '').length}/100 characters
+                  {(properties.title || '').length >= 80 && (
                     <span className='text-orange-600 ml-2'>
-                      {100 -
-                        (properties.title || 'How Well Do You Know Me?')
-                          .length}{' '}
-                      remaining
+                      {100 - (properties.title || '').length} remaining
                     </span>
                   )}
                 </div>
@@ -1611,7 +1626,7 @@ export function ElementPropertiesPanel({
                 </label>
                 <input
                   type='text'
-                  value={properties.title || 'My Dearest'}
+                  value={properties.title || ''}
                   onChange={e => {
                     const newValue = e.target.value.substring(0, 100);
                     handlePropertyChange('title', newValue);
@@ -1621,11 +1636,10 @@ export function ElementPropertiesPanel({
                   maxLength={100}
                 />
                 <div className='text-xs text-gray-500 mt-1'>
-                  {(properties.title || 'My Dearest').length}/100 characters
-                  {(properties.title || 'My Dearest').length >= 80 && (
+                  {(properties.title || '').length}/100 characters
+                  {(properties.title || '').length >= 80 && (
                     <span className='text-orange-600 ml-2'>
-                      {100 - (properties.title || 'My Dearest').length}{' '}
-                      remaining
+                      {100 - (properties.title || '').length} remaining
                     </span>
                   )}
                 </div>
@@ -1639,10 +1653,7 @@ export function ElementPropertiesPanel({
                   Love Message
                 </label>
                 <textarea
-                  value={
-                    properties.message ||
-                    'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
-                  }
+                  value={properties.message || ''}
                   onChange={e => {
                     const newValue = e.target.value.substring(0, 500);
                     handlePropertyChange('message', newValue);
@@ -1653,24 +1664,10 @@ export function ElementPropertiesPanel({
                   maxLength={500}
                 />
                 <div className='text-xs text-gray-500 mt-1'>
-                  {
-                    (
-                      properties.message ||
-                      'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
-                    ).length
-                  }
-                  /500 characters
-                  {(
-                    properties.message ||
-                    'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
-                  ).length >= 400 && (
+                  {(properties.message || '').length}/500 characters
+                  {(properties.message || '').length >= 400 && (
                     <span className='text-orange-600 ml-2'>
-                      {500 -
-                        (
-                          properties.message ||
-                          'Every moment with you feels like a beautiful dream come true. Your love has filled my heart with endless joy and happiness. I promise to cherish and adore you forever.'
-                        ).length}{' '}
-                      remaining
+                      {500 - (properties.message || '').length} remaining
                     </span>
                   )}
                 </div>
@@ -1685,7 +1682,7 @@ export function ElementPropertiesPanel({
                 </label>
                 <input
                   type='text'
-                  value={properties.signature || 'With all my love'}
+                  value={properties.signature || ''}
                   onChange={e => {
                     const newValue = e.target.value.substring(0, 100);
                     handlePropertyChange('signature', newValue);
@@ -1695,15 +1692,10 @@ export function ElementPropertiesPanel({
                   maxLength={100}
                 />
                 <div className='text-xs text-gray-500 mt-1'>
-                  {(properties.signature || 'With all my love').length}/100
-                  characters
-                  {(properties.signature || 'With all my love').length >=
-                    80 && (
+                  {(properties.signature || '').length}/100 characters
+                  {(properties.signature || '').length >= 80 && (
                     <span className='text-orange-600 ml-2'>
-                      {100 -
-                        (properties.signature || 'With all my love')
-                          .length}{' '}
-                      remaining
+                      {100 - (properties.signature || '').length} remaining
                     </span>
                   )}
                 </div>
@@ -1721,7 +1713,7 @@ export function ElementPropertiesPanel({
                 </label>
                 <input
                   type='text'
-                  value={properties.initials || 'JD'}
+                  value={properties.initials || ''}
                   onChange={e => {
                     const newValue = e.target.value
                       .substring(0, 4)
@@ -1733,7 +1725,7 @@ export function ElementPropertiesPanel({
                   maxLength={4}
                 />
                 <div className='text-xs text-gray-500 mt-1'>
-                  {(properties.initials || 'JD').length}/4 characters
+                  {(properties.initials || '').length}/4 characters
                 </div>
               </div>
 

@@ -12,6 +12,7 @@ import {
 import { SaveShareDialog } from '@/components/ui/SaveShareDialog';
 import { PresentationMode } from '@/components/ui/PresentationMode';
 import { PremiumUpgradeModal } from '@/components/ui/PremiumUpgradeModal';
+import { CreditCostDisplay } from '@/components/ui/CreditCostDisplay';
 import { getAllElements } from '@/config/elements';
 import { premiumService } from '@/lib/premiumService';
 import { FirebaseTemplateService } from '@/lib/firebaseTemplateService';
@@ -43,6 +44,7 @@ interface CustomWishBuilderProps {
   templateId?: string;
   isTemplateMode?: boolean;
   isAdminMode?: boolean;
+  isUserPremium?: boolean;
   onSaveTemplate?: (elements: WishElement[], stepSequence: string[][]) => void;
   templateMetadata?:
     | {
@@ -584,29 +586,26 @@ const SaveShareStep = ({
         {/* Credit Cost Display */}
         {(() => {
           let creditCost = 0;
-          let costType = '';
           let breakdown = null;
 
           if (isTemplateMode) {
             // Template mode - show template cost + premium properties
             const premiumBreakdown = calculateTemplateCreditCost(elements);
             creditCost = templateCreditCost + premiumBreakdown.totalCost;
-            costType = 'Total Template Cost';
             breakdown = premiumBreakdown;
           } else {
             // Custom wish mode - calculate total element and property costs
             const totalBreakdown = calculateTotalCreditCost(elements);
             creditCost = totalBreakdown.totalCost;
-            costType = 'Total Cost';
             breakdown = totalBreakdown;
           }
 
           if (creditCost > 0) {
             return (
               <div className='mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg'>
-                <div className='flex items-center justify-between'>
+                <div className='flex items-center justify-between mb-3'>
                   <span className='text-sm font-medium text-gray-700'>
-                    {costType}
+                    {isTemplateMode ? 'Total Template Cost' : 'Total Cost'}
                   </span>
                   <div className='flex items-center space-x-2'>
                     <span className='text-yellow-500'>💎</span>
@@ -615,40 +614,15 @@ const SaveShareStep = ({
                     </span>
                   </div>
                 </div>
-                {!isTemplateMode && creditCost > 0 && (
-                  <div className='mt-2 text-xs text-gray-600'>
-                    Includes {elements.length} element
-                    {elements.length !== 1 ? 's' : ''} and premium features
-                  </div>
-                )}
-                {isTemplateMode && creditCost > 0 && (
-                  <div className='mt-3 space-y-1'>
-                    {templateCreditCost > 0 && (
-                      <div className='flex items-center justify-between text-xs'>
-                        <span className='text-gray-600'>Template cost:</span>
-                        <span className='font-medium text-gray-800'>
-                          {templateCreditCost.toFixed(2)} credits
-                        </span>
-                      </div>
-                    )}
-                    {breakdown && breakdown.totalCost > 0 && (
-                      <div className='flex items-center justify-between text-xs'>
-                        <span className='text-gray-600'>Premium features:</span>
-                        <span className='font-medium text-gray-800'>
-                          {breakdown.totalCost.toFixed(2)} credits
-                        </span>
-                      </div>
-                    )}
-                    <div className='border-t border-gray-200 pt-1 mt-1'>
-                      <div className='flex items-center justify-between text-xs font-medium'>
-                        <span className='text-gray-700'>Total:</span>
-                        <span className='text-gray-900'>
-                          {creditCost.toFixed(2)} credits
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+
+                {/* Enhanced Credit Cost Display with Detailed Breakdown */}
+                <CreditCostDisplay
+                  elements={elements}
+                  showBreakdown={true}
+                  showDetailedBreakdown={true}
+                  isTemplateMode={isTemplateMode}
+                  className=''
+                />
               </div>
             );
           }
@@ -858,6 +832,7 @@ export function CustomWishBuilder({
   templateId,
   isTemplateMode = false,
   isAdminMode = false,
+  isUserPremium = false,
   onSaveTemplate,
   templateMetadata,
   onShowMetadataForm,

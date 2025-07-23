@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { WishElement } from '@/types/templates';
 import {
   calculateTotalCreditCost,
@@ -13,6 +13,7 @@ interface CreditCostDisplayProps {
   showBreakdown?: boolean;
   className?: string;
   isTemplateMode?: boolean;
+  showDetailedBreakdown?: boolean;
 }
 
 export function CreditCostDisplay({
@@ -20,38 +21,123 @@ export function CreditCostDisplay({
   showBreakdown = false,
   className = '',
   isTemplateMode = false,
+  showDetailedBreakdown = false,
 }: CreditCostDisplayProps) {
   const breakdown = isTemplateMode
     ? calculateTemplateCreditCost(elements)
     : calculateTotalCreditCost(elements);
+  const [showDetails, setShowDetails] = useState(false);
 
   if (breakdown.totalCost === 0) {
     return null;
   }
 
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
-      <div className='flex items-center space-x-1'>
-        <span className='text-yellow-500'>💎</span>
-        <span className='text-sm font-medium text-gray-700'>
-          {breakdown.totalCost.toFixed(2)} credits
-        </span>
+    <div className={`space-y-2 ${className}`}>
+      {/* Main Credit Display */}
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center space-x-2'>
+          <div className='flex items-center space-x-1'>
+            <span className='text-yellow-500'>💎</span>
+            <span className='text-sm font-medium text-gray-700'>
+              {breakdown.totalCost.toFixed(2)} credits
+            </span>
+          </div>
+
+          {showBreakdown && breakdown.details.length > 0 && (
+            <div className='text-xs text-gray-500'>
+              {!isTemplateMode &&
+                breakdown.elementCost > 0 &&
+                `${breakdown.elementCost.toFixed(2)} elements`}
+              {!isTemplateMode &&
+                breakdown.elementCost > 0 &&
+                (breakdown.propertyCosts.total || 0) > 0 &&
+                ' + '}
+              {(breakdown.propertyCosts.total || 0) > 0 &&
+                `${(breakdown.propertyCosts.total || 0).toFixed(2)} premium features`}
+              {isTemplateMode &&
+                (breakdown.propertyCosts.total || 0) > 0 &&
+                ' (template premium features)'}
+            </div>
+          )}
+        </div>
+
+        {/* Toggle Details Button */}
+        {showDetailedBreakdown && breakdown.details.length > 0 && (
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className='text-xs text-blue-600 hover:text-blue-800 underline'
+          >
+            {showDetails ? 'Hide Details' : 'Show Details'}
+          </button>
+        )}
       </div>
 
-      {showBreakdown && breakdown.details.length > 0 && (
-        <div className='text-xs text-gray-500'>
-          {!isTemplateMode &&
-            breakdown.elementCost > 0 &&
-            `${breakdown.elementCost.toFixed(2)} elements`}
-          {!isTemplateMode &&
-            breakdown.elementCost > 0 &&
-            (breakdown.propertyCosts.total || 0) > 0 &&
-            ' + '}
-          {(breakdown.propertyCosts.total || 0) > 0 &&
-            `${(breakdown.propertyCosts.total || 0).toFixed(2)} premium features`}
-          {isTemplateMode &&
-            (breakdown.propertyCosts.total || 0) > 0 &&
-            ' (template premium features)'}
+      {/* Detailed Breakdown */}
+      {showDetailedBreakdown && showDetails && breakdown.details.length > 0 && (
+        <div className='bg-gray-50 rounded-lg p-3 space-y-3'>
+          <div className='text-xs font-medium text-gray-700 border-b border-gray-200 pb-1'>
+            Credit Breakdown
+          </div>
+
+          {breakdown.details.map((detail, index) => (
+            <div key={index} className='space-y-2'>
+              {/* Element Name and Cost */}
+              <div className='flex items-center justify-between'>
+                <span className='text-sm font-medium text-gray-800'>
+                  {detail.elementName}
+                </span>
+                <div className='flex items-center space-x-1'>
+                  <span className='text-yellow-500 text-xs'>💎</span>
+                  <span className='text-sm font-medium text-gray-700'>
+                    {detail.elementCost.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Premium Properties */}
+              {detail.premiumProperties &&
+                detail.premiumProperties.length > 0 && (
+                  <div className='ml-4 space-y-1'>
+                    {detail.premiumProperties.map((prop, propIndex) => (
+                      <div
+                        key={propIndex}
+                        className='flex items-center justify-between text-xs'
+                      >
+                        <div className='flex items-center space-x-2'>
+                          <span className='text-gray-500'>•</span>
+                          <span className='text-gray-600'>
+                            {prop.propertyName}:
+                          </span>
+                          <span className='text-gray-700 font-medium'>
+                            {prop.propertyValue}
+                          </span>
+                        </div>
+                        <div className='flex items-center space-x-1'>
+                          <span className='text-yellow-500 text-xs'>💎</span>
+                          <span className='text-gray-600'>
+                            {prop.cost.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+          ))}
+
+          {/* Total Summary */}
+          <div className='border-t border-gray-200 pt-2'>
+            <div className='flex items-center justify-between'>
+              <span className='text-sm font-semibold text-gray-800'>Total</span>
+              <div className='flex items-center space-x-1'>
+                <span className='text-yellow-500'>💎</span>
+                <span className='text-sm font-semibold text-gray-800'>
+                  {breakdown.totalCost.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

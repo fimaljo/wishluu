@@ -136,6 +136,7 @@ export function DateQuestion({
       }, 4000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [showCelebration]);
 
   useEffect(() => {
@@ -153,6 +154,7 @@ export function DateQuestion({
       }, 50);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [confetti]);
 
   // Beautiful container with glassmorphism and gradients

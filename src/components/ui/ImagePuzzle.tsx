@@ -189,6 +189,7 @@ export function ImagePuzzle({
       }, 50);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [confetti]);
 
   // Handle piece drag start

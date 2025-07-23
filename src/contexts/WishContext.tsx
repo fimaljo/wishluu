@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { Wish } from '@/lib/firebase';
+import { Wish } from '@/types';
 
 // Define action types for type safety
 type WishAction =
